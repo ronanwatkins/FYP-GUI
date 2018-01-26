@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.Group?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<Group xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.sensors.SensorsTabController">
+   <children>
+      <AnchorPane layoutX="11.0" layoutY="8.0" prefHeight="600.0" prefWidth="800.0">
+         <children>
+            <Slider fx:id="lightSlider" layoutX="45.0" layoutY="65.0" max="40000.0" snapToTicks="true" />
+            <Label layoutX="45.0" layoutY="38.0" text="Light (lux)" />
+            <Label layoutX="45.0" layoutY="86.0" text="0" />
+            <Label layoutX="152.0" layoutY="86.0" text="40000" />
+            <Label fx:id="lightLabel" layoutX="192.0" layoutY="64.0" text="0" />
+      
+            <Label layoutX="45.0" layoutY="144.0" text="Temperature (°C)" />
+            <Slider fx:id="temperatureSlider" layoutX="43.0" layoutY="169.0" min="-273.0" />
+            <Label layoutX="45.0" layoutY="192.0" text="-273" />
+            <Label fx:id="temperatureLabel" layoutX="192.0" layoutY="168.0" text="0" />
+            <Label layoutX="155.0" layoutY="192.0" text="100" />
+      
+            <Label layoutX="357.0" layoutY="38.0" text="Pressure (hPa)" />
+            <Slider fx:id="pressureSlider" layoutX="357.0" layoutY="66.0" max="1100.0" />
+            <Label fx:id="pressureLabel" layoutX="505.0" layoutY="64.0" text="0" />
+            <Label layoutX="357.0" layoutY="95.0" text="0" />
+            <Label layoutX="461.0" layoutY="95.0" text="1100" />
+      
+            <Label layoutX="361.0" layoutY="144.0" text="Proximity (cm)" />
+            <Slider fx:id="proximitySlider" layoutX="357.0" layoutY="169.0" />
+            <Label layoutX="361.0" layoutY="192.0" text="0" />
+            <Label fx:id="proximityLabel" layoutX="509.0" layoutY="168.0" text="0" />
+            <Label layoutX="461.0" layoutY="192.0" text="10" />
+
+            <Label  layoutX="44.0" layoutY="260.0" text="Humidity (%)" />
+            <Slider fx:id="humiditySlider" layoutX="43.0" layoutY="293.0" />
+            <Label layoutX="44.0" layoutY="320.0" text="0" />
+            <Label fx:id="humidityLabel" layoutX="155.0" layoutY="320.0" text="100" />
+            <Label layoutX="185.0" layoutY="292.0" text="0" />
+
+            <Label layoutX="361.0" layoutY="260.0" text="Magnetic field (uT)    [0 - 1000]" />
+            <TextField fx:id="magneticField1" layoutX="363.0" layoutY="288.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
+            <TextField fx:id="magneticField2" layoutX="427.0" layoutY="288.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
+            <TextField fx:id="magneticField3" layoutX="494.0" layoutY="288.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
+         </children>
+      </AnchorPane>
+   </children>
+</Group>

@@ -5,34 +5,44 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 
-<BorderPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.FXMLMainController">
    <top>
-      <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+      <TabPane prefHeight="600.0" prefWidth="800.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
         <tabs>
           <Tab text="Sensors">
-            <content>
-              <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefHeight="169.0" prefWidth="600.0" />
-            </content>
+              <content>
+                  <fx:include fx:id="SensorsTabPage" source="sensors/SensorsTab.fxml" />
+              </content>
           </Tab>
             <Tab text="Location">
                <content>
-                  <AnchorPane maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefHeight="162.0" prefWidth="600.0" />
+                   <fx:include fx:id="LocationTabPage" source="location/LocationTab.fxml" />
                </content>
             </Tab>
             <Tab text="Signal">
                <content>
-                  <AnchorPane maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefHeight="162.0" prefWidth="600.0" />
+                   <fx:include fx:id="SignalTabPage" source="signal/SignalTab.fxml" />
                </content>
             </Tab>
             <Tab text="Power">
                <content>
-                  <AnchorPane maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefHeight="162.0" prefWidth="600.0" />
+                   <fx:include fx:id="PowerTabPage" source="power/PowerTab.fxml" />
                </content>
             </Tab>
             <Tab text="Fingerprint">
                <content>
-                  <AnchorPane maxHeight="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefHeight="162.0" prefWidth="600.0" rotate="-177.2" />
+                   <fx:include fx:id="FingerprintTabPage" source="fingerprint/FingerprintTab.fxml" />
                </content>
+            </Tab>
+            <Tab text="Phone">
+                <content>
+                    <fx:include fx:id="PhoneTabPage" source="sensors/SensorsTab.fxml" />
+                </content>
+            </Tab>
+            <Tab text="Connect">
+                <content>
+                    <fx:include fx:id="ConnectTabPage" source="sensors/SensorsTab.fxml" />
+                </content>
             </Tab>
         </tabs>
       </TabPane>
