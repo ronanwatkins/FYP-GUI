@@ -55,7 +55,6 @@ public class HTTPServer implements Runnable{
                 String request = br.readLine();
                 System.out.println(request);
                 out.println(":)");
-
             }
 
            // os.close();

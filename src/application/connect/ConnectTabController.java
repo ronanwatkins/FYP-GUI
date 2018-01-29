@@ -23,20 +23,18 @@ public class ConnectTabController implements Initializable {
     @FXML
     private Button connectPhone;
 
+    String IPAddress = getIPAddress();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        String IPAddress = getIPAddress();
 
+        updateLabelText();
 
         //new Thread(new HTTPServer(IPAddress,PORT));
         connectPhone.setOnAction(new EventHandler<ActionEvent>() {
             boolean isConnected = false;
             @Override
             public void handle(ActionEvent event) {
-                connectLabel.setText("Connect your Android phone to " + IPAddress + ", port " + PORT +
-                        "\nWaiting for connection...");
-
                 try {
                     ServerSocket ss = new ServerSocket();
                     ss.bind(new InetSocketAddress(IPAddress, PORT));
@@ -52,10 +50,14 @@ public class ConnectTabController implements Initializable {
                 }
             }
         });
-
     }
 
-    public String getIPAddress() {
+    private void updateLabelText() {
+        connectLabel.setText("Connect your Android phone to " + IPAddress + ", port " + PORT +
+                "\nWaiting for connection...");
+    }
+
+    private String getIPAddress() {
         String ip = "";
 
         try {
