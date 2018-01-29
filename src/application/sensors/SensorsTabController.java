@@ -43,9 +43,9 @@ public class SensorsTabController implements Initializable {
     @FXML
     private TextField magneticField3;
 
-    private int magneticFieldVal1 = 0;
-    private int magneticFieldVal2 = 0;
-    private int magneticFieldVal3 = 9;
+    private double magneticFieldVal1 = 0;
+    private double magneticFieldVal2 = 0;
+    private double magneticFieldVal3 = 0;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -94,8 +94,24 @@ public class SensorsTabController implements Initializable {
         magneticField1.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                magneticFieldVal1 = Integer.parseInt(magneticField1.getText());
-                TelnetServer.setSensor("magnetic-field " + magneticField1 + "," + magneticField2 + "," + magneticField3);
+                magneticFieldVal1 = Double.parseDouble(magneticField1.getText());
+                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + "," + magneticFieldVal2 + "," + magneticFieldVal3);
+            }
+        });
+
+        magneticField2.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                magneticFieldVal2 = Double.parseDouble(magneticField2.getText());
+                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + "," + magneticFieldVal2 + "," + magneticFieldVal3);
+            }
+        });
+
+        magneticField3.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                magneticFieldVal3 = Double.parseDouble(magneticField3.getText());
+                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + "," + magneticFieldVal2 + "," + magneticFieldVal3);
             }
         });
     }
