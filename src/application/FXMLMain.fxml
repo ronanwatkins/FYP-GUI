@@ -6,40 +6,40 @@
 <?import javafx.scene.layout.BorderPane?>
 
 <BorderPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.FXMLMainController">
-   <top>
-      <TabPane prefHeight="600.0" prefWidth="800.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
-        <tabs>
-          <Tab text="Sensors">
-              <content>
-                  <fx:include fx:id="SensorsTabPage" source="sensors/SensorsTab.fxml" />
-              </content>
-          </Tab>
-            <Tab text="Location">
-               <content>
-                   <fx:include fx:id="LocationTabPage" source="location/LocationTab.fxml" />
-               </content>
-            </Tab>
-            <Tab text="Power">
-               <content>
-                   <fx:include fx:id="PowerTabPage" source="power/PowerTab.fxml" />
-               </content>
-            </Tab>
-            <Tab text="Fingerprint">
-               <content>
-                   <fx:include fx:id="FingerprintTabPage" source="fingerprint/FingerprintTab.fxml" />
-               </content>
-            </Tab>
-            <Tab text="Phone">
-                <content>
-                    <fx:include fx:id="PhoneTabPage" source="phone/PhoneTab.fxml" />
-                </content>
-            </Tab>
-            <Tab text="Connect">
-                <content>
-                    <fx:include fx:id="ConnectTabPage" source="connect/ConnectTab.fxml" />
-                </content>
-            </Tab>
-        </tabs>
-      </TabPane>
-   </top>
+    <top>
+        <TabPane prefHeight="600.0" prefWidth="800.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+            <tabs>
+                <Tab text="Sensors">
+                    <content>
+                        <fx:include fx:id="SensorsTabPage" source="sensors/SensorsTab.fxml" />
+                    </content>
+                </Tab>
+                <Tab text="Location">
+                    <content>
+                        <fx:include fx:id="LocationTabPage" source="location/LocationTab.fxml" />
+                    </content>
+                </Tab>
+                <Tab text="Power">
+                    <content>
+                        <fx:include fx:id="PowerTabPage" source="power/PowerTab.fxml" />
+                    </content>
+                </Tab>
+                <Tab text="Fingerprint">
+                    <content>
+                        <fx:include fx:id="FingerprintTabPage" source="fingerprint/FingerprintTab.fxml" />
+                    </content>
+                </Tab>
+                <Tab text="Phone">
+                    <content>
+                        <fx:include fx:id="PhoneTabPage" source="phone/PhoneTab.fxml" />
+                    </content>
+                </Tab>
+                <Tab text="Connect">
+                    <content>
+                        <fx:include fx:id="ConnectTabPage" source="connect/ConnectTab.fxml" />
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </top>
 </BorderPane>

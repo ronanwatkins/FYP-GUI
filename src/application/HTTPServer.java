@@ -57,8 +57,8 @@ public class HTTPServer implements Runnable{
                 out.println(":)");
             }
 
-           // os.close();
-           // cs.close();
+            // os.close();
+            // cs.close();
         } catch (Exception ee) {
             ee.printStackTrace();
         }
