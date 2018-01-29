@@ -1,14 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="application.power.PowerTabController"
-            prefHeight="400.0" prefWidth="600.0">
 
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.power.PowerTabController">
+   <children>
+      <Label layoutX="50.0" layoutY="58.0" text="Battery Level" />
+      <Slider fx:id="batterySlider" layoutX="48.0" layoutY="96.0" />
+      <Label fx:id="batteryLabel" layoutX="200.0" layoutY="95.0" text="0" />
+
+      <Label layoutX="300.0" layoutY="58.0" text="Battery Health" />
+      <ComboBox fx:id="batteryHealth" layoutX="300.0" layoutY="91.0" prefWidth="150.0"  >
+          <items>
+              <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="Dead" />
+                  <String fx:value="Failure" />
+                  <String fx:value="Good" />
+                  <String fx:value="Unknown" />
+                  <String fx:value="Overheat" />
+                  <String fx:value="Overvoltage" />
+              </FXCollections>
+          </items>
+      </ComboBox>
+
+       <Label layoutX="50.0" layoutY="164.0" text="Battery Status" />
+       <ComboBox fx:id="batteryStatus" layoutX="49.0" layoutY="200.0" prefWidth="150.0" >
+           <items>
+               <FXCollections fx:factory="observableArrayList">
+                   <String fx:value="Unknown" />
+                   <String fx:value="Not charging" />
+                   <String fx:value="Discharging" />
+                   <String fx:value="Charging" />
+                   <String fx:value="Full" />
+               </FXCollections>
+           </items>
+       </ComboBox>
+
+      <Label layoutX="300.0" layoutY="164.0" text="Charging" />
+      <ComboBox fx:id="charging" layoutX="300.0" layoutY="200.0" prefWidth="150.0" >
+          <items>
+              <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="Charging" />
+                  <String fx:value="Not charging" />
+              </FXCollections>
+          </items>
+      </ComboBox>
+   </children>
 </AnchorPane>

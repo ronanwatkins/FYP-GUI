@@ -5,27 +5,25 @@ import java.net.Socket;
 
 public class TelnetServer {
 
-    private static Socket serverSocket;
     private static PrintStream out;
-    private static InputStreamReader in;
     private static int port = 5554;
 
     public static void connect() throws IOException {
-        serverSocket = new Socket("localhost", port);
+        Socket serverSocket = new Socket("localhost", port);
 
         out = new PrintStream(serverSocket.getOutputStream());
-        in = new InputStreamReader(serverSocket.getInputStream());
+        InputStreamReader in = new InputStreamReader(serverSocket.getInputStream());
         int data = in.read();
-        String input = "";
+        StringBuilder input = new StringBuilder();
         while(data != -1){
             char theChar = (char) data;
-            input += theChar;
-            if(input.contains("OK"))
+            input.append(theChar);
+            if(input.toString().contains("OK"))
                 break;
             data = in.read();
         }
 
-        String[] inputs = input.split("\n");
+        String[] inputs = input.toString().split("\n");
         String filePath = "";
         for (String word: inputs) {
             if(word.contains("emulator_console_auth_token"))
@@ -54,7 +52,88 @@ public class TelnetServer {
 
     public static void sendSMS(String command) {
         if(out != null) {
-            out.println("sms send 000000000 " + command);
+            out.println("sms send " + command);
+            System.out.println("sms send " + command);
+        }
+    }
+
+    public static void makeCall(String command) {
+        if(out != null) {
+            out.println("gsm call " + command);
+        }
+    }
+
+    public static void holdCall(String command) {
+        if(out != null) {
+            out.println("gsm hold " + command);
+        }
+    }
+
+    public static void unHoldCall(String command) {
+        if(out != null) {
+            out.println("gsm accept " + command);
+        }
+    }
+
+    public static void endCall(String command) {
+        if(out != null) {
+            out.println("gsm cancel " + command);
+        }
+    }
+
+    public static void networkSpeed(String command) {
+        if(out != null) {
+            out.println("network speed " + command);
+            System.out.println("network speed " + command);
+        }
+    }
+
+    public static void gsmSignal(String command) {
+        if(out != null) {
+            out.println("gsm signal-profile " + command);
+            System.out.println("gsm signal-profile " + command);
+        }
+    }
+
+    public static void voiceStatus(String command) {
+        if(out != null) {
+            out.println("gsm voice " + command);
+            System.out.println("gsm voice " + command);
+        }
+    }
+
+    public static void dataStatus(String command) {
+        if(out != null) {
+            out.println("gsm data " + command);
+            System.out.println("gsm data " + command);
+        }
+    }
+
+    public static void powerCapacity(String command) {
+        if(out != null) {
+            out.println("power capacity " + command);
+            System.out.println("power capacity " + command);
+        }
+    }
+
+    public static void batteryHealth(String command) {
+        if(out != null) {
+            out.println("power health " + command);
+            System.out.println("power health " + command);
+        }
+    }
+
+    public static void batteryStatus(String command) {
+        if(out != null) {
+            out.println("power status " + command);
+            System.out.println("power status " + command);
+        }
+    }
+
+    public static void setCharging(String command) {
+        if(out != null) {
+            out.println("power ac " + command);
+            System.out.println("power ac " + command);
         }
     }
 }

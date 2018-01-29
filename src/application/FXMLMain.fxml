@@ -19,11 +19,6 @@
                    <fx:include fx:id="LocationTabPage" source="location/LocationTab.fxml" />
                </content>
             </Tab>
-            <Tab text="Signal">
-               <content>
-                   <fx:include fx:id="SignalTabPage" source="signal/SignalTab.fxml" />
-               </content>
-            </Tab>
             <Tab text="Power">
                <content>
                    <fx:include fx:id="PowerTabPage" source="power/PowerTab.fxml" />
@@ -36,12 +31,12 @@
             </Tab>
             <Tab text="Phone">
                 <content>
-                    <fx:include fx:id="PhoneTabPage" source="sensors/SensorsTab.fxml" />
+                    <fx:include fx:id="PhoneTabPage" source="phone/PhoneTab.fxml" />
                 </content>
             </Tab>
             <Tab text="Connect">
                 <content>
-                    <fx:include fx:id="ConnectTabPage" source="sensors/SensorsTab.fxml" />
+                    <fx:include fx:id="ConnectTabPage" source="connect/ConnectTab.fxml" />
                 </content>
             </Tab>
         </tabs>

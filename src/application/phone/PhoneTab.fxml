@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.phone.PhoneTabController">
+   <children>
+      <Label layoutX="33.0" layoutY="34.0" text="From" />
+      <TextField fx:id="phoneNumberField" layoutX="33.0" layoutY="60.0" prefHeight="25.0" prefWidth="177.0" />
+      <Button fx:id="holdCall" layoutX="89.0" layoutY="98.0" mnemonicParsing="false" text="Hold" />
+      <Button fx:id="makeCall" layoutX="29.0" layoutY="98.0" mnemonicParsing="false" text="Call" />
+      <Button fx:id="endCall" layoutX="156.0" layoutY="98.0" mnemonicParsing="false" text="End Call" />
+
+      <Label layoutX="33.0" layoutY="144.0" text="Message" />
+      <TextArea fx:id="messageArea" layoutX="33.0" layoutY="172.0" prefHeight="128.0" prefWidth="189.0" />
+       <Button fx:id="sendSMS" layoutX="31.0" layoutY="318.0" mnemonicParsing="false" text="SendSMS" />
+
+      <Label layoutX="300.0" layoutY="34.0" text="Network Type" />
+      <ComboBox fx:id="networkType" layoutX="299.0" layoutY="60.0" prefWidth="150.0">
+          <items>
+              <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="EDGE" />
+                  <String fx:value="GSM" />
+                  <String fx:value="GPRS" />
+                  <String fx:value="Full" />
+                  <String fx:value="HSCSD" />
+                  <String fx:value="HSDPA" />
+                  <String fx:value="UMTS" />
+              </FXCollections>
+          </items>
+      </ComboBox>
+
+      <Label layoutX="296.0" layoutY="123.0" text="Signal Strength" />
+      <ComboBox fx:id="signalStrength" layoutX="296.0" layoutY="149.0" prefWidth="150.0">
+          <items>
+              <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="None" />
+                  <String fx:value="Poor" />
+                  <String fx:value="Moderate" />
+                  <String fx:value="Good" />
+                  <String fx:value="Great" />
+              </FXCollections>
+          </items>
+      </ComboBox>
+
+      <Label layoutX="296.0" layoutY="206.0" text="Voice Status" />
+      <ComboBox fx:id="voiceStatus" layoutX="299.0" layoutY="236.0" prefWidth="150.0" >
+          <items>
+              <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="Home" />
+                  <String fx:value="Roaming" />
+                  <String fx:value="Searching" />
+                  <String fx:value="Denied" />
+                  <String fx:value="Unregistered" />
+              </FXCollections>
+          </items>
+      </ComboBox>
+
+      <Label layoutX="299.0" layoutY="292.0" text="Data Status" />
+      <ComboBox fx:id="dataStatus" layoutX="296.0" layoutY="318.0" prefWidth="150.0" >
+          <items>
+              <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="Home" />
+                  <String fx:value="Roaming" />
+                  <String fx:value="Searching" />
+                  <String fx:value="Denied" />
+                  <String fx:value="Unregistered" />
+              </FXCollections>
+          </items>
+      </ComboBox>
+
+   </children>
+</AnchorPane>
