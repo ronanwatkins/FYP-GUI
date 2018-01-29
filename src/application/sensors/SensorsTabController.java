@@ -45,7 +45,7 @@ public class SensorsTabController implements Initializable {
 
     private int magneticFieldVal1 = 0;
     private int magneticFieldVal2 = 0;
-    private int magneticFieldVal3 = 0;
+    private int magneticFieldVal3 = 9;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
