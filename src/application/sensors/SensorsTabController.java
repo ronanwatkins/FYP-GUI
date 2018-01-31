@@ -34,7 +34,7 @@ public class SensorsTabController implements Initializable {
     @FXML
     private Label proximityLabel;
     @FXML
-    private Label humdityLabel;
+    private Label humidityLabel;
 
     @FXML
     private TextField magneticField1;
@@ -49,7 +49,6 @@ public class SensorsTabController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
 
         lightSlider.valueProperty().addListener(
                 (observable, oldvalue, newvalue) ->
@@ -87,8 +86,8 @@ public class SensorsTabController implements Initializable {
                 (observable, oldvalue, newvalue) ->
                 {
                     double hummityValue = newvalue.doubleValue();
-                    proximityLabel.setText(String.format("%.2f",hummityValue)+"");
-                    TelnetServer.setSensor("proximity " + String.format("%.2f",hummityValue));
+                    humidityLabel.setText(String.format("%.2f",hummityValue)+"");
+                    TelnetServer.setSensor("humidity " + String.format("%.2f",hummityValue));
                 } );
 
         magneticField1.setOnAction(new EventHandler<ActionEvent>() {

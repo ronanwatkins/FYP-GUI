@@ -6,13 +6,14 @@ import java.net.Socket;
 public class TelnetServer {
 
     private static PrintStream out;
+    private static InputStreamReader in;
     private static int port = 5554;
 
     public static void connect() throws IOException {
         Socket serverSocket = new Socket("localhost", port);
 
         out = new PrintStream(serverSocket.getOutputStream());
-        InputStreamReader in = new InputStreamReader(serverSocket.getInputStream());
+        in = new InputStreamReader(serverSocket.getInputStream());
         int data = in.read();
         StringBuilder input = new StringBuilder();
         while(data != -1){
@@ -45,7 +46,7 @@ public class TelnetServer {
 
     public static void setSensor(String command) {
         if(out != null) {
-            out.println("sensor set ");
+            out.println("sensor set " + command);
             System.out.println("sensor set " + command);
         }
     }

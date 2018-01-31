@@ -1,6 +1,7 @@
 package application.connect;
 
 import application.HTTPServer;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -8,6 +9,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.*;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -23,28 +28,43 @@ public class ConnectTabController implements Initializable {
     @FXML
     private Button connectPhone;
 
-    String IPAddress = getIPAddress();
+    private String IPAddress = getIPAddress();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
-        updateLabelText();
-
-        //new Thread(new HTTPServer(IPAddress,PORT));
         connectPhone.setOnAction(new EventHandler<ActionEvent>() {
-            boolean isConnected = false;
+
             @Override
             public void handle(ActionEvent event) {
+
+                updateLabelText();
+
                 try {
                     ServerSocket ss = new ServerSocket();
                     ss.bind(new InetSocketAddress(IPAddress, PORT));
 
-                    while (!isConnected) {
-                        System.out.println("waiting");
-                        Socket cs = ss.accept();
-                        new Thread(new HTTPServer(cs, IPAddress, PORT)).start();
-                        isConnected = true;
-                    }
+                    Task task = new Task<Void>() {
+                        @Override public Void call() {
+                            try (Socket cs = ss.accept();
+                                 PrintWriter out = new PrintWriter(cs.getOutputStream(), true);
+                                 BufferedReader br = new BufferedReader(new InputStreamReader(cs.getInputStream()));
+                                 ){
+
+                                String request = "";
+                                do {
+                                    request = br.readLine();
+                                    System.out.println(request);
+                                    //out.println(":)");
+                                } while(true);
+
+                            } catch (Exception ee) {
+                                ee.printStackTrace();
+                            }
+                            return null;
+                        }
+                    };
+                    new Thread(task).start();
                 } catch (Exception ee) {
                     ee.printStackTrace();
                 }
