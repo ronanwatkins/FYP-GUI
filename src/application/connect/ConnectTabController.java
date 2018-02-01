@@ -52,12 +52,24 @@ public class ConnectTabController implements Initializable {
                                  ){
 
                                 String request = "";
+                                String clString = "";
+                                String content = "";
                                 do {
                                     request = br.readLine();
                                     System.out.println(request);
-                                    //out.println(":)");
+
+                                    if(request.toLowerCase().startsWith("content-length")) clString = request;
+                                    if(request.isEmpty()) break;
                                 } while(true);
 
+                                int num = Integer.parseInt(clString.substring(16));
+                                System.out.println("Num: " + num);
+
+                                final char[] contents = new char[num+2];
+                                br.read(contents);
+                                content = new String(contents);
+                                System.out.println("Content: " + content);
+                                System.out.println("done");
                             } catch (Exception ee) {
                                 ee.printStackTrace();
                             }
