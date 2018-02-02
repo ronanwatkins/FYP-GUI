@@ -1,5 +1,10 @@
 package application;
 
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
+import javafx.scene.control.Alert;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -9,38 +14,63 @@ public class TelnetServer {
     private static InputStreamReader in;
     private static int port = 5554;
 
-    public static void connect() throws IOException {
-        Socket serverSocket = new Socket("localhost", port);
+    public static void connect() {
 
-        out = new PrintStream(serverSocket.getOutputStream());
-        in = new InputStreamReader(serverSocket.getInputStream());
-        int data = in.read();
-        StringBuilder input = new StringBuilder();
-        while(data != -1){
-            char theChar = (char) data;
-            input.append(theChar);
-            if(input.toString().contains("OK"))
-                break;
-            data = in.read();
-        }
+        Task task = new Task<Void>() {
 
-        String[] inputs = input.toString().split("\n");
-        String filePath = "";
-        for (String word: inputs) {
-            if(word.contains("emulator_console_auth_token"))
-                filePath = word;
-        }
+            @Override
+            public Void call() throws IOException {
 
-        filePath = filePath.replace("'", "").trim();
+                    Socket serverSocket = new Socket("localhost", port);
 
-        File file = new File(filePath);
-        System.out.println("Filepath: " + filePath);
+                    out = new PrintStream(serverSocket.getOutputStream());
+                    in = new InputStreamReader(serverSocket.getInputStream());
+                    int data = in.read();
+                    StringBuilder input = new StringBuilder();
+                    while (data != -1) {
+                        char theChar = (char) data;
+                        input.append(theChar);
+                        if (input.toString().contains("OK"))
+                            break;
+                        data = in.read();
+                    }
 
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String authToken = reader.readLine();
+                    String[] inputs = input.toString().split("\n");
+                    String filePath = "";
+                    for (String word : inputs) {
+                        if (word.contains("emulator_console_auth_token"))
+                            filePath = word;
+                    }
 
-        out.println("auth " + authToken);
-        System.out.println("auth " +authToken);
+                    filePath = filePath.replace("'", "").trim();
+
+                    File file = new File(filePath);
+                    System.out.println("Filepath: " + filePath);
+
+                    BufferedReader reader = new BufferedReader(new FileReader(file));
+                    String authToken = reader.readLine();
+
+                    out.println("auth " + authToken);
+                    System.out.println("auth " + authToken);
+
+                    return null;
+            }
+        };
+
+        task.setOnFailed(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent event) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Failed to connect to emulator");
+                alert.setContentText("Your emulator must be turned on before running this program");
+
+                alert.showAndWait();
+                System.exit(0);
+            }
+        });
+
+        new Thread(task).start();
 
     }
 
@@ -135,6 +165,13 @@ public class TelnetServer {
         if(out != null) {
             out.println("power ac " + command);
             System.out.println("power ac " + command);
+        }
+    }
+
+    public static void setLocation(String command) {
+        if(out != null) {
+            out.println("geo fix " + command);
+            System.out.println("geo fix " + command);
         }
     }
 }

@@ -21,11 +21,9 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.show();
 
-        try {
-            TelnetServer.connect();
-        } catch (IOException io) {
-            io.printStackTrace();
-        }
+
+        TelnetServer.connect();
+
     }
 
     public static void main(String[] args) {

@@ -94,7 +94,7 @@ public class SensorsTabController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 magneticFieldVal1 = Double.parseDouble(magneticField1.getText());
-                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + "," + magneticFieldVal2 + "," + magneticFieldVal3);
+                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + ":" + magneticFieldVal2 + ":" + magneticFieldVal3);
             }
         });
 
@@ -102,7 +102,7 @@ public class SensorsTabController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 magneticFieldVal2 = Double.parseDouble(magneticField2.getText());
-                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + "," + magneticFieldVal2 + "," + magneticFieldVal3);
+                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + ":" + magneticFieldVal2 + ":" + magneticFieldVal3);
             }
         });
 
@@ -110,7 +110,7 @@ public class SensorsTabController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 magneticFieldVal3 = Double.parseDouble(magneticField3.getText());
-                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + "," + magneticFieldVal2 + "," + magneticFieldVal3);
+                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + ":" + magneticFieldVal2 + ":" + magneticFieldVal3);
             }
         });
     }
