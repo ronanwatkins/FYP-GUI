@@ -30,6 +30,8 @@ public class ConnectTabController implements Initializable {
 
     private String IPAddress = getIPAddress();
 
+    private String POSTContent = "";
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -53,7 +55,6 @@ public class ConnectTabController implements Initializable {
 
                                 String request = "";
                                 String clString = "";
-                                String content = "";
                                 do {
                                     request = br.readLine();
                                     System.out.println(request);
@@ -67,9 +68,19 @@ public class ConnectTabController implements Initializable {
 
                                 final char[] contents = new char[num+2];
                                 br.read(contents);
-                                content = new String(contents);
-                                System.out.println("Content: " + content);
+                                POSTContent = new String(contents);
+                                POSTContent = decodePOSTString(POSTContent);
+                                System.out.println("Content: " + POSTContent);
                                 System.out.println("done");
+
+                                out.print("HTTP/ 1.1 200 OK\n" +
+                                        "Content-Type: text/html\n" +
+                                        "Content-Length: 20\n" +
+                                        "Connection: keep-alive\n\n" +
+                                        "Hello dudes");
+                                out.flush();
+                                cs.close();
+
                             } catch (Exception ee) {
                                 ee.printStackTrace();
                             }
@@ -82,6 +93,18 @@ public class ConnectTabController implements Initializable {
                 }
             }
         });
+    }
+
+    private String decodePOSTString(String input) {
+        input = input.replace("%7B", "{");
+        input = input.replace("%22", "\"");
+        input = input.replace("%3A", ":");
+        input = input.replace("%2C", ",");
+        input = input.replace("%3D", "=");
+        input = input.replace("%7D", "}");
+        input = input.replace("+", " ");
+
+        return input;
     }
 
     private void updateLabelText() {
