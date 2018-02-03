@@ -43,9 +43,21 @@ public class SensorsTabController implements Initializable {
     @FXML
     private TextField magneticField3;
 
+    @FXML
+    private TextField accelerometerField1;
+    @FXML
+    private TextField accelerometerField2;
+    @FXML
+    private TextField accelerometerField3;
+
+
     private double magneticFieldVal1 = 0;
     private double magneticFieldVal2 = 0;
     private double magneticFieldVal3 = 0;
+
+    private double accelerometerVal1 = 0;
+    private double accelerometerVal2 = 0;
+    private double accelerometerVal3 = 0;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -111,6 +123,30 @@ public class SensorsTabController implements Initializable {
             public void handle(ActionEvent event) {
                 magneticFieldVal3 = Double.parseDouble(magneticField3.getText());
                 TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + ":" + magneticFieldVal2 + ":" + magneticFieldVal3);
+            }
+        });
+
+        accelerometerField1.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                accelerometerVal1 = Double.parseDouble(accelerometerField1.getText());
+                TelnetServer.setSensor("acceleration " + accelerometerVal1 + ":" + accelerometerVal2 + ":" + accelerometerVal3);
+            }
+        });
+
+        accelerometerField2.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                accelerometerVal2 = Double.parseDouble(accelerometerField2.getText());
+                TelnetServer.setSensor("acceleration " + accelerometerVal1 + ":" + accelerometerVal2 + ":" + accelerometerVal3);
+            }
+        });
+
+        accelerometerField3.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                accelerometerVal3 = Double.parseDouble(accelerometerField3.getText());
+                TelnetServer.setSensor("acceleration " + accelerometerVal1 + ":" + accelerometerVal2 + ":" + accelerometerVal3);
             }
         });
     }
