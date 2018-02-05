@@ -2,12 +2,15 @@ package application;
 
 import javafx.scene.control.TextInputDialog;
 
-import java.io.File;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 public class ADBUtil {
 
     private static File adbLocation = new File(System.getProperty("user.home") + "\\AppData\\Local\\Android\\Sdk\\platform-tools");
+    private static String adbPath;
     private static boolean isADBFound = false;
 
     public static void findADB() {
@@ -15,6 +18,7 @@ public class ADBUtil {
             for (File file : adbLocation.listFiles()) {
                 if (file.getName().equalsIgnoreCase("adb.exe")) {
                     System.out.println("ADB correct");
+                    adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
                     isADBFound = true;
                     return;
                 } else {
@@ -43,6 +47,7 @@ public class ADBUtil {
                     if (file.getName().equalsIgnoreCase("adb.exe")) {
                         System.out.println("Found ADB, path: " + file.getAbsolutePath());
                         adbLocation = new File(file.getAbsolutePath());
+                        adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
                         isADBFound = true;
                         return;
                     } else {
@@ -55,10 +60,37 @@ public class ADBUtil {
                 showInputDialog();
             }
         } else {
+            adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
             isADBFound = true;
             return;
         }
     }
 
+    public static String consoleCommand(String[] parameters) {
 
+        StringBuilder result = new StringBuilder();
+        try {
+            ArrayList<String> arrayList = new ArrayList<>();
+            arrayList.add(adbPath);
+            for(String parameter : parameters)
+                arrayList.add(parameter);
+
+            Process process = new ProcessBuilder(arrayList).start();
+
+            InputStream is = process.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+                result.append(line).append("\n");
+            }
+
+        } catch (IOException ee) {
+            ee.printStackTrace();
+        }
+
+        return result.toString();
+    }
 }
