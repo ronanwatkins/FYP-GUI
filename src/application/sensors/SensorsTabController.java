@@ -34,7 +34,7 @@ public class SensorsTabController implements Initializable {
     @FXML
     private Label proximityLabel;
     @FXML
-    private Label humdityLabel;
+    private Label humidityLabel;
 
     @FXML
     private TextField magneticField1;
@@ -43,13 +43,24 @@ public class SensorsTabController implements Initializable {
     @FXML
     private TextField magneticField3;
 
+    @FXML
+    private TextField accelerometerField1;
+    @FXML
+    private TextField accelerometerField2;
+    @FXML
+    private TextField accelerometerField3;
+
+
     private double magneticFieldVal1 = 0;
     private double magneticFieldVal2 = 0;
     private double magneticFieldVal3 = 0;
 
+    private double accelerometerVal1 = 0;
+    private double accelerometerVal2 = 0;
+    private double accelerometerVal3 = 0;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
 
         lightSlider.valueProperty().addListener(
                 (observable, oldvalue, newvalue) ->
@@ -87,15 +98,15 @@ public class SensorsTabController implements Initializable {
                 (observable, oldvalue, newvalue) ->
                 {
                     double hummityValue = newvalue.doubleValue();
-                    proximityLabel.setText(String.format("%.2f",hummityValue)+"");
-                    TelnetServer.setSensor("proximity " + String.format("%.2f",hummityValue));
+                    humidityLabel.setText(String.format("%.2f",hummityValue)+"");
+                    TelnetServer.setSensor("humidity " + String.format("%.2f",hummityValue));
                 } );
 
         magneticField1.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 magneticFieldVal1 = Double.parseDouble(magneticField1.getText());
-                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + "," + magneticFieldVal2 + "," + magneticFieldVal3);
+                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + ":" + magneticFieldVal2 + ":" + magneticFieldVal3);
             }
         });
 
@@ -103,7 +114,7 @@ public class SensorsTabController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 magneticFieldVal2 = Double.parseDouble(magneticField2.getText());
-                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + "," + magneticFieldVal2 + "," + magneticFieldVal3);
+                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + ":" + magneticFieldVal2 + ":" + magneticFieldVal3);
             }
         });
 
@@ -111,7 +122,31 @@ public class SensorsTabController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 magneticFieldVal3 = Double.parseDouble(magneticField3.getText());
-                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + "," + magneticFieldVal2 + "," + magneticFieldVal3);
+                TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + ":" + magneticFieldVal2 + ":" + magneticFieldVal3);
+            }
+        });
+
+        accelerometerField1.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                accelerometerVal1 = Double.parseDouble(accelerometerField1.getText());
+                TelnetServer.setSensor("acceleration " + accelerometerVal1 + ":" + accelerometerVal2 + ":" + accelerometerVal3);
+            }
+        });
+
+        accelerometerField2.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                accelerometerVal2 = Double.parseDouble(accelerometerField2.getText());
+                TelnetServer.setSensor("acceleration " + accelerometerVal1 + ":" + accelerometerVal2 + ":" + accelerometerVal3);
+            }
+        });
+
+        accelerometerField3.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                accelerometerVal3 = Double.parseDouble(accelerometerField3.getText());
+                TelnetServer.setSensor("acceleration " + accelerometerVal1 + ":" + accelerometerVal2 + ":" + accelerometerVal3);
             }
         });
     }

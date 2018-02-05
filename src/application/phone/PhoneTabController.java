@@ -43,22 +43,50 @@ public class PhoneTabController implements Initializable {
 
     private boolean isInCall = false;
     private boolean isOnHold = false;
+    private boolean isInteger = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
         holdCall.setDisable(true);
         endCall.setDisable(true);
+        makeCall.setDisable(true);
+        sendSMS.setDisable(true);
+
+        phoneNumberField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(!phoneNumberField.getText().isEmpty()) {
+                try {
+                    Integer.parseInt(phoneNumberField.getText());
+                    isInteger = true;
+                } catch (NumberFormatException nfe) {
+                    nfe.printStackTrace();
+                    isInteger = false;
+                }
+
+                if(isInteger)
+                    makeCall.setDisable(false);
+                else makeCall.setDisable(true);
+            }
+            else makeCall.setDisable(true);
+        });
+
+        messageArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(!phoneNumberField.getText().isEmpty())
+                sendSMS.setDisable(false);
+            else sendSMS.setDisable(true);
+        });
 
         makeCall.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                phoneNumber  = phoneNumberField.getText();
-                TelnetServer.makeCall(phoneNumber);
-                isInCall = true;
-                makeCall.setDisable(true);
-                holdCall.setDisable(false);
-                endCall.setDisable(false);
+                phoneNumber = phoneNumberField.getText();
+                if(!phoneNumber.isEmpty()) {
+                    TelnetServer.makeCall(phoneNumber);
+                    isInCall = true;
+                    makeCall.setDisable(true);
+                    holdCall.setDisable(false);
+                    endCall.setDisable(false);
+                }
             }
         });
 

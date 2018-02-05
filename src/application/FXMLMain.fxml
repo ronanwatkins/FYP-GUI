@@ -2,7 +2,6 @@
 
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 
 <BorderPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.FXMLMainController">
@@ -38,6 +37,11 @@
                     <content>
                         <fx:include fx:id="ConnectTabPage" source="connect/ConnectTab.fxml" />
                     </content>
+                </Tab>
+                <Tab text="Console">
+                   <content>
+                      <fx:include fx:id="ConsoleTabPage" source="console/ConsoleTab.fxml" />
+                   </content>
                 </Tab>
             </tabs>
         </TabPane>
