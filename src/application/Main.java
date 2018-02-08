@@ -21,7 +21,7 @@ public class Main extends Application {
 
         stage.getIcons().add(new Image("/resources/Android.png"));
         stage.setTitle("Android Sensor Emulator");
-        // stage.setMaximized(true);
+        stage.getProperties().put("hostServices", this.getHostServices());
         stage.setScene(scene);
         stage.show();
 

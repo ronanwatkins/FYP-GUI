@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class ADBUtil {
 
@@ -77,13 +78,17 @@ public class ADBUtil {
 
             Process process = new ProcessBuilder(arrayList).start();
 
-            InputStream is = process.getInputStream();
-            InputStreamReader isr = new InputStreamReader(is);
-            BufferedReader br = new BufferedReader(isr);
+            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
 
             while ((line = br.readLine()) != null) {
                 System.out.println(line);
+                result.append(line).append("\n");
+            }
+
+            br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            while ((line = br.readLine()) != null) {
+                System.out.println("Error: " + line);
                 result.append(line).append("\n");
             }
 
