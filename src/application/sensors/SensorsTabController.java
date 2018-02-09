@@ -4,32 +4,24 @@ import application.TelnetServer;
 import application.XMLUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.json.XML;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import javax.swing.event.ListDataEvent;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SensorsTabController implements Initializable {
 
+    //region fields
     private final String LIGHT = "light";
     private final String ACCELEROMETER_1 = "accelerometer_1";
     private final String ACCELEROMETER_2 = "accelerometer_2";
@@ -43,6 +35,8 @@ public class SensorsTabController implements Initializable {
     private final String TEMPERATURE = "temperature";
     private final String LOCATION = "location";
     private final String BATTERY = "battery";
+
+    private final int PERIOD = 500; //record / playback period in ms
 
     @FXML
     private Slider lightSlider;
@@ -88,6 +82,13 @@ public class SensorsTabController implements Initializable {
     private Button loadButton;
 
     @FXML
+    private Button playButton;
+    @FXML
+    private Button pauseButton;
+    @FXML
+    private CheckBox loopBox;
+
+    @FXML
     private AnchorPane anchorPane;
 
     private double magneticFieldVal1 = 0;
@@ -98,19 +99,30 @@ public class SensorsTabController implements Initializable {
     private double accelerometerVal2 = 0;
     private double accelerometerVal3 = 0;
 
+    //endregion
     private Map<String, Double> sensorValues = new HashMap<>();
+    private MyThread thread;
 
     private XMLUtil xmlUtil;
 
     private boolean isRecording = false;
+    private boolean isLoaded = false;
+    private boolean wasPaused = false;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
+        if(!isLoaded) {
+            playButton.setVisible(false);
+            pauseButton.setVisible(false);
+            loopBox.setVisible(false);
+        }
 
         xmlUtil = new XMLUtil();
         saveButton.setDisable(true);
         initHashMap();
 
+        //region actionListeners
         lightSlider.valueProperty().addListener(
                 (observable, oldvalue, newvalue) ->
                 {
@@ -228,7 +240,7 @@ public class SensorsTabController implements Initializable {
                                 xmlUtil.addElement(sensorValues);
                             }
                         }
-                }, 0, 500);
+                }, 0, PERIOD);
             }
         });
 
@@ -256,6 +268,33 @@ public class SensorsTabController implements Initializable {
 
             }
         });
+        //endregion
+        playButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                playButton.setDisable(true);
+                pauseButton.setDisable(false);
+
+                if(wasPaused) {
+                    thread.play();
+                    System.out.println("RESUMING");
+                } else
+                    thread.run();
+            }
+        });
+
+        pauseButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                wasPaused = true;
+
+                pauseButton.setDisable(true);
+                playButton.setDisable(false);
+
+                System.out.println("SUSPENDING");
+                thread.pause();
+            }
+        });
 
         loadButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -276,55 +315,23 @@ public class SensorsTabController implements Initializable {
                     System.out.println(file.getAbsolutePath());
                     loadedValues = xmlUtil.loadXML(file);
 
-                    Task task = new Task<Void>() {
+                    thread = new MyThread(loadedValues);
 
-                        @Override
-                        public Void call() {
+                    isLoaded = true;
 
-                            for (Integer i : loadedValues.keySet()) {
-                                for (String key : loadedValues.get(i).keySet()) {
+                    playButton.setVisible(true);
+                    pauseButton.setVisible(true);
+                    loopBox.setVisible(true);
 
-                                    Platform.runLater(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            switch (key) {
-                                                case LIGHT:
-                                                    lightSlider.setValue(loadedValues.get(i).get(key));
-                                                    break;
-                                                case PROXIMITY:
-                                                    proximitySlider.setValue(loadedValues.get(i).get(key));
-                                                    break;
-                                                case TEMPERATURE:
-                                                    temperatureSlider.setValue(loadedValues.get(i).get(key));
-                                                    break;
-                                                case PRESSURE:
-                                                    pressureSlider.setValue(loadedValues.get(i).get(key));
-                                                    break;
-                                                case HUMIDITY:
-                                                    humiditySlider.setValue(loadedValues.get(i).get(key));
-                                                    break;
-                                            }
-                                            System.out.println(i + " " + key + " " + loadedValues.get(i).get(key));
-                                            TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
-                                        }
-                                    });
-                                }
-
-                                try {
-                                    Thread.sleep(500);
-                                } catch (InterruptedException ie) {
-                                    ie.printStackTrace();
-                                }
-                            }
-                            return null;
-                        }
-                    };
-                    new Thread(task).start();
-
+                    pauseButton.setDisable(true);
                 }
             }
         });
 
+    }
+
+    private void restartThread() {
+        thread.run();
     }
 
     private void initHashMap() {
@@ -339,5 +346,105 @@ public class SensorsTabController implements Initializable {
         sensorValues.put(PRESSURE, 0.0);
         sensorValues.put(TEMPERATURE, 0.0);
         sensorValues.put(PROXIMITY, 0.0);
+    }
+
+    private class MyThread extends Thread {
+
+        private final AtomicBoolean pauseFlag = new AtomicBoolean(false);
+
+        private HashMap<Integer, HashMap<String, Double>> loadedValues;
+
+        private MyThread (HashMap<Integer, HashMap<String, Double>> loadedValues) {
+            this.loadedValues = loadedValues;
+        }
+
+        public void pause() {
+            pauseFlag.set(true);
+        }
+
+        public void play() {
+            pauseFlag.set(false);
+            synchronized (pauseFlag) {
+                pauseFlag.notify();
+            }
+        }
+
+        @Override
+        public void run() {
+                Task task = new Task<Void>() {
+
+                    @Override
+                    public Void call() {
+
+                        for (Integer i : loadedValues.keySet()) {
+                            for (String key : loadedValues.get(i).keySet()) {
+
+                                if (pauseFlag.get()) {
+                                    synchronized (pauseFlag) {
+                                        while (pauseFlag.get()) {
+                                            try {
+                                                pauseFlag.wait();
+                                            } catch (InterruptedException e) {
+                                                Thread.currentThread().interrupt();
+                                                return null;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        switch (key) {
+                                            case LIGHT:
+                                                lightSlider.setValue(loadedValues.get(i).get(key));
+                                                break;
+                                            case PROXIMITY:
+                                                proximitySlider.setValue(loadedValues.get(i).get(key));
+                                                break;
+                                            case TEMPERATURE:
+                                                temperatureSlider.setValue(loadedValues.get(i).get(key));
+                                                break;
+                                            case PRESSURE:
+                                                pressureSlider.setValue(loadedValues.get(i).get(key));
+                                                break;
+                                            case HUMIDITY:
+                                                humiditySlider.setValue(loadedValues.get(i).get(key));
+                                                break;
+                                        }
+                                        System.out.println(i + " " + key + " " + loadedValues.get(i).get(key));
+                                        TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
+                                    }
+                                });
+                            }
+
+                            try {
+                                Thread.sleep(PERIOD);
+                            } catch (InterruptedException ie) {
+                                ie.printStackTrace();
+                            }
+                        }
+
+                        return null;
+                    }
+                };
+
+                task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                    @Override
+                    public void handle(WorkerStateEvent event) {
+                        if(loopBox.isSelected()) {
+                            System.out.println("RESTARTING");
+                            restartThread();
+                        } else {
+                            System.out.println("FINISHED");
+                            wasPaused = false;
+                            pauseButton.setDisable(true);
+                            playButton.setDisable(false);
+                        }
+                    }
+                });
+                new Thread(task).start();
+
+        }
     }
 }
