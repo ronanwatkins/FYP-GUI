@@ -18,8 +18,8 @@ public class TelnetServer {
 
         Task task = new Task<Void>() {
 
-            @Override
-            public Void call() throws IOException {
+                @Override
+                public Void call() throws IOException {
 
                     Socket serverSocket = new Socket("localhost", port);
 

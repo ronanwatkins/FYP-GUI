@@ -2,6 +2,8 @@ package application.sensors;
 
 import application.TelnetServer;
 import application.XMLUtil;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -13,8 +15,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.json.XML;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.swing.event.ListDataEvent;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
@@ -98,6 +107,7 @@ public class SensorsTabController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
+        xmlUtil = new XMLUtil();
         saveButton.setDisable(true);
         initHashMap();
 
@@ -204,7 +214,6 @@ public class SensorsTabController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 isRecording = true;
-                xmlUtil = new XMLUtil();
 
                 if(isRecording) {
                     System.out.println("isRecording: " + isRecording);
@@ -215,10 +224,7 @@ public class SensorsTabController implements Initializable {
                 new Timer().schedule(new TimerTask() {
                         @Override
                         public void run() {
-
                             if(isRecording) {
-                                System.out.println("ping");
-
                                 xmlUtil.addElement(sensorValues);
                             }
                         }
@@ -251,10 +257,87 @@ public class SensorsTabController implements Initializable {
             }
         });
 
+        loadButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                isRecording = false;
+
+                FileChooser fileChooser = new FileChooser();
+
+                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml");
+                fileChooser.getExtensionFilters().add(extFilter);
+                fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")));
+
+                Stage stage = (Stage) anchorPane.getScene().getWindow();
+                File file = fileChooser.showOpenDialog(stage);
+
+                HashMap<Integer, HashMap<String, Double>> loadedValues;
+                if(file != null) {
+                    System.out.println(file.getAbsolutePath());
+                    loadedValues = xmlUtil.loadXML(file);
+
+                    Task task = new Task<Void>() {
+
+                        @Override
+                        public Void call() {
+
+                            for (Integer i : loadedValues.keySet()) {
+                                for (String key : loadedValues.get(i).keySet()) {
+
+                                    Platform.runLater(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            switch (key) {
+                                                case LIGHT:
+                                                    lightSlider.setValue(loadedValues.get(i).get(key));
+                                                    break;
+                                                case PROXIMITY:
+                                                    proximitySlider.setValue(loadedValues.get(i).get(key));
+                                                    break;
+                                                case TEMPERATURE:
+                                                    temperatureSlider.setValue(loadedValues.get(i).get(key));
+                                                    break;
+                                                case PRESSURE:
+                                                    pressureSlider.setValue(loadedValues.get(i).get(key));
+                                                    break;
+                                                case HUMIDITY:
+                                                    humiditySlider.setValue(loadedValues.get(i).get(key));
+                                                    break;
+                                            }
+                                            System.out.println(i + " " + key + " " + loadedValues.get(i).get(key));
+                                            TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
+                                        }
+                                    });
+                                }
+
+                                try {
+                                    Thread.sleep(500);
+                                } catch (InterruptedException ie) {
+                                    ie.printStackTrace();
+                                }
+                            }
+                            return null;
+                        }
+                    };
+                    new Thread(task).start();
+
+                }
+            }
+        });
 
     }
 
     private void initHashMap() {
-        sensorValues.put("light", 0.0);
+        sensorValues.put(LIGHT, 0.0);
+        sensorValues.put(ACCELEROMETER_1, 0.0);
+        sensorValues.put(ACCELEROMETER_2, 0.0);
+        sensorValues.put(ACCELEROMETER_3, 0.0);
+        sensorValues.put(MAGNETOMETER_1, 0.0);
+        sensorValues.put(MAGNETOMETER_2, 0.0);
+        sensorValues.put(MAGNETOMETER_3, 0.0);
+        sensorValues.put(HUMIDITY, 0.0);
+        sensorValues.put(PRESSURE, 0.0);
+        sensorValues.put(TEMPERATURE, 0.0);
+        sensorValues.put(PROXIMITY, 0.0);
     }
 }

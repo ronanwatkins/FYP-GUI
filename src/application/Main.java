@@ -1,6 +1,7 @@
 package application;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -22,6 +23,10 @@ public class Main extends Application {
         stage.getIcons().add(new Image("/resources/Android.png"));
         stage.setTitle("Android Sensor Emulator");
         stage.getProperties().put("hostServices", this.getHostServices());
+        stage.setOnCloseRequest(e -> {
+            Platform.exit();
+            System.exit(0);
+        });
         stage.setScene(scene);
         stage.show();
 
