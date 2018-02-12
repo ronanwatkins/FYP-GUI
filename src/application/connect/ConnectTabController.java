@@ -97,7 +97,6 @@ public class ConnectTabController implements Initializable {
                                     String clString = "";
                                     do {
                                         request = br.readLine();
-                                        //System.out.println(request);
 
                                         if (request.toLowerCase().startsWith("content-length")) clString = request;
                                         if (request.isEmpty()) break;
@@ -130,6 +129,7 @@ public class ConnectTabController implements Initializable {
                             return null;
                         }
                     };
+
                     new Thread(task).start();
 
                 } catch (Exception ee) {
