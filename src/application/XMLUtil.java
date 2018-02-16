@@ -13,11 +13,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -141,5 +139,45 @@ public class XMLUtil {
         new Thread(task).run();
 
         return returnMap;
+    }
+
+    public void saveBatchCommands(ObservableList<String> batchCommands) {
+//        Element commands = document.createElement("commands");
+//        rootElement.appendChild(stage);
+
+        Element command = null;
+
+        for(String s : batchCommands) {
+            command = document.createElement("command");
+
+            Element value = document.createElement("value");
+            value.appendChild(document.createTextNode(s));
+            command.appendChild(value);
+
+            rootElement.appendChild(command);
+        }
+
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(document);
+
+            StreamResult result = new StreamResult(new File(System.getProperty("user.dir") + "\\misc\\commands\\hi.xml"));
+
+            Task task = new Task<Void>() {
+
+                @Override
+                public Void call() throws TransformerException {
+                    transformer.transform(source, result);
+
+                    return null;
+                }
+            };
+            new Thread(task).start();
+
+            System.out.println("file saved");
+        } catch (TransformerException te) {
+            te.printStackTrace();
+        }
     }
 }

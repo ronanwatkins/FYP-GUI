@@ -36,7 +36,7 @@ public class SensorsTabController implements Initializable {
     private final String LOCATION = "location";
     private final String BATTERY = "battery";
 
-    private final int PERIOD = 500; //record / playback period in ms
+    private final int PERIOD = 100; //record / playback period in ms
 
     @FXML
     private Slider lightSlider;
@@ -398,22 +398,27 @@ public class SensorsTabController implements Initializable {
                                         switch (key) {
                                             case LIGHT:
                                                 lightSlider.setValue(loadedValues.get(i).get(key));
+                                                if(lightSlider.getValue() !=  loadedValues.get(i).get(key))
+                                                    TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
                                                 break;
                                             case PROXIMITY:
-                                                proximitySlider.setValue(loadedValues.get(i).get(key));
+                                                if(proximitySlider.getValue() !=  loadedValues.get(i).get(key))
+                                                    proximitySlider.setValue(loadedValues.get(i).get(key));
                                                 break;
                                             case TEMPERATURE:
-                                                temperatureSlider.setValue(loadedValues.get(i).get(key));
+                                                if(temperatureSlider.getValue() !=  loadedValues.get(i).get(key))
+                                                    temperatureSlider.setValue(loadedValues.get(i).get(key));
                                                 break;
                                             case PRESSURE:
-                                                pressureSlider.setValue(loadedValues.get(i).get(key));
+                                                if(pressureSlider.getValue() !=  loadedValues.get(i).get(key))
+                                                    pressureSlider.setValue(loadedValues.get(i).get(key));
                                                 break;
                                             case HUMIDITY:
-                                                humiditySlider.setValue(loadedValues.get(i).get(key));
+                                                if(humiditySlider.getValue() !=  loadedValues.get(i).get(key))
+                                                    humiditySlider.setValue(loadedValues.get(i).get(key));
                                                 break;
                                         }
                                         System.out.println(i + " " + key + " " + loadedValues.get(i).get(key));
-                                        TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
                                     }
                                 });
                             }
