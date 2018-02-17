@@ -31,9 +31,33 @@ public class Main extends Application {
         stage.show();
 
         TelnetServer.connect();
-
         ADBUtil.findADB();
 
+        if(!createDirectories())
+            System.out.println("Failed to make directories");
+        else
+            System.out.println(":)");
+    }
+
+    private boolean createDirectories() {
+        boolean result = true;
+
+        String path = System.getProperty("user.dir");
+
+        path += "misc";
+        File directory = new File(path);
+        if(!directory.exists())
+            result = directory.mkdir();
+
+        directory = new File(path + "commands");
+        if(!directory.exists())
+            result = directory.mkdir();
+
+        directory = new File(path + "sensors");
+        if(!directory.exists())
+            result = directory.mkdir();
+
+        return result;
     }
 
     public static void main(String[] args) {

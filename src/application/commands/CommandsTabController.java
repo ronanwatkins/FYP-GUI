@@ -4,6 +4,7 @@ import application.XMLUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -20,6 +21,8 @@ import java.util.ResourceBundle;
 
 public class CommandsTabController implements Initializable{
 
+    private final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands";
+
     @FXML
     private TextField commandField;
 
@@ -29,6 +32,12 @@ public class CommandsTabController implements Initializable{
     private ListView<String> commandsListView;
     @FXML
     private ListView<Integer> indexListView;
+    @FXML
+    private ListView<String> selectListView;
+    @FXML
+    private ListView<String> allCommandsListView;
+    @FXML
+    private ListView<String> runningCommandsListView;
 
     @FXML
     private Button addCommandButton;
@@ -40,6 +49,13 @@ public class CommandsTabController implements Initializable{
     private Button moveDownButton;
     @FXML
     private Button saveButton;
+
+    @FXML
+    private Button editButton;
+    @FXML
+    private Button deleteCommandsButton;
+    @FXML
+    private Button runCommandsButton;
 
     @FXML
     private Tab runBatchTab;
@@ -56,11 +72,75 @@ public class CommandsTabController implements Initializable{
 
     private int index = 0;
 
+    private File editFile = null;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
-        String keyEvent = "shell input keyevent ";
+        RunBatchTab();
 
+        createBatchTab.setOnSelectionChanged(new EventHandler<Event>() {
+            @Override
+            public void handle(Event event) {
+                if(createBatchTab.isSelected()) {
+                    System.out.println("Create Batch Tab Selected");
+
+                    CreateBatchTab(editFile);
+                }
+            }
+        });
+
+        runBatchTab.setOnSelectionChanged(new EventHandler<Event>() {
+            @Override
+            public void handle(Event event) {
+                if(runBatchTab.isSelected()) {
+                    System.out.println("Run Batch Tab Selected");
+                    RunBatchTab();
+                }
+            }
+        });
+    }
+
+    private void CreateBatchTab(File file) {
+
+        ObservableList<Integer> indexList;
+
+        if(file != null) {
+            saveButton.setDisable(false);
+            XMLUtil xmlUtil = new XMLUtil();
+
+            ObservableList<String> commands = xmlUtil.openBatchCommands(file);
+            commandsListView.setItems(commands);
+
+            indexList = FXCollections.observableArrayList();
+
+            index = commands.size();
+
+            for (int i = 0; i <= index; i++) {
+                indexList.add(i);
+            }
+
+            indexBox.setItems(indexList);
+            indexBox.setValue(index);
+
+            indexListView.getItems().clear();
+            for (int i = 0; i < indexBox.getValue(); i++) {
+                indexListView.getItems().add(i);
+            }
+
+        } else {
+            saveButton.setDisable(true);
+
+            index = 0;
+            indexList = FXCollections.observableArrayList(
+                    index
+            );
+
+            indexListView.getItems().clear();
+            commandsListView.getItems().clear();
+        }
+
+        String keyEvent = "shell input keyevent ";
 
         initCommandsMap();
 
@@ -68,14 +148,9 @@ public class CommandsTabController implements Initializable{
                 commandsMap.keySet()
         );
 
-        ObservableList<Integer> indexList = FXCollections.observableArrayList(
-            index
-        );
-
         deleteButton.setDisable(true);
         moveUpButton.setDisable(true);
         moveDownButton.setDisable(true);
-        saveButton.setDisable(true);
 
         indexBox.setItems(indexList);
         indexBox.setValue(index);
@@ -159,8 +234,8 @@ public class CommandsTabController implements Initializable{
         deleteButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                commandsListView.getItems().remove(commandsListView.getSelectionModel().getSelectedIndex());
-                indexListView.getItems().remove(commandsListView.getSelectionModel().getSelectedIndex());
+                int commandsListViewIndex = commandsListView.getSelectionModel().getSelectedIndex();
+                commandsListView.getItems().remove(commandsListViewIndex);
 
                 indexList.remove(index);
                 index -= 1;
@@ -178,19 +253,29 @@ public class CommandsTabController implements Initializable{
         saveButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                TextInputDialog dialog = new TextInputDialog();
-                dialog.setTitle("Save Batch Commands");
-                dialog.setHeaderText("Enter Command Name");
+                XMLUtil xmlUtil = new XMLUtil();
 
-                Optional<String> result = dialog.showAndWait();
-                if (result.isPresent()) {
-                    System.out.println(result.get());
-                    XMLUtil xmlUtil = new XMLUtil();
-                    xmlUtil.saveBatchCommands(commandsListView.getItems());
+                if(file != null) {
+                    xmlUtil.saveBatchCommands(commandsListView.getItems(), file);
+                    editFile = null;
                     tabPane.getSelectionModel().select(runBatchTab);
+                } else {
+                    TextInputDialog dialog = new TextInputDialog();
+                    dialog.setTitle("Save Batch Commands");
+                    dialog.setHeaderText("Enter Command Name");
+
+                    Optional<String> result = dialog.showAndWait();
+                    if (result.isPresent()) {
+                        System.out.println(result.get());
+
+                        xmlUtil.saveBatchCommands(commandsListView.getItems(), new File(DIRECTORY + "\\" + result.get() + ".xml"));
+                        tabPane.getSelectionModel().select(runBatchTab);
+                    }
                 }
+
             }
         });
+
 
 //        ScrollBar scrollBarOne;
 //        ScrollBar scrollBarTwo;
@@ -205,7 +290,79 @@ public class CommandsTabController implements Initializable{
 //        scrollBarTwo = (ScrollBar) commandsListView.lookup(".scroll-bar:vertical");
 //
 //        scrollBarOne.valueProperty().bindBidirectional(scrollBarTwo.valueProperty());
+    }
 
+    private void RunBatchTab() {
+
+        editFile = null;
+        deleteCommandsButton.setDisable(true);
+        editButton.setDisable(true);
+        runCommandsButton.setDisable(true);
+
+
+        
+        ObservableList<String> commandFilesList = FXCollections.observableArrayList();
+
+        File directory = new File(DIRECTORY);
+        for(File file : directory.listFiles()) {
+            commandFilesList.add(file.getName().replace(".xml", ""));
+        }
+
+        selectListView.setItems(commandFilesList);
+
+        try {
+            if (!selectListView.getSelectionModel().getSelectedItem().isEmpty())
+                refreshCommandsList();
+        } catch (Exception e) {}
+
+        selectListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                try {
+                    if (!selectListView.getSelectionModel().getSelectedItem().isEmpty()) {
+                        deleteCommandsButton.setDisable(false);
+                        editButton.setDisable(false);
+                        runCommandsButton.setDisable(false);
+
+                        refreshCommandsList();
+                    }
+                } catch (NullPointerException npe) {}
+            }
+        });
+
+        editButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                String fileName = selectListView.getSelectionModel().getSelectedItem();
+                editFile = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
+                CreateBatchTab(editFile);
+                tabPane.getSelectionModel().select(createBatchTab);
+            }
+        });
+
+        deleteCommandsButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                String fileName = selectListView.getSelectionModel().getSelectedItem();
+                int fileIndex = selectListView.getSelectionModel().getSelectedIndex();
+                File fileToDelete = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
+                if(fileToDelete.delete()) {
+                    System.out.println("File deleted");
+                    commandFilesList.remove(fileIndex);
+
+                    refreshCommandsList();
+                }
+            }
+        });
+
+    }
+
+    private void refreshCommandsList() {
+        XMLUtil xmlUtil = new XMLUtil();
+        String commandName = selectListView.getSelectionModel().getSelectedItem();
+        ObservableList<String> batchCommands = xmlUtil.openBatchCommands(new File(DIRECTORY + "\\" + commandName + ".xml"));
+
+        allCommandsListView.setItems(batchCommands);
     }
 
     private void initCommandsMap() {
