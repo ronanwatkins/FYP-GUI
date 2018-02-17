@@ -23,11 +23,6 @@
                         <fx:include fx:id="PowerTabPage" source="power/PowerTab.fxml" />
                     </content>
                 </Tab>
-                <Tab text="Fingerprint">
-                    <content>
-                        <fx:include fx:id="FingerprintTabPage" source="fingerprint/FingerprintTab.fxml" />
-                    </content>
-                </Tab>
                 <Tab text="Phone">
                     <content>
                         <fx:include fx:id="PhoneTabPage" source="phone/PhoneTab.fxml" />
@@ -42,6 +37,11 @@
                    <content>
                       <fx:include fx:id="ConsoleTabPage" source="console/ConsoleTab.fxml" />
                    </content>
+                </Tab>
+                <Tab text="Commands">
+                    <content>
+                        <fx:include fx:id="CommandsTabPage" source="commands/CommandsTab.fxml" />
+                    </content>
                 </Tab>
             </tabs>
         </TabPane>

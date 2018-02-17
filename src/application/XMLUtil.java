@@ -13,11 +13,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -141,5 +140,79 @@ public class XMLUtil {
         new Thread(task).run();
 
         return returnMap;
+    }
+
+    public void saveBatchCommands(ObservableList<String> batchCommands, File file) {
+
+        Element command = null;
+
+        for(String s : batchCommands) {
+            command = document.createElement("command");
+
+            command.appendChild(document.createTextNode(s));
+
+            rootElement.appendChild(command);
+        }
+
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(document);
+
+            StreamResult result = new StreamResult(file);
+
+            Task task = new Task<Void>() {
+
+                @Override
+                public Void call() throws TransformerException {
+                    transformer.transform(source, result);
+
+                    return null;
+                }
+            };
+            new Thread(task).start();
+
+            System.out.println("file saved");
+        } catch (TransformerException te) {
+            te.printStackTrace();
+        }
+    }
+
+    public ObservableList<String> openBatchCommands(File file) {
+
+        ObservableList<String> returnList = FXCollections.observableArrayList();
+
+        Task task = new Task<Void>() {
+
+            @Override
+            public Void call() {
+
+                try {
+                    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                    DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+                    Document document = documentBuilder.parse(file);
+
+                    document.getDocumentElement().normalize();
+
+                    Element element;
+
+                    NodeList nodeList = document.getElementsByTagName("command");
+
+                    for (int i = 0; i < nodeList.getLength(); i++) { //looping through "command"
+
+                        element = (Element) nodeList.item(i);
+
+                        returnList.add(element.getTextContent());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return null;
+            }
+        };
+        new Thread(task).run();
+
+        return returnList;
     }
 }
