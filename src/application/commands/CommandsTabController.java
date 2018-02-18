@@ -1,5 +1,6 @@
 package application.commands;
 
+import application.ADBUtil;
 import application.XMLUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -56,6 +57,8 @@ public class CommandsTabController implements Initializable{
     private Button deleteCommandsButton;
     @FXML
     private Button runCommandsButton;
+    @FXML
+    private Button enterTextButton;
 
     @FXML
     private Tab runBatchTab;
@@ -186,6 +189,20 @@ public class CommandsTabController implements Initializable{
             }
         });
 
+        enterTextButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                TextInputDialog dialog = new TextInputDialog();
+                dialog.setTitle("Enter Text");
+                dialog.setHeaderText("Type Text To Enter");
+
+                Optional<String> result = dialog.showAndWait();
+                if (result.isPresent()) {
+                    commandField.setText("shell input text " + result.get());
+                }
+            }
+        });
+
         commandsListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
@@ -235,15 +252,17 @@ public class CommandsTabController implements Initializable{
             @Override
             public void handle(ActionEvent event) {
                 int commandsListViewIndex = commandsListView.getSelectionModel().getSelectedIndex();
-                commandsListView.getItems().remove(commandsListViewIndex);
+                try {
+                    commandsListView.getItems().remove(commandsListViewIndex);
 
-                indexList.remove(index);
-                index -= 1;
+                    indexList.remove(index);
+                    index -= 1;
 
-                indexBox.setItems(indexList);
-                indexBox.setValue(index);
+                    indexBox.setItems(indexList);
+                    indexBox.setValue(index);
 
-                indexListView.getItems().clear();
+                    indexListView.getItems().clear();
+                } catch (Exception ee) {}
                 for (int i = 0; i < indexBox.getValue(); i++) {
                     indexListView.getItems().add(i);
                 }
@@ -262,14 +281,21 @@ public class CommandsTabController implements Initializable{
                 } else {
                     TextInputDialog dialog = new TextInputDialog();
                     dialog.setTitle("Save Batch Commands");
-                    dialog.setHeaderText("Enter Command Name");
+                    dialog.setHeaderText("Enter Batch Name");
 
                     Optional<String> result = dialog.showAndWait();
                     if (result.isPresent()) {
                         System.out.println(result.get());
 
                         xmlUtil.saveBatchCommands(commandsListView.getItems(), new File(DIRECTORY + "\\" + result.get() + ".xml"));
-                        tabPane.getSelectionModel().select(runBatchTab);
+
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException ie) {
+                            ie.printStackTrace();
+                        } finally {
+                            tabPane.getSelectionModel().select(runBatchTab);
+                        }
                     }
                 }
 
@@ -299,13 +325,16 @@ public class CommandsTabController implements Initializable{
         editButton.setDisable(true);
         runCommandsButton.setDisable(true);
 
-
-        
         ObservableList<String> commandFilesList = FXCollections.observableArrayList();
 
         File directory = new File(DIRECTORY);
-        for(File file : directory.listFiles()) {
-            commandFilesList.add(file.getName().replace(".xml", ""));
+
+        try {
+            for (File file : directory.listFiles()) {
+                commandFilesList.add(file.getName().replace(".xml", ""));
+            }
+        } catch (NullPointerException npe) {
+            //npe.printStackTrace();
         }
 
         selectListView.setItems(commandFilesList);
@@ -355,14 +384,68 @@ public class CommandsTabController implements Initializable{
             }
         });
 
+        runCommandsButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+
+                for(String command : allCommandsListView.getItems()) {
+                    System.out.println(ADBUtil.consoleCommand(formatCommand(command).split(" ")));
+
+                    runningCommandsListView.getItems().clear();
+                    runningCommandsListView.getItems().add(command);
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ie) {
+                        ie.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
+    private String formatCommand(String command) {
+        if(command.startsWith("shell input text")) {
+            String tempCommand = command.substring(17);
+            System.out.println("TempCommand: " + tempCommand);
+
+            String temp2 = "";
+            for(char ch : tempCommand.toCharArray()) {
+                String temp = ch+"";
+                if(!Character.isAlphabetic(ch) && ch != ' ')
+                    temp = "\\" + temp;
+
+                temp2 += temp;
+            }
+
+            tempCommand = temp2;
+            //tempCommand = tempCommand.replaceAll("[^a-zA-Z0-9 ]", "\\[^a-zA-Z0-9]");
+            tempCommand = tempCommand.replace(" ", "%s");
+
+            System.out.println("TempCommand now: " + tempCommand);
+            tempCommand  = "\"" + tempCommand + "\"";
+
+
+            command = "shell input text " + tempCommand;
+            System.out.println("Command formatted: " + command);
+
+        }
+
+        return command;
     }
 
     private void refreshCommandsList() {
         XMLUtil xmlUtil = new XMLUtil();
         String commandName = selectListView.getSelectionModel().getSelectedItem();
-        ObservableList<String> batchCommands = xmlUtil.openBatchCommands(new File(DIRECTORY + "\\" + commandName + ".xml"));
-
-        allCommandsListView.setItems(batchCommands);
+        System.out.println("Comand NAme: " + commandName);
+        if(commandName != null) {
+            ObservableList<String> batchCommands = xmlUtil.openBatchCommands(new File(DIRECTORY + "\\" + commandName + ".xml"));
+            allCommandsListView.setItems(batchCommands);
+        } else {
+            allCommandsListView.setItems(null);
+            editButton.setDisable(true);
+            deleteCommandsButton.setDisable(true);
+            runCommandsButton.setDisable(true);
+        }
     }
 
     private void initCommandsMap() {
@@ -375,5 +458,21 @@ public class CommandsTabController implements Initializable{
         commandsMap.put("Power", "KEYCODE_POWER");
         commandsMap.put("Tab", "KEYCODE_TAB");
         commandsMap.put("Enter", "KEYCODE_ENTER");
+        commandsMap.put("Menu", "KEYCODE_MENU");
+        commandsMap.put("Call", "KEYCODE_CALL");
+        commandsMap.put("End Call", "KEYCODE_ENDCALL");
+        commandsMap.put("Up", "KEYCODE_DPAD_UP");
+        commandsMap.put("Down", "KEYCODE_DPAD_DOWN");
+        commandsMap.put("Left", "KEYCODE_DPAD_LEFT");
+        commandsMap.put("Right", "KEYCODE_DPAD_RIGHT");
+        commandsMap.put("Centre", "KEYCODE_DPAD_CENTRE");
+        commandsMap.put("Camera", "KEYCODE_CAMERA");
+        commandsMap.put("Tab", "KEYCODE_TAB");
+        commandsMap.put("Space", "KEYCODE_SPACE");
+        commandsMap.put("Change Keyboard", "KEYCODE_SYM");
+        commandsMap.put("Browser", "KEYCODE_EXPLORER");
+        commandsMap.put("Gmail", "KEYCODE_ENVELOPE");
+        commandsMap.put("Delete", "KEYCODE_DEL");
+        commandsMap.put("Search", "KEYCODE_SEARCH");
     }
 }

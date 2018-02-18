@@ -44,16 +44,16 @@ public class Main extends Application {
 
         String path = System.getProperty("user.dir");
 
-        path += "misc";
+        path += "\\misc";
         File directory = new File(path);
         if(!directory.exists())
             result = directory.mkdir();
 
-        directory = new File(path + "commands");
+        directory = new File(path + "\\commands");
         if(!directory.exists())
             result = directory.mkdir();
 
-        directory = new File(path + "sensors");
+        directory = new File(path + "\\sensors");
         if(!directory.exists())
             result = directory.mkdir();
 

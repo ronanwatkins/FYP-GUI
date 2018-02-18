@@ -397,25 +397,34 @@ public class SensorsTabController implements Initializable {
                                     public void run() {
                                         switch (key) {
                                             case LIGHT:
-                                                lightSlider.setValue(loadedValues.get(i).get(key));
-                                                if(lightSlider.getValue() !=  loadedValues.get(i).get(key))
+                                                if(lightSlider.getValue() !=  loadedValues.get(i).get(key)) {
+                                                    lightSlider.setValue(loadedValues.get(i).get(key));
                                                     TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
+                                                }
                                                 break;
                                             case PROXIMITY:
-                                                if(proximitySlider.getValue() !=  loadedValues.get(i).get(key))
+                                                if(proximitySlider.getValue() !=  loadedValues.get(i).get(key)) {
                                                     proximitySlider.setValue(loadedValues.get(i).get(key));
+                                                    TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
+                                                }
                                                 break;
                                             case TEMPERATURE:
-                                                if(temperatureSlider.getValue() !=  loadedValues.get(i).get(key))
+                                                if(temperatureSlider.getValue() !=  loadedValues.get(i).get(key)) {
+                                                    TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
                                                     temperatureSlider.setValue(loadedValues.get(i).get(key));
+                                                }
                                                 break;
                                             case PRESSURE:
-                                                if(pressureSlider.getValue() !=  loadedValues.get(i).get(key))
+                                                if(pressureSlider.getValue() !=  loadedValues.get(i).get(key)) {
+                                                    TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
                                                     pressureSlider.setValue(loadedValues.get(i).get(key));
+                                                }
                                                 break;
                                             case HUMIDITY:
-                                                if(humiditySlider.getValue() !=  loadedValues.get(i).get(key))
+                                                if(humiditySlider.getValue() !=  loadedValues.get(i).get(key)) {
+                                                    TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
                                                     humiditySlider.setValue(loadedValues.get(i).get(key));
+                                                }
                                                 break;
                                         }
                                         System.out.println(i + " " + key + " " + loadedValues.get(i).get(key));

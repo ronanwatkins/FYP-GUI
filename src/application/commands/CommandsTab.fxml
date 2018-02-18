@@ -44,6 +44,7 @@
                         <Button fx:id="moveUpButton" layoutX="602.0" layoutY="318.0" mnemonicParsing="false" text="Move Up" />
                         <Button fx:id="moveDownButton" layoutX="514.0" layoutY="318.0" mnemonicParsing="false" text="Move Down" />
                         <Button fx:id="saveButton" layoutX="514.0" layoutY="365.0" mnemonicParsing="false" text="Save Batch Commands" />
+                        <Button fx:id="enterTextButton" layoutX="291.0" layoutY="404.0" mnemonicParsing="false" text="Enter Text" />
 
                      </children></AnchorPane>
             </content>

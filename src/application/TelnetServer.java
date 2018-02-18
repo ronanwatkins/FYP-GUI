@@ -18,42 +18,41 @@ public class TelnetServer {
 
         Task task = new Task<Void>() {
 
-                @Override
-                public Void call() throws IOException {
+            @Override
+            public Void call() throws IOException {
 
-                    Socket serverSocket = new Socket("localhost", port);
+                Socket serverSocket = new Socket("localhost", port);
 
-                    out = new PrintStream(serverSocket.getOutputStream());
-                    in = new InputStreamReader(serverSocket.getInputStream());
-                    int data = in.read();
-                    StringBuilder input = new StringBuilder();
-                    while (data != -1) {
-                        char theChar = (char) data;
-                        input.append(theChar);
-                        if (input.toString().contains("OK"))
-                            break;
-                        data = in.read();
-                    }
+                out = new PrintStream(serverSocket.getOutputStream());
+                in = new InputStreamReader(serverSocket.getInputStream());
 
-                    String[] inputs = input.toString().split("\n");
-                    String filePath = "";
-                    for (String word : inputs) {
-                        if (word.contains("emulator_console_auth_token"))
-                            filePath = word;
-                    }
+                int data = in.read();
+                StringBuilder input = new StringBuilder();
+                while (data != -1) {
+                    char theChar = (char) data;
+                    input.append(theChar);
+                    if (input.toString().contains("OK"))
+                        break;
+                    data = in.read();
+                }
 
-                    filePath = filePath.replace("'", "").trim();
+                String[] inputs = input.toString().split("\n");
+                String filePath = "";
+                for (String word : inputs) {
+                    if (word.contains("emulator_console_auth_token"))
+                        filePath = word;
+                }
 
-                    File file = new File(filePath);
-                    System.out.println("Filepath: " + filePath);
+                filePath = filePath.replace("'", "").trim();
 
-                    BufferedReader reader = new BufferedReader(new FileReader(file));
-                    String authToken = reader.readLine();
+                File file = new File(filePath);
 
-                    out.println("auth " + authToken);
-                    System.out.println("auth " + authToken);
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                String authToken = reader.readLine();
 
-                    return null;
+                out.println("auth " + authToken);
+
+                return null;
             }
         };
 

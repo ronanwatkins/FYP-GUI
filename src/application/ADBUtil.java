@@ -5,12 +5,14 @@ import javafx.scene.control.TextInputDialog;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class ADBUtil {
 
     private static File adbLocation = new File(System.getProperty("user.home") + "\\AppData\\Local\\Android\\Sdk\\platform-tools");
+    private static String DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands\\";
     private static String adbPath;
     private static boolean isADBFound = false;
 
@@ -18,7 +20,7 @@ public class ADBUtil {
         try {
             for (File file : adbLocation.listFiles()) {
                 if (file.getName().equalsIgnoreCase("adb.exe")) {
-                    System.out.println("ADB correct");
+                    //System.out.println("ADB correct");
                     adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
                     isADBFound = true;
                     return;
@@ -69,33 +71,80 @@ public class ADBUtil {
 
     public static String consoleCommand(String[] parameters) {
 
+        System.out.println("In console command");
         StringBuilder result = new StringBuilder();
+
+       // String filename = DIRECTORY + "log.txt";
+
+       // File tmp = null;
+
         try {
+//            tmp = File.createTempFile("out", null);
+//            tmp.deleteOnExit();
+
             ArrayList<String> arrayList = new ArrayList<>();
             arrayList.add(adbPath);
-            for(String parameter : parameters)
+            //arrayList.addAll(parameters);
+            for(String parameter : parameters) {
+                System.out.println("Param: "+ parameter);
                 arrayList.add(parameter);
-
-            Process process = new ProcessBuilder(arrayList).start();
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
-                result.append(line).append("\n");
             }
 
-            br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            while ((line = br.readLine()) != null) {
-                System.out.println("Error: " + line);
-                result.append(line).append("\n");
-            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        File tmp = File.createTempFile("out", null);
+                        tmp.deleteOnExit();
+                        final ProcessBuilder processBuilder = new ProcessBuilder();
+                        processBuilder.command(arrayList).redirectErrorStream(true)
+                                .redirectOutput(tmp);
 
-        } catch (IOException ee) {
+                        final Process process = processBuilder.start();
+
+                        final StringBuilder out = new StringBuilder();
+
+                        try (final InputStream is = new FileInputStream(tmp)) {
+                            int c;
+                            while ((c = is.read()) != -1) {
+
+                                out.append((char) c);
+                            }
+                        }
+                    }catch (Exception ee) {
+                        ee.printStackTrace();
+                    }
+                }
+            }).start();
+
+
+
+//            System.out.println("Starting process");
+//            Process process = new ProcessBuilder(arrayList).start();
+//            System.out.println("Process started");
+
+//            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//             String line;
+//            System.out.println("Created buffered reader");
+//            while ((line = br.readLine()) != null) {
+//                System.out.println("reading......");
+//                System.out.println(line);
+//                result.append(line).append("\n");
+//            }
+
+//            BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+
+//            while ((line = br.readLine()) != null) {
+//                System.out.println("Error: " + line);
+//                result.append(line).append("\n");
+//            }
+
+        } catch (Exception ee) {
             ee.printStackTrace();
         }
-
+        finally {
+           // tmp.delete();
+        }
         return result.toString();
     }
 }
