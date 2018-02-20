@@ -15,6 +15,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Optional;
@@ -25,7 +26,7 @@ public class CommandsTabController implements Initializable{
     private final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands";
 
     @FXML
-    private TextField commandField;
+    private static TextField commandField;
 
     @FXML
     private ListView<String> possibleCommandsListView;
@@ -403,6 +404,19 @@ public class CommandsTabController implements Initializable{
         });
     }
 
+    @FXML
+    private void handleGetCursorLocationClicked(ActionEvent event) {
+        try {
+            GetTouchPositionController.showScreen(getClass());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setCommandText(String text) {
+        commandField.setText(text);
+    }
+
     private String formatCommand(String command) {
         if(command.startsWith("shell input text")) {
             String tempCommand = command.substring(17);
@@ -456,7 +470,6 @@ public class CommandsTabController implements Initializable{
         commandsMap.put("Volume Up", "KEYCODE_VOLUME_UP");
         commandsMap.put("Volume Down", "KEYCODE_VOLUME_DOWN");
         commandsMap.put("Power", "KEYCODE_POWER");
-        commandsMap.put("Tab", "KEYCODE_TAB");
         commandsMap.put("Enter", "KEYCODE_ENTER");
         commandsMap.put("Menu", "KEYCODE_MENU");
         commandsMap.put("Call", "KEYCODE_CALL");

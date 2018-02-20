@@ -1,5 +1,10 @@
 package application;
 
+import application.commands.GetTouchPositionController;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.TextInputDialog;
 
 import java.io.*;
@@ -15,6 +20,8 @@ public class ADBUtil {
     private static String DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands\\";
     private static String adbPath;
     private static boolean isADBFound = false;
+    private static Integer x = 0;
+    private static Integer y = 0;
 
     public static void findADB() {
         try {
@@ -69,76 +76,126 @@ public class ADBUtil {
         }
     }
 
+    public static void getCursorPosition(Class callingClass) throws Exception{
+
+        System.out.println("In get cursor position");
+        FXMLLoader fxmlLoader = new FXMLLoader(callingClass.getResource("/application/commands/GetTouchPosition.fxml"));
+
+        GetTouchPositionController controller = fxmlLoader.getController();
+
+        try {
+
+            Task task = new Task() {
+                @Override
+                protected Object call() throws Exception {
+                    Process process = Runtime.getRuntime().exec(adbPath + " shell getevent -lt");
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+
+                        if(line.contains("ABS_MT_POSITION_X")) {
+                            String xPosition = line.substring(line.trim().length()-8).trim();
+                            x = 0;
+                            try {
+                                x = Integer.parseInt(xPosition, 16);
+                            } catch (NumberFormatException nfe) {
+                                nfe.printStackTrace();
+                            }
+                            System.out.println("Xposition decimal: " + x);
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(x != null) {
+                                        try {
+                                            controller.setXField(x);
+                                        } catch (Exception ee) {
+                                            System.out.println("Exception: " + ee.getMessage());
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        if(line.contains("ABS_MT_POSITION_Y")) {
+                            String yPosition = line.substring(line.trim().length()-8).trim();
+                            try {
+                                y = Integer.parseInt(yPosition, 16);
+                            } catch (NumberFormatException nfe) {
+                                nfe.printStackTrace();
+                            }
+                            System.out.println("Yposition decimal: " + y);
+                            Platform.runLater(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if(y != null) {
+                                        try {
+                                            controller.setXField(y);
+                                        } catch (Exception ee) {
+                                            System.out.println("Exception: " + ee.getMessage());
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    bufferedReader.close();
+                    process.waitFor();
+
+                    return null;
+                }
+            };
+            new Thread(task).start();
+
+            System.out.println("Finished getCursorPosition");
+        } catch (Exception ee) {
+            ee.printStackTrace();
+        }
+    }
+
     public static String consoleCommand(String[] parameters) {
 
         System.out.println("In console command");
         StringBuilder result = new StringBuilder();
 
-       // String filename = DIRECTORY + "log.txt";
-
-       // File tmp = null;
-
         try {
-//            tmp = File.createTempFile("out", null);
-//            tmp.deleteOnExit();
+            String[] params = new String[parameters.length+1];
+            params[0] = adbPath;
 
-            ArrayList<String> arrayList = new ArrayList<>();
-            arrayList.add(adbPath);
-            //arrayList.addAll(parameters);
-            for(String parameter : parameters) {
-                System.out.println("Param: "+ parameter);
-                arrayList.add(parameter);
+            System.arraycopy(parameters, 0, params, 1, parameters.length);
+
+            for (int i = 0; i < params.length; i++) {
+                System.out.println("param["+i+"]: " + params[i]);
             }
 
-            new Thread(new Runnable() {
+            Task task = new Task() {
                 @Override
-                public void run() {
-                    try {
-                        File tmp = File.createTempFile("out", null);
-                        tmp.deleteOnExit();
-                        final ProcessBuilder processBuilder = new ProcessBuilder();
-                        processBuilder.command(arrayList).redirectErrorStream(true)
-                                .redirectOutput(tmp);
+                protected Object call() throws Exception {
+                    Process process = Runtime.getRuntime().exec(params);
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-                        final Process process = processBuilder.start();
-
-                        final StringBuilder out = new StringBuilder();
-
-                        try (final InputStream is = new FileInputStream(tmp)) {
-                            int c;
-                            while ((c = is.read()) != -1) {
-
-                                out.append((char) c);
-                            }
-                        }
-                    }catch (Exception ee) {
-                        ee.printStackTrace();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        System.out.println(line);
+                        result.append(line).append("\n");
                     }
+
+                    bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                    while ((line = bufferedReader.readLine()) != null) {
+                        System.out.println(line);
+                        result.append(line).append("\n");
+                    }
+
+                    bufferedReader.close();
+                    process.waitFor();
+
+                    return null;
                 }
-            }).start();
+            };
+            new Thread(task).start();
 
-
-
-//            System.out.println("Starting process");
-//            Process process = new ProcessBuilder(arrayList).start();
-//            System.out.println("Process started");
-
-//            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//             String line;
-//            System.out.println("Created buffered reader");
-//            while ((line = br.readLine()) != null) {
-//                System.out.println("reading......");
-//                System.out.println(line);
-//                result.append(line).append("\n");
-//            }
-
-//            BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-
-//            while ((line = br.readLine()) != null) {
-//                System.out.println("Error: " + line);
-//                result.append(line).append("\n");
-//            }
-
+            System.out.println("Finished console commands");
         } catch (Exception ee) {
             ee.printStackTrace();
         }
