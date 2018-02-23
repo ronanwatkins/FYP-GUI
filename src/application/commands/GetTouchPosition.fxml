@@ -2,17 +2,27 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
 <AnchorPane prefHeight="200.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.commands.GetTouchPositionController">
    <children>
-      <Label layoutX="30.0" layoutY="30.0" text="Click the screen on your emulator to get cursor location" />
-      <Label layoutX="30.0" layoutY="64.0" text="Cursor location:" />
-      <Label layoutX="30.0" layoutY="92.0" text="X:" />
-      <Label layoutX="30.0" layoutY="117.0" text="Y:" />
-      <TextField fx:id="xField" layoutX="45.0" layoutY="86.0" prefHeight="25.0" prefWidth="56.0" />
-      <TextField fx:id="yField" layoutX="45.0" layoutY="113.0" prefHeight="25.0" prefWidth="56.0" />
-       <Button fx:id="OKButton" layoutX="193.0" layoutY="86.0" mnemonicParsing="false" text="OK" />
+      <Label layoutX="30.0" layoutY="24.0" text="Click the screen on your emulator to get cursor location" />
+      <Label layoutX="30.0" layoutY="83.0" text="Cursor location:" />
+
+      <Label fx:id="xLabel" layoutX="35.0" layoutY="109.0" text="X:" />
+      <Label fx:id="yLabel" layoutX="35.0" layoutY="138.0" text="Y:" />
+      <TextField fx:id="xField" layoutX="57.0" layoutY="105.0" prefHeight="25.0" prefWidth="56.0" />
+      <TextField fx:id="yField" layoutX="57.0" layoutY="134.0" prefHeight="25.0" prefWidth="56.0" />
+
+      <Label fx:id="xEndLabel" layoutX="135.0" layoutY="109.0" text="X End:" />
+      <Label fx:id="yEndLabel" layoutX="135.0" layoutY="138.0" text="Y End:" />
+      <TextField fx:id="xEndField" layoutX="180.0" layoutY="105.0" prefHeight="25.0" prefWidth="56.0" />
+      <TextField fx:id="yEndField" layoutX="180.0" layoutY="134.0" prefHeight="25.0" prefWidth="56.0" />
+
+       <Button fx:id="OKButton" onAction="#handleOKButtonClicked" layoutX="292.0" layoutY="134.0" mnemonicParsing="false" text="OK" />
+      <RadioButton fx:id="tapRadioButton" onAction="#handleTapRadioButtonClicked" layoutX="28.0" layoutY="57.0" mnemonicParsing="false" text="Tap" />
+      <RadioButton fx:id="swipeRadioButton" onAction="#handleSwipeRadioButtonClicked" layoutX="85.0" layoutY="57.0" mnemonicParsing="false" text="Swipe" />
    </children>
 </AnchorPane>

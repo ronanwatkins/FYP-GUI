@@ -26,7 +26,7 @@ public class CommandsTabController implements Initializable{
     private final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands";
 
     @FXML
-    private static TextField commandField;
+    private TextField commandField;
 
     @FXML
     private ListView<String> possibleCommandsListView;
@@ -78,6 +78,8 @@ public class CommandsTabController implements Initializable{
 
     private File editFile = null;
 
+    public CommandsTabController(){}
+    
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -151,6 +153,8 @@ public class CommandsTabController implements Initializable{
         ObservableList<String> possibleCommands = FXCollections.observableArrayList(
                 commandsMap.keySet()
         );
+
+        commandField.setText("");
 
         deleteButton.setDisable(true);
         moveUpButton.setDisable(true);
@@ -407,14 +411,18 @@ public class CommandsTabController implements Initializable{
     @FXML
     private void handleGetCursorLocationClicked(ActionEvent event) {
         try {
-            GetTouchPositionController.showScreen(getClass());
+            GetTouchPositionController.showScreen(this);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void setCommandText(String text) {
+    public void setCommandText(String text) {
         commandField.setText(text);
+    }
+
+    public TextField getCommandField() {
+        return commandField;
     }
 
     private String formatCommand(String command) {
