@@ -305,7 +305,7 @@ public class ADBUtil {
             String[] result = consoleCommand(new String[] {"devices"}, false).split("\n");
 
             if(result[1] != null) {
-                System.out.println("OOOHHHH SSSHMMMMMMMMM");
+
                 ADBConnectionController adbConnectionController = new ADBConnectionController();
 
                 Platform.runLater(new Runnable() {
