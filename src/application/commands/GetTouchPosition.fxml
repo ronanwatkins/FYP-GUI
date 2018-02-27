@@ -11,18 +11,20 @@
       <Label layoutX="30.0" layoutY="24.0" text="Click the screen on your emulator to get cursor location" />
       <Label layoutX="30.0" layoutY="83.0" text="Cursor location:" />
 
-      <Label fx:id="xLabel" layoutX="35.0" layoutY="109.0" text="X:" />
+      <Label layoutX="35.0" layoutY="109.0" text="X:" fx:id="xLabel" />
       <Label fx:id="yLabel" layoutX="35.0" layoutY="138.0" text="Y:" />
-      <TextField fx:id="xField" layoutX="57.0" layoutY="105.0" prefHeight="25.0" prefWidth="56.0" />
+      <TextField layoutX="57.0" layoutY="105.0" prefHeight="25.0" prefWidth="56.0" fx:id="xField" />
       <TextField fx:id="yField" layoutX="57.0" layoutY="134.0" prefHeight="25.0" prefWidth="56.0" />
 
-      <Label fx:id="xEndLabel" layoutX="135.0" layoutY="109.0" text="X End:" />
+      <Label layoutX="135.0" layoutY="109.0" text="X End:" fx:id="xEndLabel" />
       <Label fx:id="yEndLabel" layoutX="135.0" layoutY="138.0" text="Y End:" />
-      <TextField fx:id="xEndField" layoutX="180.0" layoutY="105.0" prefHeight="25.0" prefWidth="56.0" />
+      <TextField layoutX="180.0" layoutY="105.0" prefHeight="25.0" prefWidth="56.0" fx:id="xEndField" />
       <TextField fx:id="yEndField" layoutX="180.0" layoutY="134.0" prefHeight="25.0" prefWidth="56.0" />
 
-       <Button fx:id="OKButton" onAction="#handleOKButtonClicked" layoutX="292.0" layoutY="134.0" mnemonicParsing="false" text="OK" />
-      <RadioButton fx:id="tapRadioButton" onAction="#handleTapRadioButtonClicked" layoutX="28.0" layoutY="57.0" mnemonicParsing="false" text="Tap" />
-      <RadioButton fx:id="swipeRadioButton" onAction="#handleSwipeRadioButtonClicked" layoutX="85.0" layoutY="57.0" mnemonicParsing="false" text="Swipe" />
+       <Button fx:id="OKButton" layoutX="292.0" layoutY="134.0" mnemonicParsing="false" onAction="#handleOKButtonClicked" text="OK" />
+      <RadioButton fx:id="tapRadioButton" layoutX="28.0" layoutY="57.0" mnemonicParsing="false" onAction="#handleTapRadioButtonClicked" text="Tap" />
+      <RadioButton fx:id="swipeRadioButton" layoutX="85.0" layoutY="57.0" mnemonicParsing="false" onAction="#handleSwipeRadioButtonClicked" text="Swipe" />
+      <Label layoutX="163.0" layoutY="57.0" text="Duration (ms):" />
+      <TextField fx:id="durationField" layoutX="243.0" layoutY="53.0" prefHeight="25.0" prefWidth="49.0" />
    </children>
 </AnchorPane>

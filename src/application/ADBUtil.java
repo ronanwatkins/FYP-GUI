@@ -1,18 +1,14 @@
 package application;
 
 import application.commands.GetTouchPositionController;
+import application.commands.RecordInputsController;
+import application.utilities.ADBConnectionController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.TextInputDialog;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ADBUtil {
@@ -33,6 +29,12 @@ public class ADBUtil {
     private static double xEnd = 0.0;
     private static double yEnd = 0.0;
 
+    private static StringBuilder sendEventBuilder;
+    private static AtomicBoolean stopRecordingFlag = new AtomicBoolean(false);
+    private static Task recordValuesTask;
+
+    private static HashMap<String, String> keyMap;
+
     private static AtomicBoolean swipeFlag = new AtomicBoolean(false);
 
     public static void setSwipeFlag(Boolean flag) {
@@ -50,7 +52,17 @@ public class ADBUtil {
                 if (file.getName().equalsIgnoreCase("adb.exe")) {
                     adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
                     isADBFound = true;
-                    getResolution();
+                    Task task = new Task() {
+                        @Override
+                        protected Object call() throws Exception {
+                            checkDevices();
+                            getResolution();
+                            getKeyMaps();
+
+                            return null;
+                        }
+                    };
+                    new Thread(task).start();
                     return;
                 } else {
                     if (!isADBFound)
@@ -93,23 +105,105 @@ public class ADBUtil {
         } else {
             adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
             isADBFound = true;
-            getResolution();
-            return;
+            Task task = new Task() {
+                @Override
+                protected Object call() throws Exception {
+                    checkDevices();
+                    getResolution();
+                    getKeyMaps();
+
+                    return null;
+                }
+            };
+            new Thread(task).start();
         }
     }
 
     private static void getResolution() {
-        String[] response = consoleCommand(new String[] {"shell", "wm", "size"}).split(" ");
+        String[] response = consoleCommand(new String[] {"shell", "wm", "size"}, false).split(" ");
         String[] size = response[2].split("x");
         resolutionX = Double.parseDouble(size[0]);
         resolutionY = Double.parseDouble(size[1]);
 
-        response = consoleCommand(new String[] {"shell", "\"getevent -il | grep ABS_MT_POSITION\""}).split("\n");
-        String posX = response[0].split(",")[2];
-        String posY = response[1].split(",")[2];
+        response = consoleCommand(new String[] {"shell", "\"getevent -il | grep ABS_MT_POSITION\""}, false).split("\n");
 
-        maxPositionX =  Double.parseDouble(posX.substring(posX.length()-5, posX.length()));
-        maxPositionY =  Double.parseDouble(posY.substring(posY.length()-5, posY.length()));
+        for(String res : response) {
+            if(res.contains("ABS_MT_POSITION_X")) {
+                String temp = res.split(",")[2];
+                maxPositionX =  Double.parseDouble(temp.substring(temp.length()-5, temp.length()).trim());
+            }
+            if(res.contains("ABS_MT_POSITION_Y")) {
+                String temp = res.split(",")[2];
+                maxPositionY =  Double.parseDouble(temp.substring(temp.length()-5, temp.length()).trim());
+            }
+        }
+
+        System.out.println("resolution X: " + resolutionX);
+        System.out.println("resolution Y: " + resolutionY);
+
+        System.out.println("MaxX: " + maxPositionX);
+        System.out.println("MaxY: " + maxPositionY);
+    }
+
+    public static void getKeyMaps() {
+        keyMap = new HashMap<>();
+
+        String[] response = consoleCommand(new String[] {"shell", "cat", "/system/usr/keylayout/Generic.kl"}, false).split("\n");
+
+        for(String line: response) {
+            if(line.contains("VOLUME_UP") && !keyMap.containsKey("VOLUME_UP"))
+                keyMap.put("VOLUME_UP", line.split(" ")[1]);
+            if(line.contains("VOLUME_DOWN") && !keyMap.containsKey("VOLUME_DOWN"))
+                keyMap.put("VOLUME_DOWN", line.split(" ")[1]);
+            if(line.contains("POWER") && !keyMap.containsKey("POWER"))
+                keyMap.put("POWER", line.split(" ")[1]);
+            if(line.contains("CAMERA") && !keyMap.containsKey("CAMERA"))
+                keyMap.put("CAMERA", line.split(" ")[1]);
+        }
+    }
+
+    public synchronized static void setStopRecordingFlag(boolean flag) {
+        if(flag) {
+            recordValuesTask.cancel();
+
+            System.out.println(sendEventBuilder.toString());
+        }
+    }
+
+    public static void recordInputValues(RecordInputsController controller) throws Exception{
+
+        System.out.println("Recording....");
+        sendEventBuilder = new StringBuilder();
+        try {
+
+            recordValuesTask = new Task() {
+                @Override
+                protected Object call() throws Exception {
+                    Process process = Runtime.getRuntime().exec(adbPath + " shell getevent -t");
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        if(line.contains("/dev/input/") && line.startsWith("[")) {
+                            line = line.substring(line.indexOf("]")+1, line.length()).replace(":", "").trim();
+                            String[] lineSplit = line.split(" ");
+                            line = lineSplit[0] + " " + Integer.parseInt(lineSplit[1],16) + " " + Integer.parseInt(lineSplit[2],16) + " " + Long.parseLong(lineSplit[3],16);
+
+                            sendEventBuilder.append(line).append("\n");
+                        }
+                    }
+
+                    bufferedReader.close();
+                    process.waitFor();
+
+                    return null;
+                }
+            };
+            new Thread(recordValuesTask).start();
+
+        } catch (Exception ee) {
+            ee.printStackTrace();
+        }
     }
 
     public static void getCursorPosition(GetTouchPositionController controller) throws Exception{
@@ -124,6 +218,9 @@ public class ADBUtil {
                     long startTime = 0;
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
+
+
+                //    while ((line = consoleCommand(new String[] {"shell", "getevent", "-lt"}, false)) != null) {
 
                         if(line.contains("ABS_MT_POSITION")) {
                             lineGlobal = line;
@@ -144,9 +241,10 @@ public class ADBUtil {
                                         if(swipeFlag.get()) {
                                             if (xStart == 0.0) {
                                                 xStart = x;
+                                                System.out.println("XStart: " + xStart);
                                                 controller.setXField(xStart);
                                                 startTime = System.currentTimeMillis();
-                                                System.out.println("sssssssssssssssssStart time X: " + startTime);
+                                            //    System.out.println("sssssssssssssssssStart time X: " + startTime);
                                             } else {
                                                 xEnd = x;
                                                 controller.setXEndField(xEnd);
@@ -155,14 +253,14 @@ public class ADBUtil {
                                             long timeNow;
                                             if((timeNow = System.currentTimeMillis()) - startTime > 2000) {
                                                 long difference = timeNow-startTime;
-                                                System.out.println("timenow X: " + timeNow + "\tStartTime X: " + startTime + "\tDifference X: " + difference);
+                                                //System.out.println("timenow X: " + timeNow + "\tStartTime X: " + startTime + "\tDifference X: " + difference);
                                                 startTime = 0;
                                                 xStart = 0.0;
                                                 yStart = 0.0;
                                             }
                                         } else {
-                                            double y = decimal.doubleValue()*(resolutionY/maxPositionY);
-                                            controller.setYField(y);
+                                            System.out.println("X: " + x);
+                                            controller.setXField(x);
                                         }
                                     }
                                     else if(lineGlobal.contains("ABS_MT_POSITION_Y")) {
@@ -170,14 +268,15 @@ public class ADBUtil {
                                         if(swipeFlag.get()) {
                                             if (yStart == 0.0) {
                                                 yStart = y;
+                                                System.out.println("YStart: " + yStart);
                                                 controller.setYField(yStart);
                                             } else {
                                                 yEnd = y;
                                                 controller.setYEndField(yEnd);
                                             }
                                         } else {
-                                            double x = decimal.doubleValue()*(resolutionX/maxPositionX);
-                                            controller.setXField(x);
+                                            System.out.println("Y: " + y);
+                                            controller.setYField(y);
                                         }
                                     }
                                 } catch (Exception ee) {
@@ -200,9 +299,39 @@ public class ADBUtil {
         }
     }
 
-    public static String consoleCommand(String[] parameters) {
+    public static void checkDevices() {
+        while(true) {
+            System.out.println(consoleCommand(new String[] {"devices"}, false));
+            String[] result = consoleCommand(new String[] {"devices"}, false).split("\n");
 
-        System.out.println("In console command");
+            if(result[1] != null) {
+                System.out.println("OOOHHHH SSSHMMMMMMMMM");
+                ADBConnectionController adbConnectionController = new ADBConnectionController();
+
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            adbConnectionController.showScreen();
+                            wait();
+                        } catch (Exception ee) {
+                            ee.printStackTrace();
+                        }
+                    }
+                });
+
+
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+        }
+    }
+    public static String consoleCommand(String[] parameters, boolean runInBackground) {
+
+        //System.out.println("In console command");
         StringBuilder result = new StringBuilder();
 
         try {
@@ -212,7 +341,7 @@ public class ADBUtil {
             System.arraycopy(parameters, 0, params, 1, parameters.length);
 
             for (int i = 0; i < params.length; i++) {
-                System.out.println("param["+i+"]: " + params[i]);
+                //System.out.println("param["+i+"]: " + params[i]);
             }
 
             Task task = new Task() {
@@ -223,13 +352,13 @@ public class ADBUtil {
 
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
-                        System.out.println(line);
+                        //System.out.println(line);
                         result.append(line).append("\n");
                     }
 
                     bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                     while ((line = bufferedReader.readLine()) != null) {
-                        System.out.println(line);
+                        //System.out.println(line);
                         result.append(line).append("\n");
                     }
 
@@ -239,9 +368,13 @@ public class ADBUtil {
                     return null;
                 }
             };
-            new Thread(task).run();
 
-            System.out.println("Finished console commands");
+            if(runInBackground)
+                new Thread(task).start();
+            else
+                new Thread(task).run();
+
+           // System.out.println("Finished console commands");
         } catch (Exception ee) {
             ee.printStackTrace();
         }

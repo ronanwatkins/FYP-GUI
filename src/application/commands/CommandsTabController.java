@@ -257,19 +257,22 @@ public class CommandsTabController implements Initializable{
             @Override
             public void handle(ActionEvent event) {
                 int commandsListViewIndex = commandsListView.getSelectionModel().getSelectedIndex();
-                try {
-                    commandsListView.getItems().remove(commandsListViewIndex);
+                if (commandsListViewIndex > -1) {
+                    try {
+                        commandsListView.getItems().remove(commandsListViewIndex);
 
-                    indexList.remove(index);
-                    index -= 1;
+                        indexList.remove(index);
+                        index -= 1;
 
-                    indexBox.setItems(indexList);
-                    indexBox.setValue(index);
+                        indexBox.setItems(indexList);
+                        indexBox.setValue(index);
 
-                    indexListView.getItems().clear();
-                } catch (Exception ee) {}
-                for (int i = 0; i < indexBox.getValue(); i++) {
-                    indexListView.getItems().add(i);
+                        indexListView.getItems().clear();
+                    } catch (Exception ee) {
+                    }
+                    for (int i = 0; i < indexBox.getValue(); i++) {
+                        indexListView.getItems().add(i);
+                    }
                 }
             }
         });
@@ -394,12 +397,12 @@ public class CommandsTabController implements Initializable{
             public void handle(ActionEvent event) {
 
                 for(String command : allCommandsListView.getItems()) {
-                    System.out.println(ADBUtil.consoleCommand(formatCommand(command).split(" ")));
+                    System.out.println(ADBUtil.consoleCommand(formatCommand(command).split(" "), true));
 
                     runningCommandsListView.getItems().clear();
                     runningCommandsListView.getItems().add(command);
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(1500);
                     } catch (InterruptedException ie) {
                         ie.printStackTrace();
                     }
@@ -412,6 +415,15 @@ public class CommandsTabController implements Initializable{
     private void handleGetCursorLocationClicked(ActionEvent event) {
         try {
             GetTouchPositionController.showScreen(this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleRecordInputsClicked(ActionEvent event) {
+        try {
+            RecordInputsController.showScreen(this);
         } catch (IOException e) {
             e.printStackTrace();
         }

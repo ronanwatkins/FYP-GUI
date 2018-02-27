@@ -59,13 +59,13 @@ public class TelnetServer {
         task.setOnFailed(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText("Failed to connect to emulator");
-                alert.setContentText("Your emulator must be turned on before running this program");
-
-                alert.showAndWait();
-                System.exit(0);
+//                Alert alert = new Alert(Alert.AlertType.ERROR);
+//                alert.setTitle("Error");
+//                alert.setHeaderText("Failed to connect to emulator");
+//                alert.setContentText("Your emulator must be turned on before running this program");
+//
+//                alert.showAndWait();
+//                System.exit(0);
             }
         });
 

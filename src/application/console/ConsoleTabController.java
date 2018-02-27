@@ -54,7 +54,7 @@ public class ConsoleTabController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 String[] parameters = commandField.getText().split(" ");
-                String result = ADBUtil.consoleCommand(parameters);
+                String result = ADBUtil.consoleCommand(parameters, false);
                 Text text = new Text(result);
                 text.setFill(Color.RED);
                 resultArea.setText(text.getText());
@@ -71,7 +71,7 @@ public class ConsoleTabController implements Initializable {
             @Override
             public void handle(ActionEvent event) {
                 String[] parameters = commandField.getText().split(" ");
-                resultArea.setText(ADBUtil.consoleCommand(parameters));
+                resultArea.setText(ADBUtil.consoleCommand(parameters,true));
             }
         });
 

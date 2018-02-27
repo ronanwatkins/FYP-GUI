@@ -29,6 +29,8 @@ public class GetTouchPositionController implements Initializable {
     private TextField xEndField;
     @FXML
     private TextField yEndField;
+    @FXML
+    private TextField durationField;
 
     @FXML
     private Label xLabel;
@@ -82,17 +84,26 @@ public class GetTouchPositionController implements Initializable {
         if(yEndField.getText().equals("") && xEndField.getText().equals("")) {
             text = "shell input tap ";
             text += xField.getText() + " ";
-            text += yField.getText();
+            text += yField.getText() + " ";
+            text += durationField.getText();
         } else {
             text = "shell input swipe ";
             text += xField.getText() + " ";
             text += yField.getText() + " ";
             text += xEndField.getText() + " ";
-            text += yEndField.getText();
+            text += yEndField.getText() + " ";
+            text += durationField.getText();
         }
 
         System.out.println("Text: " + text);
         controller.setCommandText(text);
+
+        xField.setText("");
+        yField.setText("");
+        xEndField.setText("");
+        yEndField.setText("");
+        ADBUtil.setSwipeFlag(false);
+
         ((Stage) OKButton.getScene().getWindow()).close();
     }
 
@@ -131,6 +142,8 @@ public class GetTouchPositionController implements Initializable {
             getCursorPositionSwipe();
         }
     }
+
+
 
     public static void showScreen(CommandsTabController commandsTabController) throws IOException {
         controller = commandsTabController;
