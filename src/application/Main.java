@@ -35,8 +35,6 @@ public class Main extends Application {
 
         if(!createDirectories())
             System.out.println("Failed to make directories");
-        else
-            System.out.println(":)");
     }
 
     private boolean createDirectories() {

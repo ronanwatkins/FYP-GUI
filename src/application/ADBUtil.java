@@ -4,18 +4,32 @@ import application.commands.GetTouchPositionController;
 import application.commands.RecordInputsController;
 import application.utilities.ADBConnectionController;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.TextInputDialog;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import org.jetbrains.annotations.Contract;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ADBUtil {
 
     private static File adbLocation = new File(System.getProperty("user.home") + "\\AppData\\Local\\Android\\Sdk\\platform-tools");
     private static String DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands\\";
     private static String adbPath;
+    private static String[] params = null;
+    private static boolean isDeviceNameSet = false;
     private static boolean isADBFound = false;
     private static Integer decimal = 0;
     private static String lineGlobal = "";
@@ -23,6 +37,10 @@ public class ADBUtil {
     private static double resolutionY;
     private static double maxPositionX;
     private static double maxPositionY;
+
+    public static String deviceName = "";
+    public static final Object lock = new Object();
+    private static AtomicBoolean isFirstRun = new AtomicBoolean(true);
 
     private static double xStart = 0.0;
     private static double yStart = 0.0;
@@ -120,12 +138,12 @@ public class ADBUtil {
     }
 
     private static void getResolution() {
-        String[] response = consoleCommand(new String[] {"shell", "wm", "size"}, false).split(" ");
+        String[] response = consoleCommand(new String[] {"-s", deviceName, "shell", "wm", "size"}, false).split(" ");
         String[] size = response[2].split("x");
         resolutionX = Double.parseDouble(size[0]);
         resolutionY = Double.parseDouble(size[1]);
 
-        response = consoleCommand(new String[] {"shell", "\"getevent -il | grep ABS_MT_POSITION\""}, false).split("\n");
+        response = consoleCommand(new String[] {"-s", deviceName, "shell", "\"getevent -il | grep ABS_MT_POSITION\""}, false).split("\n");
 
         for(String res : response) {
             if(res.contains("ABS_MT_POSITION_X")) {
@@ -148,7 +166,7 @@ public class ADBUtil {
     public static void getKeyMaps() {
         keyMap = new HashMap<>();
 
-        String[] response = consoleCommand(new String[] {"shell", "cat", "/system/usr/keylayout/Generic.kl"}, false).split("\n");
+        String[] response = consoleCommand(new String[] {"-s", deviceName, "shell", "cat", "/system/usr/keylayout/Generic.kl"}, false).split("\n");
 
         for(String line: response) {
             if(line.contains("VOLUME_UP") && !keyMap.containsKey("VOLUME_UP"))
@@ -179,7 +197,7 @@ public class ADBUtil {
             recordValuesTask = new Task() {
                 @Override
                 protected Object call() throws Exception {
-                    Process process = Runtime.getRuntime().exec(adbPath + " shell getevent -t");
+                    Process process = Runtime.getRuntime().exec(adbPath + " -s " + deviceName + " shell getevent -t");
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
                     String line;
@@ -213,7 +231,7 @@ public class ADBUtil {
             Task task = new Task() {
                 @Override
                 protected Object call() throws Exception {
-                    Process process = Runtime.getRuntime().exec(adbPath + " shell getevent -lt");
+                    Process process = Runtime.getRuntime().exec(adbPath + " -s " + deviceName + " shell getevent -lt");
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     long startTime = 0;
                     String line;
@@ -304,49 +322,120 @@ public class ADBUtil {
             System.out.println(consoleCommand(new String[] {"devices"}, false));
             String[] result = consoleCommand(new String[] {"devices"}, false).split("\n");
 
-            if(result[1] != null) {
-
-                ADBConnectionController adbConnectionController = new ADBConnectionController();
-
+            if(result.length == 1 && isFirstRun.get()) {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            adbConnectionController.showScreen();
-                            wait();
-                        } catch (Exception ee) {
-                            ee.printStackTrace();
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("No device detected");
+                        alert.setHeaderText("No device detected");
+                        alert.setContentText("To make use of this application you must launch an emulator or connect a device over usb or Wi-Fi");
+                        alert.showAndWait();
+                        synchronized (lock) {
+                            lock.notify();
                         }
                     }
                 });
 
+                try {
+                    synchronized (lock) {
+                        lock.wait();
 
+                    }
+                } catch (InterruptedException ie) {
+                    ie.printStackTrace();
+                }
+            }
+            else if(result.length == 2 && isFirstRun.get()) {
+                System.out.println("halo?");
+                deviceName = result[1].split("\t")[0].trim();
+                System.out.println("Device name: " + deviceName);
+            }
+            else if(result.length > 2 && !isDeviceNameSet){
+         //       try {
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                FXMLLoader fxmlLoader = new FXMLLoader(ADBConnectionController.class.getClass().getResource("/application/utilities/ADBConnection.fxml"));
+                                Parent root = fxmlLoader.load();
+
+                                ADBConnectionController controller = fxmlLoader.<ADBConnectionController>getController();
+                                controller.initDevices(result);
+
+                                Stage stage = new Stage();
+                                stage.initModality(Modality.APPLICATION_MODAL);
+                                stage.setTitle("Connect to device");
+                                stage.setScene(new Scene(root));
+
+                                stage.show();
+                            } catch (IOException ioe) {
+                               ioe.printStackTrace();
+                            }
+                        }
+                    });
+
+//                    synchronized (lock) {
+//                        lock.wait();
+//                    }
+
+//                } catch (InterruptedException ie) {
+//                    ie.printStackTrace();
+//                }
+
+                isDeviceNameSet = true;
             }
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ie) {
                 ie.printStackTrace();
             }
+
+            isFirstRun.set(false);
         }
     }
+
+    public static void connectOverWifi(String name) {
+        deviceName = name;
+        deviceName = consoleCommand(new String[] {"shell", "ifconfig", "wlan0"}, false).split(" ")[2];
+        consoleCommand(new String[] {"connect", deviceName + ":5555"}, false);
+    }
+
+    public static void setDeviceName(String name) {
+        deviceName = name;
+    }
+
+    public static String getDeviceName() {
+        return deviceName;
+    }
+
     public static String consoleCommand(String[] parameters, boolean runInBackground) {
 
         //System.out.println("In console command");
         StringBuilder result = new StringBuilder();
 
         try {
-            String[] params = new String[parameters.length+1];
-            params[0] = adbPath;
 
-            System.arraycopy(parameters, 0, params, 1, parameters.length);
+            if(!isFirstRun.get()) {
+                params = new String[parameters.length+3];
+                params[0] = adbPath;
+                params[1] = "-s";
+                params[2] = deviceName;
 
-            for (int i = 0; i < params.length; i++) {
-                //System.out.println("param["+i+"]: " + params[i]);
+                System.arraycopy(parameters, 0, params, 3, parameters.length);
+            } else {
+                params = new String[parameters.length+1];
+                params[0] = adbPath;
+
+                System.arraycopy(parameters, 0, params, 1, parameters.length);
             }
 
             Task task = new Task() {
                 @Override
                 protected Object call() throws Exception {
+                    for(String param : params)
+                        System.out.println("param: " + param);
+                    
                     Process process = Runtime.getRuntime().exec(params);
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
@@ -374,7 +463,6 @@ public class ADBUtil {
             else
                 new Thread(task).run();
 
-           // System.out.println("Finished console commands");
         } catch (Exception ee) {
             ee.printStackTrace();
         }
