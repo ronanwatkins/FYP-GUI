@@ -3,20 +3,21 @@ package application.utilities;
 import application.ADBUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseEvent;
-import javafx.stage.Modality;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -26,9 +27,14 @@ public class ADBConnectionController implements Initializable {
     private Button connectButton;
     @FXML
     private Button connectWifiButton;
+    @FXML
+    private Button OKButton;
 
     @FXML
     private ListView<String> devicesListView;
+
+    @FXML
+    private Label resultLabel;
 
     @FXML
     private ObservableList<String> devicesList = FXCollections.observableArrayList();
@@ -37,13 +43,12 @@ public class ADBConnectionController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         connectButton.setDisable(true);
         connectWifiButton.setDisable(true);
+        OKButton.setVisible(false);
 
-        devicesListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                connectButton.setDisable(false);
-
-                if(devicesListView.getSelectionModel().getSelectedItem().contains("emulator"))
+        devicesListView.setOnMouseClicked(event -> {
+            connectButton.setDisable(false);
+            if(devicesListView.getSelectionModel().getSelectedIndex() > -1) {
+                if (devicesListView.getSelectionModel().getSelectedItem().contains("emulator"))
                     connectWifiButton.setDisable(true);
                 else
                     connectWifiButton.setDisable(false);
@@ -56,31 +61,67 @@ public class ADBConnectionController implements Initializable {
 
         for(String device : devices) {
             if(!device.contains("List of devices attached"))
-                devicesList.add(device.replace("device" ,"").trim());
+                devicesList.add(device.replace("\t" ," ").split(" ")[0].trim());
         }
 
+        devicesListView.getItems().clear();
         devicesListView.setItems(devicesList);
+        connectButton.setDisable(true);
+        connectWifiButton.setDisable(true);
     }
 
     @FXML
     private void handleConnectButtonClicked() {
-        ADBUtil.setDeviceName(devicesListView.getSelectionModel().getSelectedItem());
+        String device = devicesListView.getSelectionModel().getSelectedItem();
+        ADBUtil.setDeviceName(device);
 
-//        synchronized (ADBUtil.lock) {
-//            ADBUtil.lock.notify();
-//        }
+        resultLabel.setTextFill(Color.GREEN);
+        resultLabel.setText("Connected to " + device);
 
-        ((Stage) connectButton.getScene().getWindow()).close();
+        OKButton.setVisible(true);
     }
 
     @FXML
     private void handleConnectWifiClicked() {
-        ADBUtil.connectOverWifi(devicesListView.getSelectionModel().getSelectedItem());
+        String device = devicesListView.getSelectionModel().getSelectedItem();
+        resultLabel.setText("Connecting...");
 
-//        synchronized (ADBUtil.lock) {
-//            ADBUtil.lock.notify();
-//        }
+        Task<String> task = new Task<String>() {
+            @Override
+            protected String call() throws Exception {
+                return ADBUtil.connectOverWifi(device);
+            }
+        };
 
+        task.setOnSucceeded(event -> {
+            String result = task.getValue();
+            System.out.println("RESULT: " + result);
+            if(result.startsWith("connected")) {
+                resultLabel.setTextFill(Color.GREEN);
+                resultLabel.setText("Connected to " + device + "\n" +
+                        "You can disconnect it from the USB port");
+
+                OKButton.setVisible(true);
+            } else if(result.startsWith("already")) {
+                resultLabel.setTextFill(Color.GREEN);
+                resultLabel.setText("Already connected to " + device);
+
+                OKButton.setVisible(true);
+            } else {
+                resultLabel.setTextFill(Color.RED);
+                resultLabel.setText("Could not connect to " + device);
+            }
+        });
+
+        task.setOnFailed(event -> {
+            resultLabel.setTextFill(Color.RED);
+            resultLabel.setText("Could not connect to " + device);
+        });
+        new Thread(task).start();
+    }
+
+    @FXML
+    private void handleOKButtonClicked(ActionEvent event) {
         ((Stage) connectButton.getScene().getWindow()).close();
     }
 }

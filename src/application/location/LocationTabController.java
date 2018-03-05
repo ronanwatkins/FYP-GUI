@@ -51,12 +51,7 @@ public class LocationTabController implements Initializable {
         latitudeField.setText(formatter.format(latitude));
         longitudeField.setText(formatter.format(longitude));
         googleMapView.addMapInializedListener(() -> configureMap());
-        sendButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                TelnetServer.setLocation(longitude + " " + latitude);
-            }
-        });
+        sendButton.setOnAction(event -> TelnetServer.setLocation(longitude + " " + latitude));
     }
 
     protected void configureMap() {

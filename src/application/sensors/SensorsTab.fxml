@@ -51,12 +51,12 @@
             <TextField fx:id="accelerometerField2" layoutX="100.0" layoutY="410.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
             <TextField fx:id="accelerometerField3" layoutX="161.0" layoutY="410.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
 
-            <Button fx:id="recordButton" layoutX="360.0" layoutY="377.0" mnemonicParsing="false" text="Record Values" />
-            <Button fx:id="saveButton" layoutX="468.0" layoutY="377.0" mnemonicParsing="false" text="Save" />
-            <Button fx:id="loadButton" layoutX="525.0" layoutY="377.0" mnemonicParsing="false" text="Load" />
+            <Button fx:id="recordButton" onAction="#handleRecordButtonClicked" layoutX="360.0" layoutY="377.0" mnemonicParsing="false" text="Record Values" />
+            <Button fx:id="saveButton" onAction="#handleSaveButtonClicked" layoutX="468.0" layoutY="377.0" mnemonicParsing="false" text="Save" />
+            <Button fx:id="loadButton" onAction="#handleLoadButtonClicked" layoutX="525.0" layoutY="377.0" mnemonicParsing="false" text="Load" />
 
-            <Button fx:id="playButton" layoutX="490.0" layoutY="423.0" mnemonicParsing="false" text="Play" />
-            <Button fx:id="pauseButton" layoutX="539.0" layoutY="423.0" mnemonicParsing="false" text="Pause" />
+            <Button fx:id="playButton" onAction="#handlePlayButtonClicked" layoutX="490.0" layoutY="423.0" mnemonicParsing="false" text="Play" />
+            <Button fx:id="pauseButton" onAction="#handlePauseButtonClicked" layoutX="539.0" layoutY="423.0" mnemonicParsing="false" text="Pause" />
             <CheckBox fx:id="loopBox" layoutX="598.0" layoutY="427.0" mnemonicParsing="false" text="Loop" />
          </children>
       </AnchorPane>

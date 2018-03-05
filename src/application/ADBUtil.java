@@ -4,24 +4,17 @@ import application.commands.GetTouchPositionController;
 import application.commands.RecordInputsController;
 import application.utilities.ADBConnectionController;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.jetbrains.annotations.Contract;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class ADBUtil {
 
@@ -47,6 +40,9 @@ public class ADBUtil {
     private static double xEnd = 0.0;
     private static double yEnd = 0.0;
 
+    private static int deviceCount = 0;
+    private static ADBConnectionController controller = null;
+
     private static StringBuilder sendEventBuilder;
     private static AtomicBoolean stopRecordingFlag = new AtomicBoolean(false);
     private static Task recordValuesTask;
@@ -64,7 +60,7 @@ public class ADBUtil {
             }
     }
 
-    public static void findADB() {
+    public static void initADB() {
         try {
             for (File file : adbLocation.listFiles()) {
                 if (file.getName().equalsIgnoreCase("adb.exe")) {
@@ -319,72 +315,43 @@ public class ADBUtil {
 
     public static void checkDevices() {
         while(true) {
-            System.out.println(consoleCommand(new String[] {"devices"}, false));
             String[] result = consoleCommand(new String[] {"devices"}, false).split("\n");
 
-            if(result.length == 1 && isFirstRun.get()) {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("No device detected");
-                        alert.setHeaderText("No device detected");
-                        alert.setContentText("To make use of this application you must launch an emulator or connect a device over usb or Wi-Fi");
-                        alert.showAndWait();
-                        synchronized (lock) {
-                            lock.notify();
-                        }
-                    }
-                });
-
-                try {
-                    synchronized (lock) {
-                        lock.wait();
-
-                    }
-                } catch (InterruptedException ie) {
-                    ie.printStackTrace();
-                }
-            }
-            else if(result.length == 2 && isFirstRun.get()) {
-                System.out.println("halo?");
+            if(result.length == 2 && isFirstRun.get()) {
                 deviceName = result[1].split("\t")[0].trim();
                 System.out.println("Device name: " + deviceName);
             }
             else if(result.length > 2 && !isDeviceNameSet){
-         //       try {
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                FXMLLoader fxmlLoader = new FXMLLoader(ADBConnectionController.class.getClass().getResource("/application/utilities/ADBConnection.fxml"));
-                                Parent root = fxmlLoader.load();
+                deviceName = result[1].split("\t")[0].trim();
+                Platform.runLater(() -> {
+                    try {
+                        FXMLLoader fxmlLoader = new FXMLLoader(ADBConnectionController.class.getClass().getResource("/application/utilities/ADBConnection.fxml"));
+                        Parent root = fxmlLoader.load();
 
-                                ADBConnectionController controller = fxmlLoader.<ADBConnectionController>getController();
-                                controller.initDevices(result);
+                        controller = fxmlLoader.getController();
+                        controller.initDevices(result);
 
-                                Stage stage = new Stage();
-                                stage.initModality(Modality.APPLICATION_MODAL);
-                                stage.setTitle("Connect to device");
-                                stage.setScene(new Scene(root));
+                        Stage stage = new Stage();
+                        stage.initModality(Modality.APPLICATION_MODAL);
+                        stage.setScene(new Scene(root));
 
-                                stage.show();
-                            } catch (IOException ioe) {
-                               ioe.printStackTrace();
-                            }
-                        }
-                    });
-
-//                    synchronized (lock) {
-//                        lock.wait();
-//                    }
-
-//                } catch (InterruptedException ie) {
-//                    ie.printStackTrace();
-//                }
+                        stage.show();
+                    } catch (IOException ioe) {
+                       ioe.printStackTrace();
+                    }
+                });
 
                 isDeviceNameSet = true;
             }
+
+            if(deviceCount != result.length) {
+                if(controller != null) {
+                    Platform.runLater(() -> controller.initDevices(result));
+                }
+
+                deviceCount = result.length;
+            }
+
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ie) {
@@ -395,10 +362,10 @@ public class ADBUtil {
         }
     }
 
-    public static void connectOverWifi(String name) {
+    public static String connectOverWifi(String name) {
         deviceName = name;
-        deviceName = consoleCommand(new String[] {"shell", "ifconfig", "wlan0"}, false).split(" ")[2];
-        consoleCommand(new String[] {"connect", deviceName + ":5555"}, false);
+        deviceName = consoleCommand(new String[] {"shell", "ifconfig", "wlan0"}, false).split(" ")[2] + ":5555";
+        return consoleCommand(new String[] {"connect", deviceName}, false);
     }
 
     public static void setDeviceName(String name) {
@@ -410,13 +377,10 @@ public class ADBUtil {
     }
 
     public static String consoleCommand(String[] parameters, boolean runInBackground) {
-
-        //System.out.println("In console command");
         StringBuilder result = new StringBuilder();
 
         try {
-
-            if(!isFirstRun.get()) {
+            if(!isFirstRun.get() && !deviceName.equals("")) {
                 params = new String[parameters.length+3];
                 params[0] = adbPath;
                 params[1] = "-s";
@@ -433,8 +397,8 @@ public class ADBUtil {
             Task task = new Task() {
                 @Override
                 protected Object call() throws Exception {
-                    for(String param : params)
-                        System.out.println("param: " + param);
+                    //for(String param : params)
+                        //System.out.println("param: " + param);
                     
                     Process process = Runtime.getRuntime().exec(params);
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -470,5 +434,10 @@ public class ADBUtil {
            // tmp.delete();
         }
         return result.toString();
+    }
+
+    public static void disconnect() {
+        System.out.println("In disonnect yo");
+        System.out.println(consoleCommand(new String[] {"disonnect"}, false));
     }
 }

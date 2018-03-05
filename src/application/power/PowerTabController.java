@@ -39,34 +39,25 @@ public class PowerTabController implements Initializable{
                     TelnetServer.powerCapacity(batteryValue+"");
                 } );
 
-        batteryHealth.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                String health = batteryHealth.getValue().toString().toLowerCase();
-                TelnetServer.batteryHealth(health);
-            }
+        batteryHealth.setOnAction(event -> {
+            String health = batteryHealth.getValue().toString().toLowerCase();
+            TelnetServer.batteryHealth(health);
         });
 
-        batteryStatus.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                String status = batteryStatus.getValue().toString().toLowerCase().trim().replace(" ", "-");
-                TelnetServer.batteryStatus(status);
-            }
+        batteryStatus.setOnAction(event -> {
+            String status = batteryStatus.getValue().toString().toLowerCase().trim().replace(" ", "-");
+            TelnetServer.batteryStatus(status);
         });
 
-        charging.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                String status = charging.getValue().toString().toLowerCase().trim();
-                switch (status) {
-                    case "charging":
-                        TelnetServer.setCharging("on");
-                        break;
-                    case "not charging":
-                        TelnetServer.setCharging("off");
-                        break;
-                }
+        charging.setOnAction(event -> {
+            String status = charging.getValue().toString().toLowerCase().trim();
+            switch (status) {
+                case "charging":
+                    TelnetServer.setCharging("on");
+                    break;
+                case "not charging":
+                    TelnetServer.setCharging("off");
+                    break;
             }
         });
     }

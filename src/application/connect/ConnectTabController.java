@@ -72,69 +72,65 @@ public class ConnectTabController implements Initializable {
         dataList.setVisible(false);
         //dataList.setDisable(true);
 
-        connectPhone.setOnAction(new EventHandler<ActionEvent>() {
+        connectPhone.setOnAction(event -> {
 
-            @Override
-            public void handle(ActionEvent event) {
+            updateLabelText();
+            connectPhone.setDisable(true);
 
-                updateLabelText();
-                connectPhone.setDisable(true);
+            try {
+                ServerSocket ss = new ServerSocket();
+                ss.bind(new InetSocketAddress(IPAddress, PORT));
 
-                try {
-                    ServerSocket ss = new ServerSocket();
-                    ss.bind(new InetSocketAddress(IPAddress, PORT));
+                Task task = new Task<Void>() {
 
-                    Task task = new Task<Void>() {
+                    @Override public Void call() {
+                        try {
+                            while(true) {
+                                Socket cs = ss.accept();
+                                PrintWriter out = new PrintWriter(cs.getOutputStream(), true);
+                                BufferedReader br = new BufferedReader(new InputStreamReader(cs.getInputStream()));
 
-                        @Override public Void call() {
-                            try {
-                                while(true) {
-                                    Socket cs = ss.accept();
-                                    PrintWriter out = new PrintWriter(cs.getOutputStream(), true);
-                                    BufferedReader br = new BufferedReader(new InputStreamReader(cs.getInputStream()));
+                                String request;
+                                String clString = "";
+                                do {
+                                    request = br.readLine();
 
-                                    String request;
-                                    String clString = "";
-                                    do {
-                                        request = br.readLine();
+                                    if (request.toLowerCase().startsWith("content-length")) clString = request;
+                                    if (request.isEmpty()) break;
+                                } while (true);
 
-                                        if (request.toLowerCase().startsWith("content-length")) clString = request;
-                                        if (request.isEmpty()) break;
-                                    } while (true);
+                                int contentLength = Integer.parseInt(clString.substring(16));
+                                //System.out.println("Num: " + contentLength);
 
-                                    int contentLength = Integer.parseInt(clString.substring(16));
-                                    //System.out.println("Num: " + contentLength);
+                                final char[] contents = new char[contentLength + 2];
+                                br.read(contents);
+                                String POSTContent = decodePOSTString(new String(contents));
+                                //System.out.println("Content: " + POSTContent);
+                                //System.out.println("done");
 
-                                    final char[] contents = new char[contentLength + 2];
-                                    br.read(contents);
-                                    String POSTContent = decodePOSTString(new String(contents));
-                                    //System.out.println("Content: " + POSTContent);
-                                    //System.out.println("done");
+                                out.print("HTTP/ 1.1 200 OK\n" +
+                                        "Content-Type: text/html\n" +
+                                        "Content-Length: 20\n" +
+                                        "Connection: keep-alive\n\n" +
+                                        "RESPONSE OK");
+                                out.flush();
+                                cs.close();
 
-                                    out.print("HTTP/ 1.1 200 OK\n" +
-                                            "Content-Type: text/html\n" +
-                                            "Content-Length: 20\n" +
-                                            "Connection: keep-alive\n\n" +
-                                            "RESPONSE OK");
-                                    out.flush();
-                                    cs.close();
-
-                                    isConnected = true;
-                                    displayAndSendData(POSTContent.substring(POSTContent.indexOf('{')));
-                                }
-
-                            } catch (Exception ee) {
-                                ee.printStackTrace();
+                                isConnected = true;
+                                displayAndSendData(POSTContent.substring(POSTContent.indexOf('{')));
                             }
-                            return null;
+
+                        } catch (Exception ee) {
+                            ee.printStackTrace();
                         }
-                    };
+                        return null;
+                    }
+                };
 
-                    new Thread(task).start();
+                new Thread(task).start();
 
-                } catch (Exception ee) {
-                    ee.printStackTrace();
-                }
+            } catch (Exception ee) {
+                ee.printStackTrace();
             }
         });
     }
@@ -146,31 +142,28 @@ public class ConnectTabController implements Initializable {
             dataList.setVisible(true);
         }
 
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    JSONObject jsonObject = new JSONObject(jsonString);
+        Platform.runLater(() -> {
+            try {
+                JSONObject jsonObject = new JSONObject(jsonString);
 
-                    dataList.getItems().clear();
-                    dataList.getItems().add("Light: " + jsonObject.get(LIGHT) + " (lux)");
-                    dataList.getItems().add("Pressure: " + jsonObject.get(PRESSURE) + " (hPa)");
-                    dataList.getItems().add("Humidity: " + jsonObject.get(HUMIDITY) + " (%)");
-                    dataList.getItems().add("Proximity: " + jsonObject.get(PROXIMITY) + " (cm)");
-                    dataList.getItems().add("Magnetometer: " + jsonObject.get(MAGNETOMETER) + " (uT)");
-                    dataList.getItems().add("Accelerometer: " + jsonObject.get(ACCELEROMETER) + " (m/s^2)");
-                    dataList.getItems().add("Temperature: " + jsonObject.get(TEMPERATURE) + " (°C)");
-                    dataList.getItems().add("Location: " + jsonObject.get(LOCATION) + " (°)");
-                    dataList.getItems().add("Battery level: " + jsonObject.get(BATTERY) + " (%)");
+                dataList.getItems().clear();
+                dataList.getItems().add("Light: " + jsonObject.get(LIGHT) + " (lux)");
+                dataList.getItems().add("Pressure: " + jsonObject.get(PRESSURE) + " (hPa)");
+                dataList.getItems().add("Humidity: " + jsonObject.get(HUMIDITY) + " (%)");
+                dataList.getItems().add("Proximity: " + jsonObject.get(PROXIMITY) + " (cm)");
+                dataList.getItems().add("Magnetometer: " + jsonObject.get(MAGNETOMETER) + " (uT)");
+                dataList.getItems().add("Accelerometer: " + jsonObject.get(ACCELEROMETER) + " (m/s^2)");
+                dataList.getItems().add("Temperature: " + jsonObject.get(TEMPERATURE) + " (°C)");
+                dataList.getItems().add("Location: " + jsonObject.get(LOCATION) + " (°)");
+                dataList.getItems().add("Battery level: " + jsonObject.get(BATTERY) + " (%)");
 
-                    TelnetServer.powerCapacity(jsonObject.getString(BATTERY));
-                    TelnetServer.setLocation(jsonObject.get(LOCATION).toString());
+                TelnetServer.powerCapacity(jsonObject.getString(BATTERY));
+                TelnetServer.setLocation(jsonObject.get(LOCATION).toString());
 
-                    for(String sensor: sensors)
-                        TelnetServer.setSensor(sensor + " " + jsonObject.get(sensor).toString().replaceAll("[xyz]=", "").replaceAll(", ", ":"));
-                } catch (JSONException je) {
-                    je.printStackTrace();
-                }
+                for(String sensor: sensors)
+                    TelnetServer.setSensor(sensor + " " + jsonObject.get(sensor).toString().replaceAll("[xyz]=", "").replaceAll(", ", ":"));
+            } catch (JSONException je) {
+                je.printStackTrace();
             }
         });
     }
@@ -193,12 +186,7 @@ public class ConnectTabController implements Initializable {
     }
 
     private synchronized void clearLabelText() {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                connectLabel.setText("");
-            }
-        });
+        Platform.runLater(() -> connectLabel.setText(""));
     }
 
     private String getIPAddress() {

@@ -159,38 +159,18 @@ public class GetTouchPositionController implements Initializable {
     }
 
     public void setYField(double value) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                yField.setText(String.format("%.2f", value));
-            }
-        });
+        Platform.runLater(() -> yField.setText(String.format("%.2f", value)));
     }
 
     public void setXField(double value) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                xField.setText(String.format("%.2f", value));
-            }
-        });
+        Platform.runLater(() -> xField.setText(String.format("%.2f", value)));
     }
 
     public void setYEndField(double value) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                yEndField.setText(String.format("%.2f", value));
-            }
-        });
+        Platform.runLater(() -> yEndField.setText(String.format("%.2f", value)));
     }
 
     public void setXEndField(double value) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                xEndField.setText(String.format("%.2f", value));
-            }
-        });
+        Platform.runLater(() -> xEndField.setText(String.format("%.2f", value)));
     }
 }

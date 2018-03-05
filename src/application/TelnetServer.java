@@ -56,17 +56,14 @@ public class TelnetServer {
             }
         };
 
-        task.setOnFailed(new EventHandler<WorkerStateEvent>() {
-            @Override
-            public void handle(WorkerStateEvent event) {
-//                Alert alert = new Alert(Alert.AlertType.ERROR);
-//                alert.setTitle("Error");
-//                alert.setHeaderText("Failed to connect to emulator");
-//                alert.setContentText("Your emulator must be turned on before running this program");
-//
-//                alert.showAndWait();
-//                System.exit(0);
-            }
+        task.setOnFailed(event -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Failed to connect to emulator");
+            alert.setContentText("Your emulator must be turned on to use most functionality of this program");
+
+            alert.showAndWait();
+            //System.exit(0);
         });
 
         new Thread(task).start();
@@ -76,7 +73,7 @@ public class TelnetServer {
     public static void setSensor(String command) {
         if(out != null) {
             out.println("sensor set " + command);
-            System.out.println("sensor set " + command);
+            //System.out.println("sensor set " + command);
         }
     }
 

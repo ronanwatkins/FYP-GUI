@@ -5,11 +5,14 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="400.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.utilities.ADBConnectionController">
+<AnchorPane prefHeight="350.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.utilities.ADBConnectionController">
    <children>
       <Label layoutX="25.0" layoutY="27.0" text="Select device to connect to" />
-      <ListView fx:id="devicesListView" layoutX="21.0" layoutY="55.0" prefHeight="79.0" prefWidth="153.0" />
-      <Button fx:id="connectButton" onAction="#handleConnectButtonClicked" layoutX="20.0" layoutY="169.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="65.0" text="Connect" />
-      <Button fx:id="connectWifiButton" onAction="#handleConnectWifiClicked" layoutX="21.0" layoutY="213.0" mnemonicParsing="false" text="Connect over WiFi" />
+      <Label layoutX="25.0" layoutY="47.0" text="You can change this in Settings &gt; Connections" />
+      <ListView fx:id="devicesListView" layoutX="24.0" layoutY="84.0" prefHeight="79.0" prefWidth="253.0" />
+      <Button fx:id="connectButton" layoutX="21.0" layoutY="181.0" mnemonicParsing="false" onAction="#handleConnectButtonClicked" prefHeight="25.0" prefWidth="65.0" text="Connect" />
+      <Button fx:id="connectWifiButton" layoutX="21.0" layoutY="221.0" mnemonicParsing="false" onAction="#handleConnectWifiClicked" text="Connect over WiFi" />
+      <Label fx:id="resultLabel" layoutX="25.0" layoutY="260.0" />
+      <Button fx:id="OKButton" layoutX="225.0" layoutY="300.0" mnemonicParsing="false" onAction="#handleOKButtonClicked" prefHeight="25.0" prefWidth="40.0" text="Ok" />
    </children>
 </AnchorPane>

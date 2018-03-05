@@ -34,11 +34,6 @@ public class ConsoleTabController implements Initializable {
     @FXML
     private Hyperlink helpLink;
 
-//    public Stage getStage() {
-//        if(this.stage==null)
-//            this.stage = (Stage) this.mainAnchor1.getScene().getWindow();
-//        return stage;
-//    }
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -50,15 +45,11 @@ public class ConsoleTabController implements Initializable {
 
 
 
-        enterButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                String[] parameters = commandField.getText().split(" ");
-                String result = ADBUtil.consoleCommand(parameters, false);
-                Text text = new Text(result);
-                text.setFill(Color.RED);
-                resultArea.setText(text.getText());
-            }
+        enterButton.setOnAction(event -> {
+            String[] parameters = commandField.getText().split(" ");
+            String result = ADBUtil.consoleCommand(parameters, false);
+
+            resultArea.setText(result);
         });
 
         commandField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -67,30 +58,30 @@ public class ConsoleTabController implements Initializable {
             else enterButton.setDisable(true);
         });
 
-        commandField.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                String[] parameters = commandField.getText().split(" ");
-                resultArea.setText(ADBUtil.consoleCommand(parameters,true));
-            }
+        commandField.setOnAction(event -> {
+            String[] parameters = commandField.getText().split(" ");
+            String result;
+            if(parameters[0].equals("shell"))
+                result = ADBUtil.consoleCommand(parameters, true);
+            else
+                result = ADBUtil.consoleCommand(parameters, false);
+
+            resultArea.setText(result);
         });
 
-        helpLink.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                //hostServices.showDocument("https://developer.android.com/studio/command-line/adb.html#issuingcommands");
+        helpLink.setOnAction(event -> {
+            //hostServices.showDocument("https://developer.android.com/studio/command-line/adb.html#issuingcommands");
 
-                try {
-                    URI uri = new URI("https://developer.android.com/studio/command-line/adb.html#issuingcommands");
-                    if (Desktop.isDesktopSupported()) {
-                        Desktop desktop = Desktop.getDesktop();
-                        if (desktop.isSupported(Desktop.Action.BROWSE)) {
-                            desktop.browse(uri);
-                        }
+            try {
+                URI uri = new URI("https://developer.android.com/studio/command-line/adb.html#issuingcommands");
+                if (Desktop.isDesktopSupported()) {
+                    Desktop desktop = Desktop.getDesktop();
+                    if (desktop.isSupported(Desktop.Action.BROWSE)) {
+                        desktop.browse(uri);
                     }
-                } catch (Exception ee) {
-                    ee.printStackTrace();
                 }
+            } catch (Exception ee) {
+                ee.printStackTrace();
             }
         });
     }

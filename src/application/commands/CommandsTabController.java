@@ -77,39 +77,35 @@ public class CommandsTabController implements Initializable{
     private int index = 0;
 
     private File editFile = null;
+    private File directory = null;
 
-    public CommandsTabController(){}
+    private ObservableList<String> commandFilesList;
+    private ObservableList<Integer> indexList;
+
+    //public CommandsTabController(){}
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
         RunBatchTab();
 
-        createBatchTab.setOnSelectionChanged(new EventHandler<Event>() {
-            @Override
-            public void handle(Event event) {
-                if(createBatchTab.isSelected()) {
-                    System.out.println("Create Batch Tab Selected");
+        createBatchTab.setOnSelectionChanged(event -> {
+            if(createBatchTab.isSelected()) {
+                System.out.println("Create Batch Tab Selected");
 
-                    CreateBatchTab(editFile);
-                }
+                CreateBatchTab(editFile);
             }
         });
 
-        runBatchTab.setOnSelectionChanged(new EventHandler<Event>() {
-            @Override
-            public void handle(Event event) {
-                if(runBatchTab.isSelected()) {
-                    System.out.println("Run Batch Tab Selected");
-                    RunBatchTab();
-                }
+        runBatchTab.setOnSelectionChanged(event -> {
+            if(runBatchTab.isSelected()) {
+                System.out.println("Run Batch Tab Selected");
+                RunBatchTab();
             }
         });
     }
 
     private void CreateBatchTab(File file) {
-
-        ObservableList<Integer> indexList;
 
         if(file != null) {
             saveButton.setDisable(false);
@@ -165,165 +161,21 @@ public class CommandsTabController implements Initializable{
 
         possibleCommandsListView.setItems(possibleCommands);
 
-        possibleCommandsListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                commandField.setText(keyEvent + commandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem()));
-            }
-        });
+        possibleCommandsListView.setOnMouseClicked(event -> commandField.setText(keyEvent + commandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
 
         indexBox.setItems(indexList);
 
-        addCommandButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if(!commandField.getText().isEmpty()) {
-                    saveButton.setDisable(false);
-                    commandsListView.getItems().add(indexBox.getValue(), commandField.getText());
-
-                    index+=1;
-                    indexList.add(index);
-                    indexBox.setItems(indexList);
-                    indexBox.setValue(index);
-
-                    indexListView.getItems().clear();
-                    for (int i = 0; i < indexBox.getValue(); i++) {
-                        indexListView.getItems().add(i);
-                    }
+        commandsListView.setOnMouseClicked(event -> {
+            try {
+                if (!commandsListView.getSelectionModel().getSelectedItem().isEmpty()) {
+                    deleteButton.setDisable(false);
+                    moveDownButton.setDisable(false);
+                    moveUpButton.setDisable(false);
                 }
+            } catch (NullPointerException npe) {
+                //npe.printStackTrace();
             }
         });
-
-        enterTextButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                TextInputDialog dialog = new TextInputDialog();
-                dialog.setTitle("Enter Text");
-                dialog.setHeaderText("Type Text To Enter");
-
-                Optional<String> result = dialog.showAndWait();
-                if (result.isPresent()) {
-                    commandField.setText("shell input text " + result.get());
-                }
-            }
-        });
-
-        commandsListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                try {
-                    if (!commandsListView.getSelectionModel().getSelectedItem().isEmpty()) {
-                        deleteButton.setDisable(false);
-                        moveDownButton.setDisable(false);
-                        moveUpButton.setDisable(false);
-                    }
-                } catch (NullPointerException npe) {
-                    //npe.printStackTrace();
-                }
-            }
-        });
-
-        moveUpButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                int selectedItemIndex = commandsListView.getSelectionModel().getSelectedIndex();
-                if(selectedItemIndex > 0) {
-                    String selectedItemValue = commandsListView.getSelectionModel().getSelectedItem();
-                    commandsListView.getItems().remove(selectedItemIndex);
-                    commandsListView.getItems().add(selectedItemIndex - 1, selectedItemValue);
-
-                    commandsListView.getSelectionModel().select(selectedItemIndex - 1);
-                }
-            }
-        });
-
-        moveDownButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                int selectedItemIndex = commandsListView.getSelectionModel().getSelectedIndex();
-                try {
-                    if (!commandsListView.getItems().get(selectedItemIndex + 1).isEmpty()) {
-                        String selectedItemValue = commandsListView.getSelectionModel().getSelectedItem();
-                        commandsListView.getItems().remove(selectedItemIndex);
-                        commandsListView.getItems().add(selectedItemIndex + 1, selectedItemValue);
-
-                        commandsListView.getSelectionModel().select(selectedItemIndex + 1);
-                    }
-                } catch (IndexOutOfBoundsException e) {}
-            }
-        });
-
-        deleteButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                int commandsListViewIndex = commandsListView.getSelectionModel().getSelectedIndex();
-                if (commandsListViewIndex > -1) {
-                    try {
-                        commandsListView.getItems().remove(commandsListViewIndex);
-
-                        indexList.remove(index);
-                        index -= 1;
-
-                        indexBox.setItems(indexList);
-                        indexBox.setValue(index);
-
-                        indexListView.getItems().clear();
-                    } catch (Exception ee) {
-                    }
-                    for (int i = 0; i < indexBox.getValue(); i++) {
-                        indexListView.getItems().add(i);
-                    }
-                }
-            }
-        });
-
-        saveButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                XMLUtil xmlUtil = new XMLUtil();
-
-                if(file != null) {
-                    xmlUtil.saveBatchCommands(commandsListView.getItems(), file);
-                    editFile = null;
-                    tabPane.getSelectionModel().select(runBatchTab);
-                } else {
-                    TextInputDialog dialog = new TextInputDialog();
-                    dialog.setTitle("Save Batch Commands");
-                    dialog.setHeaderText("Enter Batch Name");
-
-                    Optional<String> result = dialog.showAndWait();
-                    if (result.isPresent()) {
-                        System.out.println(result.get());
-
-                        xmlUtil.saveBatchCommands(commandsListView.getItems(), new File(DIRECTORY + "\\" + result.get() + ".xml"));
-
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException ie) {
-                            ie.printStackTrace();
-                        } finally {
-                            tabPane.getSelectionModel().select(runBatchTab);
-                        }
-                    }
-                }
-
-            }
-        });
-
-
-//        ScrollBar scrollBarOne;
-//        ScrollBar scrollBarTwo;
-//
-//
-//        // lookup after scene rendering....
-//        indexListView.setStyle(".scroll-bar:vertical");
-//        commandsListView.setStyle(".scroll-bar:vertical");
-//        System.out.println(indexListView.lookup(".scroll-bar:vertical"));
-//        System.out.println(commandsListView.lookup(".scroll-bar:vertical"));
-//        scrollBarOne = (ScrollBar) indexListView.lookup(".scroll-bar:vertical");
-//        scrollBarTwo = (ScrollBar) commandsListView.lookup(".scroll-bar:vertical");
-//
-//        scrollBarOne.valueProperty().bindBidirectional(scrollBarTwo.valueProperty());
     }
 
     private void RunBatchTab() {
@@ -333,9 +185,9 @@ public class CommandsTabController implements Initializable{
         editButton.setDisable(true);
         runCommandsButton.setDisable(true);
 
-        ObservableList<String> commandFilesList = FXCollections.observableArrayList();
+        commandFilesList = FXCollections.observableArrayList();
 
-        File directory = new File(DIRECTORY);
+        directory = new File(DIRECTORY);
 
         try {
             for (File file : directory.listFiles()) {
@@ -352,65 +204,58 @@ public class CommandsTabController implements Initializable{
                 refreshCommandsList();
         } catch (Exception e) {}
 
-        selectListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                try {
-                    if (!selectListView.getSelectionModel().getSelectedItem().isEmpty()) {
-                        deleteCommandsButton.setDisable(false);
-                        editButton.setDisable(false);
-                        runCommandsButton.setDisable(false);
-
-                        refreshCommandsList();
-                    }
-                } catch (NullPointerException npe) {}
-            }
-        });
-
-        editButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                String fileName = selectListView.getSelectionModel().getSelectedItem();
-                editFile = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
-                CreateBatchTab(editFile);
-                tabPane.getSelectionModel().select(createBatchTab);
-            }
-        });
-
-        deleteCommandsButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                String fileName = selectListView.getSelectionModel().getSelectedItem();
-                int fileIndex = selectListView.getSelectionModel().getSelectedIndex();
-                File fileToDelete = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
-                if(fileToDelete.delete()) {
-                    System.out.println("File deleted");
-                    commandFilesList.remove(fileIndex);
+        selectListView.setOnMouseClicked(event -> {
+            try {
+                if (!selectListView.getSelectionModel().getSelectedItem().isEmpty()) {
+                    deleteCommandsButton.setDisable(false);
+                    editButton.setDisable(false);
+                    runCommandsButton.setDisable(false);
 
                     refreshCommandsList();
                 }
-            }
-        });
-
-        runCommandsButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-
-                for(String command : allCommandsListView.getItems()) {
-                    System.out.println(ADBUtil.consoleCommand(formatCommand(command).split(" "), true));
-
-                    runningCommandsListView.getItems().clear();
-                    runningCommandsListView.getItems().add(command);
-                    try {
-                        Thread.sleep(1500);
-                    } catch (InterruptedException ie) {
-                        ie.printStackTrace();
-                    }
-                }
-            }
+            } catch (NullPointerException npe) {}
         });
     }
 
+    //Run Tab
+    @FXML
+    private void handleEditButtonClicked(ActionEvent event) {
+            String fileName = selectListView.getSelectionModel().getSelectedItem();
+            editFile = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
+            CreateBatchTab(editFile);
+            tabPane.getSelectionModel().select(createBatchTab);
+    }
+
+    @FXML
+    private void handleDeleteCommandsButtonClicked(ActionEvent event) {
+        String fileName = selectListView.getSelectionModel().getSelectedItem();
+        int fileIndex = selectListView.getSelectionModel().getSelectedIndex();
+        File fileToDelete = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
+        if(fileToDelete.delete()) {
+            System.out.println("File deleted");
+            commandFilesList.remove(fileIndex);
+
+            refreshCommandsList();
+        }
+
+    }
+
+    @FXML
+    private void handleRunCommandsButtonClicked(ActionEvent event) {
+        for (String command : allCommandsListView.getItems()) {
+            System.out.println(ADBUtil.consoleCommand(formatCommand(command).split(" "), true));
+
+            runningCommandsListView.getItems().clear();
+            runningCommandsListView.getItems().add(command);
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+        }
+    }
+
+    //Create Tab
     @FXML
     private void handleGetCursorLocationClicked(ActionEvent event) {
         try {
@@ -429,6 +274,116 @@ public class CommandsTabController implements Initializable{
         }
     }
 
+    @FXML
+    private void handleAddCommandButtonClicked(ActionEvent event) {
+        if(!commandField.getText().isEmpty()) {
+            saveButton.setDisable(false);
+            commandsListView.getItems().add(indexBox.getValue(), commandField.getText());
+
+            index+=1;
+            indexList.add(index);
+            indexBox.setItems(indexList);
+            indexBox.setValue(index);
+
+            indexListView.getItems().clear();
+            for (int i = 0; i < indexBox.getValue(); i++) {
+                indexListView.getItems().add(i);
+            }
+        }
+    }
+
+    @FXML
+    private void handleDeleteButtonClicked(ActionEvent event) {
+
+        int commandsListViewIndex = commandsListView.getSelectionModel().getSelectedIndex();
+        if (commandsListViewIndex > -1) {
+            try {
+                commandsListView.getItems().remove(commandsListViewIndex);
+
+                indexList.remove(index);
+                index -= 1;
+
+                indexBox.setItems(indexList);
+                indexBox.setValue(index);
+
+                indexListView.getItems().clear();
+            } catch (Exception ee) {
+            }
+            for (int i = 0; i < indexBox.getValue(); i++) {
+                indexListView.getItems().add(i);
+            }
+        }
+    }
+
+    @FXML
+    private void handleMoveUpButtonClicked(ActionEvent event) {
+        int selectedItemIndex = commandsListView.getSelectionModel().getSelectedIndex();
+        if(selectedItemIndex > 0) {
+            String selectedItemValue = commandsListView.getSelectionModel().getSelectedItem();
+            commandsListView.getItems().remove(selectedItemIndex);
+            commandsListView.getItems().add(selectedItemIndex - 1, selectedItemValue);
+
+            commandsListView.getSelectionModel().select(selectedItemIndex - 1);
+        }
+    }
+
+    @FXML
+    private void handleMoveDownButtonClicked(ActionEvent event) {
+        int selectedItemIndex = commandsListView.getSelectionModel().getSelectedIndex();
+        try {
+            if (!commandsListView.getItems().get(selectedItemIndex + 1).isEmpty()) {
+                String selectedItemValue = commandsListView.getSelectionModel().getSelectedItem();
+                commandsListView.getItems().remove(selectedItemIndex);
+                commandsListView.getItems().add(selectedItemIndex + 1, selectedItemValue);
+
+                commandsListView.getSelectionModel().select(selectedItemIndex + 1);
+            }
+        } catch (IndexOutOfBoundsException e) {}
+    }
+
+    @FXML
+    private void handleSaveButtonClicked(ActionEvent event) {
+        XMLUtil xmlUtil = new XMLUtil();
+
+        if(editFile != null) {
+            xmlUtil.saveBatchCommands(commandsListView.getItems(), editFile);
+            editFile = null;
+            tabPane.getSelectionModel().select(runBatchTab);
+        } else {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Save Batch Commands");
+            dialog.setHeaderText("Enter Batch Name");
+
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()) {
+                System.out.println(result.get());
+
+                xmlUtil.saveBatchCommands(commandsListView.getItems(), new File(DIRECTORY + "\\" + result.get() + ".xml"));
+
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ie) {
+                    ie.printStackTrace();
+                } finally {
+                    tabPane.getSelectionModel().select(runBatchTab);
+                }
+            }
+        }
+    }
+
+    @FXML
+    private void handleEnterTextButtonClicked(ActionEvent event) {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Enter Text");
+        dialog.setHeaderText("Type Text To Enter");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            commandField.setText("shell input text " + result.get());
+        }
+    }
+
+    //Utilities
     public void setCommandText(String text) {
         commandField.setText(text);
     }
