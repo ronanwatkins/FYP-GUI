@@ -70,9 +70,6 @@ public class ADBUtil {
                         @Override
                         protected Object call() throws Exception {
                             checkDevices();
-                            getResolution();
-                            getKeyMaps();
-
                             return null;
                         }
                     };
@@ -123,9 +120,6 @@ public class ADBUtil {
                 @Override
                 protected Object call() throws Exception {
                     checkDevices();
-                    getResolution();
-                    getKeyMaps();
-
                     return null;
                 }
             };
@@ -134,6 +128,8 @@ public class ADBUtil {
     }
 
     private static void getResolution() {
+        System.out.println("in getResolution");
+
         String[] response = consoleCommand(new String[] {"-s", deviceName, "shell", "wm", "size"}, false).split(" ");
         String[] size = response[2].split("x");
         resolutionX = Double.parseDouble(size[0]);
@@ -251,6 +247,9 @@ public class ADBUtil {
 
                                     if(lineGlobal.contains("ABS_MT_POSITION_X")) {
                                         double x = decimal.doubleValue()*(resolutionX/maxPositionX);
+                                        System.out.println("decimal: " + decimal);
+                                        System.out.println("resolutionX: " + resolutionX);
+                                        System.out.println("maxpositioX: " + maxPositionX);
 
                                         if(swipeFlag.get()) {
                                             if (xStart == 0.0) {
@@ -320,6 +319,15 @@ public class ADBUtil {
             if(result.length == 2 && isFirstRun.get()) {
                 deviceName = result[1].split("\t")[0].trim();
                 System.out.println("Device name: " + deviceName);
+                Task<Void> task = new Task() {
+                    @Override
+                    protected Void call() throws Exception {
+                        getResolution();
+                        getKeyMaps();
+                        return null;
+                    }
+                };
+                new Thread(task).start();
             }
             else if(result.length > 2 && !isDeviceNameSet){
                 deviceName = result[1].split("\t")[0].trim();
@@ -342,6 +350,15 @@ public class ADBUtil {
                 });
 
                 isDeviceNameSet = true;
+                Task<Void> task = new Task() {
+                    @Override
+                    protected Void call() throws Exception {
+                        getResolution();
+                        getKeyMaps();
+                        return null;
+                    }
+                };
+                new Thread(task).start();
             }
 
             if(deviceCount != result.length) {

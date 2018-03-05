@@ -24,7 +24,7 @@
        <Button fx:id="OKButton" layoutX="292.0" layoutY="134.0" mnemonicParsing="false" onAction="#handleOKButtonClicked" text="OK" />
       <RadioButton fx:id="tapRadioButton" layoutX="28.0" layoutY="57.0" mnemonicParsing="false" onAction="#handleTapRadioButtonClicked" text="Tap" />
       <RadioButton fx:id="swipeRadioButton" layoutX="85.0" layoutY="57.0" mnemonicParsing="false" onAction="#handleSwipeRadioButtonClicked" text="Swipe" />
-      <Label layoutX="163.0" layoutY="57.0" text="Duration (ms):" />
+      <Label fx:id="durationLabel" layoutX="163.0" layoutY="57.0" text="Duration (ms):" />
       <TextField fx:id="durationField" layoutX="243.0" layoutY="53.0" prefHeight="25.0" prefWidth="49.0" />
    </children>
 </AnchorPane>

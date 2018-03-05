@@ -40,6 +40,8 @@ public class GetTouchPositionController implements Initializable {
     private Label xEndLabel;
     @FXML
     private Label yEndLabel;
+    @FXML
+    private Label durationLabel;
 
     @FXML
     private RadioButton tapRadioButton;
@@ -63,6 +65,8 @@ public class GetTouchPositionController implements Initializable {
             }
         }
 
+        durationField.setVisible(false);
+        durationLabel.setVisible(false);
         xEndLabel.setVisible(false);
         yEndLabel.setVisible(false);
         xEndField.setVisible(false);
@@ -102,6 +106,7 @@ public class GetTouchPositionController implements Initializable {
         yField.setText("");
         xEndField.setText("");
         yEndField.setText("");
+        durationField.setText("");
         ADBUtil.setSwipeFlag(false);
 
         ((Stage) OKButton.getScene().getWindow()).close();
@@ -112,11 +117,14 @@ public class GetTouchPositionController implements Initializable {
         if(tapRadioButton.isSelected()) {
             swipeRadioButton.setSelected(false);
 
+            durationField.setVisible(false);
+            durationLabel.setVisible(false);
             xEndLabel.setVisible(false);
             yEndLabel.setVisible(false);
             xEndField.setVisible(false);
             yEndField.setVisible(false);
 
+            durationField.setText("");
             xField.setText("");
             yField.setText("");
             xEndField.setText("");
@@ -131,6 +139,8 @@ public class GetTouchPositionController implements Initializable {
         if(swipeRadioButton.isSelected()) {
             tapRadioButton.setSelected(false);
 
+            durationField.setVisible(true);
+            durationLabel.setVisible(true);
             xEndLabel.setVisible(true);
             yEndLabel.setVisible(true);
             xEndField.setVisible(true);
