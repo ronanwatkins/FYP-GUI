@@ -4,60 +4,81 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Slider?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.shape.Box?>
 
 <Group xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.sensors.SensorsTabController">
    <children>
       <AnchorPane fx:id="anchorPane" layoutX="11.0" layoutY="8.0" prefHeight="600.0" prefWidth="800.0">
          <children>
-            <Slider fx:id="lightSlider" layoutX="45.0" layoutY="65.0" max="40000.0" snapToTicks="true" />
             <Label layoutX="45.0" layoutY="38.0" text="Light (lux)" />
+            <Slider fx:id="lightSlider" layoutX="45.0" layoutY="65.0" max="40000.0" />
             <Label layoutX="45.0" layoutY="86.0" text="0" />
-            <Label layoutX="152.0" layoutY="86.0" text="40000" />
             <Label fx:id="lightLabel" layoutX="192.0" layoutY="64.0" text="0" />
+            <Label layoutX="152.0" layoutY="86.0" text="40000" />
       
             <Label layoutX="45.0" layoutY="144.0" text="Temperature (°C)" />
-            <Slider fx:id="temperatureSlider" layoutX="43.0" layoutY="169.0" min="-273.0" />
+            <Slider fx:id="temperatureSlider" layoutX="43.0" layoutY="171.0" min="-273.0" />
             <Label layoutX="45.0" layoutY="192.0" text="-273" />
             <Label fx:id="temperatureLabel" layoutX="192.0" layoutY="168.0" text="0" />
-            <Label layoutX="155.0" layoutY="192.0" text="100" />
+            <Label layoutX="152.0" layoutY="192.0" text="100" />
+
+            <Label layoutX="45.0" layoutY="252.0" text="Humidity (%)" />
+            <Slider fx:id="humiditySlider" layoutX="43.0" layoutY="279.0" />
+            <Label layoutX="45.0" layoutY="300.0" text="0" />
+            <Label fx:id="humidityLabel" layoutX="192.0" layoutY="279.0" text="0" />
+            <Label layoutX="152.0" layoutY="300.0" text="100" />
+
+            <Label layoutX="45.0" layoutY="360.0" text="Pressure (hPa)" />
+            <Slider fx:id="pressureSlider" layoutX="43.0" layoutY="387.0" max="1100.0" />
+            <Label layoutX="45.0" layoutY="408.0" text="0" />
+            <Label fx:id="pressureLabel" layoutX="192.0" layoutY="387.0" text="0" />
+            <Label layoutX="152.0" layoutY="408.0" text="1100" />
       
-            <Label layoutX="357.0" layoutY="38.0" text="Pressure (hPa)" />
-            <Slider fx:id="pressureSlider" layoutX="357.0" layoutY="66.0" max="1100.0" />
-            <Label fx:id="pressureLabel" layoutX="505.0" layoutY="64.0" text="0" />
-            <Label layoutX="357.0" layoutY="95.0" text="0" />
-            <Label layoutX="461.0" layoutY="95.0" text="1100" />
-      
-            <Label layoutX="361.0" layoutY="144.0" text="Proximity (cm)" />
-            <Slider fx:id="proximitySlider" layoutX="357.0" layoutY="169.0" />
-            <Label layoutX="361.0" layoutY="192.0" text="0" />
-            <Label fx:id="proximityLabel" layoutX="509.0" layoutY="168.0" text="0" />
-            <Label layoutX="461.0" layoutY="192.0" text="10" />
+            <Label layoutX="45.0" layoutY="466.0" text="Proximity (cm)" />
+            <Slider fx:id="proximitySlider" layoutX="42.0" layoutY="493.0" />
+            <Label layoutX="45.0" layoutY="514.0" text="0" />
+            <Label fx:id="proximityLabel" layoutX="192.0" layoutY="493.0" text="0" />
+            <Label layoutX="152.0" layoutY="514.0" text="10" />
 
-            <Label layoutX="44.0" layoutY="260.0" text="Humidity (%)" />
-            <Slider fx:id="humiditySlider" layoutX="43.0" layoutY="293.0" />
-            <Label layoutX="44.0" layoutY="320.0" text="0" />
-            <Label layoutX="155.0" layoutY="320.0" text="100" />
-            <Label fx:id="humidityLabel" layoutX="185.0" layoutY="292.0" text="0" />
+            <Slider fx:id="yawSlider" layoutX="266.0" layoutY="66.0" max="180.0" min="-180.0" />
+            <Label layoutX="266.0" layoutY="38.0" text="Yaw (z)" />
+            <Label fx:id="yawLabel" layoutX="413.0" layoutY="66.0" text="0" />
 
-            <Label layoutX="361.0" layoutY="260.0" text="Magnetic field (uT)    [0 - 1000]" />
-            <TextField fx:id="magneticField1" layoutX="363.0" layoutY="288.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
-            <TextField fx:id="magneticField2" layoutX="427.0" layoutY="288.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
-            <TextField fx:id="magneticField3" layoutX="494.0" layoutY="288.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
-            <Label layoutX="44.0" layoutY="381.0" text="Accelerometer (m/s²)    [-10 - 10]" />
-            <TextField fx:id="accelerometerField1" layoutX="41.0" layoutY="410.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
-            <TextField fx:id="accelerometerField2" layoutX="100.0" layoutY="410.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
-            <TextField fx:id="accelerometerField3" layoutX="161.0" layoutY="410.0" prefHeight="25.0" prefWidth="45.0" text="0.00" />
+            <Slider fx:id="pitchSlider" layoutX="266.0" layoutY="171.0" max="180.0" min="-180.0" />
+            <Label layoutX="266.0" layoutY="144.0" text="Pitch (x)" />
+            <Label fx:id="pitchLabel" layoutX="413.0" layoutY="170.0" text="0" />
 
-            <Button fx:id="recordButton" onAction="#handleRecordButtonClicked" layoutX="360.0" layoutY="377.0" mnemonicParsing="false" text="Record Values" />
-            <Button fx:id="saveButton" onAction="#handleSaveButtonClicked" layoutX="468.0" layoutY="377.0" mnemonicParsing="false" text="Save" />
-            <Button fx:id="loadButton" onAction="#handleLoadButtonClicked" layoutX="525.0" layoutY="377.0" mnemonicParsing="false" text="Load" />
+            <Slider fx:id="rollSlider" layoutX="266.0" layoutY="279.0" max="360.0" />
+            <Label layoutX="266.0" layoutY="252.0" text="Roll (y)" />
+            <Label fx:id="rollLabel" layoutX="413.0" layoutY="278.0" text="0" />
 
-            <Button fx:id="playButton" onAction="#handlePlayButtonClicked" layoutX="490.0" layoutY="423.0" mnemonicParsing="false" text="Play" />
-            <Button fx:id="pauseButton" onAction="#handlePauseButtonClicked" layoutX="539.0" layoutY="423.0" mnemonicParsing="false" text="Pause" />
+            <AnchorPane fx:id="pane" layoutX="490.0" layoutY="50.0" prefHeight="250.0" prefWidth="250.0" />
+            <Box fx:id="box" depth="20.0" height="100.0" layoutX="615.0" layoutY="177.0" width="50.0" />
+
+            <RadioButton fx:id="rotateRadioButton" layoutX="510.0" layoutY="324.0" mnemonicParsing="false" text="Rotate" />
+            <RadioButton fx:id="moveRadioButton" layoutX="612.0" layoutY="323.0" mnemonicParsing="false" text="Move" />
+
+            <Label layoutX="266.0" layoutY="378.0" text="Magnetic Field:" />
+            <Label fx:id="magneticFieldLabel" layoutX="350.0" layoutY="378.0"/>
+
+            <Label layoutX="266.0" layoutY="410.0" text="Gyroscope:" />
+            <Label fx:id="gyroscopeLabel" layoutX="350.0" layoutY="410.0" />
+
+            <Label layoutX="266.0" layoutY="442.0" text="Accelerometer:" />
+            <Label fx:id="accelerometerLabel" layoutX="350.0" layoutY="442.0" />
+
+            <Button fx:id="recordButton" layoutX="636.0" layoutY="383.0" mnemonicParsing="false" onAction="#handleRecordButtonClicked" text="Record Values" />
+            <Button fx:id="saveButton" layoutX="468.0" layoutY="377.0" mnemonicParsing="false" onAction="#handleSaveButtonClicked" text="Save" />
+            <Button fx:id="loadButton" layoutX="525.0" layoutY="377.0" mnemonicParsing="false" onAction="#handleLoadButtonClicked" text="Load" />
+
+            <Button fx:id="playButton" layoutX="490.0" layoutY="423.0" mnemonicParsing="false" onAction="#handlePlayButtonClicked" text="Play" />
+            <Button fx:id="pauseButton" layoutX="539.0" layoutY="423.0" mnemonicParsing="false" onAction="#handlePauseButtonClicked" text="Pause" />
             <CheckBox fx:id="loopBox" layoutX="598.0" layoutY="427.0" mnemonicParsing="false" text="Loop" />
+
          </children>
       </AnchorPane>
    </children>

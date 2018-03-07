@@ -257,16 +257,12 @@ public class ADBUtil {
                                                 System.out.println("XStart: " + xStart);
                                                 controller.setXField(xStart);
                                                 startTime = System.currentTimeMillis();
-                                            //    System.out.println("sssssssssssssssssStart time X: " + startTime);
                                             } else {
                                                 xEnd = x;
                                                 controller.setXEndField(xEnd);
                                             }
 
-                                            long timeNow;
-                                            if((timeNow = System.currentTimeMillis()) - startTime > 2000) {
-                                                long difference = timeNow-startTime;
-                                                //System.out.println("timenow X: " + timeNow + "\tStartTime X: " + startTime + "\tDifference X: " + difference);
+                                            if(System.currentTimeMillis() - startTime > 2000) {
                                                 startTime = 0;
                                                 xStart = 0.0;
                                                 yStart = 0.0;
@@ -278,6 +274,7 @@ public class ADBUtil {
                                     }
                                     else if(lineGlobal.contains("ABS_MT_POSITION_Y")) {
                                         double y = decimal.doubleValue()*(resolutionY/maxPositionY);
+
                                         if(swipeFlag.get()) {
                                             if (yStart == 0.0) {
                                                 yStart = y;
@@ -319,7 +316,7 @@ public class ADBUtil {
             if(result.length == 2 && isFirstRun.get()) {
                 deviceName = result[1].split("\t")[0].trim();
                 System.out.println("Device name: " + deviceName);
-                Task<Void> task = new Task() {
+                Task task = new Task<Void>() {
                     @Override
                     protected Void call() throws Exception {
                         getResolution();
@@ -350,7 +347,7 @@ public class ADBUtil {
                 });
 
                 isDeviceNameSet = true;
-                Task<Void> task = new Task() {
+                Task task = new Task<Void>() {
                     @Override
                     protected Void call() throws Exception {
                         getResolution();

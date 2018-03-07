@@ -2,18 +2,30 @@ package application.sensors;
 
 import application.TelnetServer;
 import application.XMLUtil;
+import application.sensors.model.AccelerometerModel;
+import application.sensors.model.GyroscopeModel;
+import application.sensors.model.MagneticFieldModel;
+import application.utilities.ThreeDimensionalVector;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.Box;
+import javafx.scene.transform.Rotate;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import jdk.nashorn.internal.objects.annotations.Function;
 
 import java.io.File;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -23,20 +35,17 @@ public class SensorsTabController implements Initializable {
     private final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\sensors";
 
     private final String LIGHT = "light";
-    private final String ACCELEROMETER_1 = "accelerometer_1";
-    private final String ACCELEROMETER_2 = "accelerometer_2";
-    private final String ACCELEROMETER_3 = "accelerometer_3";
     private final String HUMIDITY = "humidity";
     private final String PRESSURE = "pressure";
-    private final String MAGNETOMETER_1 = "magnetic-field_1";
-    private final String MAGNETOMETER_2 = "magnetic-field_2";
-    private final String MAGNETOMETER_3 = "magnetic-field_3";
     private final String PROXIMITY = "proximity";
     private final String TEMPERATURE = "temperature";
+    private final String YAW = "yaw";
+    private final String PITCH = "pitch";
+    private final String ROLL = "roll";
     private final String LOCATION = "location";
     private final String BATTERY = "battery";
 
-    private final int PERIOD = 100; //record/playback period in ms
+    private final int PERIOD = 10; //record/playback period in ms
 
     @FXML
     private Slider lightSlider;
@@ -48,6 +57,12 @@ public class SensorsTabController implements Initializable {
     private Slider proximitySlider;
     @FXML
     private Slider humiditySlider;
+    @FXML
+    private Slider yawSlider;
+    @FXML
+    private Slider pitchSlider;
+    @FXML
+    private Slider rollSlider;
 
     @FXML
     private Label lightLabel;
@@ -59,20 +74,18 @@ public class SensorsTabController implements Initializable {
     private Label proximityLabel;
     @FXML
     private Label humidityLabel;
-
     @FXML
-    private TextField magneticField1;
+    private Label yawLabel;
     @FXML
-    private TextField magneticField2;
+    private Label pitchLabel;
     @FXML
-    private TextField magneticField3;
-
+    private Label rollLabel;
     @FXML
-    private TextField accelerometerField1;
+    private Label magneticFieldLabel;
     @FXML
-    private TextField accelerometerField2;
+    private Label accelerometerLabel;
     @FXML
-    private TextField accelerometerField3;
+    private Label gyroscopeLabel;
 
     @FXML
     private Button recordButton;
@@ -89,15 +102,46 @@ public class SensorsTabController implements Initializable {
     private CheckBox loopBox;
 
     @FXML
+    private AnchorPane pane;
+
+    @FXML
+    private Box box;
+
+    @FXML
     private AnchorPane anchorPane;
 
-    private double magneticFieldVal1 = 0;
-    private double magneticFieldVal2 = 0;
-    private double magneticFieldVal3 = 0;
+    @FXML
+    private RadioButton rotateRadioButton;
+    @FXML
+    private RadioButton moveRadioButton;
 
-    private double accelerometerVal1 = 0;
-    private double accelerometerVal2 = 0;
-    private double accelerometerVal3 = 0;
+    private boolean isRotate = true;
+
+    private int yawValue;
+    private int pitchValue;
+    private int rollValue;
+
+    private int pitchBeforeValue;
+
+    private final double GRAVITY_CONSTANT = 9.80665;
+    private final double MAGNETIC_NORTH = 22874.1;
+    private final double MAGNETIC_EAST = 5939.5;
+    private final double MAGNETIC_VERTICAL = 43180.5;
+
+    private static final DecimalFormat TWO_DECIMAL_FORMAT = new DecimalFormat("#0.00");
+
+    private AccelerometerModel accelerometerModel;
+    private GyroscopeModel gyroscopeModel;
+    private MagneticFieldModel magneticFieldModel;
+
+    private double mousePosX = 0;
+    private double mousePosY = 0;
+    private double mouseMoveX = 0;
+    private double mouseMoveZ = 0;
+
+    private Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
+    private Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
+    private Rotate rotateZ = new Rotate(0, Rotate.Z_AXIS);
 
     private Map<String, Double> sensorValues = new HashMap<>();
     private MyThread thread;
@@ -112,6 +156,27 @@ public class SensorsTabController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
+        PhongMaterial redMaterial = new PhongMaterial();
+        redMaterial.setSpecularColor(Color.ORANGE);
+        redMaterial.setDiffuseColor(Color.RED);
+
+        box.setMaterial(redMaterial);
+        box.getTransforms().addAll(rotateZ, rotateY, rotateX);
+        box.setManaged(false);
+
+        HBox hb = new HBox();
+        box.setLayoutX(125);
+        box.setLayoutY(125);
+        hb.getChildren().addAll(box);
+
+        pane.getChildren().addAll(hb);
+        pane.setStyle("-fx-background-color: gray;");
+
+        rotateRadioButton.setSelected(true);
+
+        //region intialise
+        pitchSlider.setValue(-90);
+
         if(!isLoaded) {
             playButton.setVisible(false);
             pauseButton.setVisible(false);
@@ -122,90 +187,29 @@ public class SensorsTabController implements Initializable {
         saveButton.setDisable(true);
         initHashMap();
 
-        //region actionListeners
-        lightSlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    double lightValue = newvalue.doubleValue();
-                    sensorValues.put(LIGHT, lightValue);
-                    lightLabel.setText(String.format("%.2f",lightValue)+"");
-                    TelnetServer.setSensor("light " + String.format("%.2f",lightValue));
-                } );
+        accelerometerModel = new AccelerometerModel();
+        gyroscopeModel = new GyroscopeModel();
+        magneticFieldModel = new MagneticFieldModel();
 
-        temperatureSlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    double temperatureValue = newvalue.doubleValue();
-                    sensorValues.put(TEMPERATURE,  temperatureValue);
-                    temperatureLabel.setText(String.format("%.2f",temperatureValue)+"");
-                    TelnetServer.setSensor("temperature " + String.format("%.2f",temperatureValue));
-                } );
+        accelerometerModel.setUpdateDuration(200);
+        gyroscopeModel.setUpdateDuration(200);
+        magneticFieldModel.setUpdateDuration(200);
 
-        pressureSlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    double pressureValue = newvalue.doubleValue();
-                    sensorValues.put(PRESSURE, pressureValue);
-                    pressureLabel.setText(String.format("%.2f",pressureValue)+"");
-                    TelnetServer.setSensor("pressure " + String.format("%.2f",pressureValue));
-                } );
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() {
+                updateSensorValues();
+                return null;
+            }
+        };
+        new Thread(task).start();
 
-        proximitySlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    double proximityValue = newvalue.doubleValue();
-                    sensorValues.put(PROXIMITY, proximityValue);
-                    proximityLabel.setText(String.format("%.2f",proximityValue)+"");
-                    TelnetServer.setSensor("proximity " + String.format("%.2f",proximityValue));
-                } );
-
-        humiditySlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    double humidityValue = newvalue.doubleValue();
-                    sensorValues.put(HUMIDITY, humidityValue);
-                    humidityLabel.setText(String.format("%.2f",humidityValue)+"");
-                    TelnetServer.setSensor("humidity " + String.format("%.2f",humidityValue));
-                } );
-
-        magneticField1.setOnAction(event -> {
-            magneticFieldVal1 = Double.parseDouble(magneticField1.getText());
-            sensorValues.put(MAGNETOMETER_1, magneticFieldVal1);
-            TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + ":" + magneticFieldVal2 + ":" + magneticFieldVal3);
-        });
-
-        magneticField2.setOnAction(event -> {
-            magneticFieldVal2 = Double.parseDouble(magneticField2.getText());
-            sensorValues.put(MAGNETOMETER_2, magneticFieldVal2);
-            TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + ":" + magneticFieldVal2 + ":" + magneticFieldVal3);
-        });
-
-        magneticField3.setOnAction(event -> {
-            magneticFieldVal3 = Double.parseDouble(magneticField3.getText());
-            sensorValues.put(MAGNETOMETER_3, magneticFieldVal3);
-            TelnetServer.setSensor("magnetic-field " + magneticFieldVal1 + ":" + magneticFieldVal2 + ":" + magneticFieldVal3);
-        });
-
-        accelerometerField1.setOnAction(event -> {
-            accelerometerVal1 = Double.parseDouble(accelerometerField1.getText());
-            sensorValues.put(ACCELEROMETER_1, accelerometerVal1);
-            TelnetServer.setSensor("acceleration " + accelerometerVal1 + ":" + accelerometerVal2 + ":" + accelerometerVal3);
-        });
-
-        accelerometerField2.setOnAction(event -> {
-            accelerometerVal2 = Double.parseDouble(accelerometerField2.getText());
-            sensorValues.put(ACCELEROMETER_2, accelerometerVal2);
-            TelnetServer.setSensor("acceleration " + accelerometerVal1 + ":" + accelerometerVal2 + ":" + accelerometerVal3);
-        });
-
-        accelerometerField3.setOnAction(event -> {
-            accelerometerVal3 = Double.parseDouble(accelerometerField3.getText());
-            sensorValues.put(ACCELEROMETER_3, accelerometerVal3);
-            TelnetServer.setSensor("acceleration " + accelerometerVal1 + ":" + accelerometerVal2 + ":" + accelerometerVal3);
-        });
+        handleSliderEvents();
+        handleMouseEvents();
         //endregion
     }
 
+    //region buttonHandlers
     @FXML
     private void handleLoadButtonClicked(ActionEvent event) {
         isRecording = false;
@@ -305,6 +309,309 @@ public class SensorsTabController implements Initializable {
         System.out.println("PAUSING");
         thread.pause();
     }
+    //endregion
+
+    private void handleSliderEvents() {
+        lightSlider.valueProperty().addListener(
+                (observable, oldvalue, newvalue) ->
+                {
+                    double lightValue = newvalue.doubleValue();
+                    sensorValues.put(LIGHT, lightValue);
+                    lightLabel.setText(String.format("%.2f",lightValue)+"");
+                    TelnetServer.setSensor("light " + String.format("%.2f",lightValue));
+                } );
+
+        temperatureSlider.valueProperty().addListener(
+                (observable, oldvalue, newvalue) ->
+                {
+                    double temperatureValue = newvalue.doubleValue();
+                    sensorValues.put(TEMPERATURE,  temperatureValue);
+                    temperatureLabel.setText(String.format("%.2f",temperatureValue)+"");
+                    TelnetServer.setSensor("temperature " + String.format("%.2f",temperatureValue));
+                } );
+
+        pressureSlider.valueProperty().addListener(
+                (observable, oldvalue, newvalue) ->
+                {
+                    double pressureValue = newvalue.doubleValue();
+                    sensorValues.put(PRESSURE, pressureValue);
+                    pressureLabel.setText(String.format("%.2f",pressureValue)+"");
+                    TelnetServer.setSensor("pressure " + String.format("%.2f",pressureValue));
+                } );
+
+        proximitySlider.valueProperty().addListener(
+                (observable, oldvalue, newvalue) ->
+                {
+                    double proximityValue = newvalue.doubleValue();
+                    sensorValues.put(PROXIMITY, proximityValue);
+                    proximityLabel.setText(String.format("%.2f",proximityValue)+"");
+                    TelnetServer.setSensor("proximity " + String.format("%.2f",proximityValue));
+                } );
+
+        humiditySlider.valueProperty().addListener(
+                (observable, oldvalue, newvalue) ->
+                {
+                    double humidityValue = newvalue.doubleValue();
+                    sensorValues.put(HUMIDITY, humidityValue);
+                    humidityLabel.setText(String.format("%.2f",humidityValue)+"");
+                    TelnetServer.setSensor("humidity " + String.format("%.2f",humidityValue));
+                } );
+
+        yawSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
+        {
+            yawValue = newvalue.intValue();
+            sensorValues.put(YAW, (double) yawValue);
+            System.out.println("just pu in a yaw");
+            updateSliderValues();
+        } );
+
+        pitchSlider.setOnMouseDragged((mouseEvent) -> {
+            rotateX.setAngle(180-pitchBeforeValue-270);
+        });
+
+        pitchSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
+        {
+            pitchBeforeValue = pitchValue = newvalue.intValue();
+            sensorValues.put(PITCH, (double) pitchBeforeValue);
+            System.out.println("just pu in a pitch");
+            updateSliderValues();
+        } );
+
+        rollSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
+        {
+            rollValue = newvalue.intValue();
+            sensorValues.put(ROLL, (double) rollValue);
+            System.out.println("just pu in a roll");
+            updateSliderValues();
+        } );
+    }
+
+    private void handleMouseEvents() {
+        moveRadioButton.setOnMouseClicked(event -> {
+            isRotate = false;
+            rotateRadioButton.setSelected(false);
+        });
+
+        rotateRadioButton.setOnMouseClicked(event -> {
+            isRotate = true;
+            moveRadioButton.setSelected(false);
+        });
+
+        pane.setOnMousePressed((MouseEvent mouseEvent) -> {
+            mousePosX = mouseEvent.getSceneX();
+            mousePosY = mouseEvent.getSceneY();
+
+//            mouseMoveX = accelerometerModel.getMoveX();
+            mouseMoveX = 10;
+            mouseMoveZ = accelerometerModel.getMoveZ();
+        });
+
+        pane.setOnMouseDragged((MouseEvent mouseEvent) -> {
+            if(isRotate) {
+
+                double dx = (mousePosX - mouseEvent.getSceneX());
+                double dy = (mousePosY - mouseEvent.getSceneY());
+
+                if (mouseEvent.isPrimaryButtonDown()) {
+                    double rotateXAngle = (rotateX.getAngle() - (dy * 10 / box.getHeight() * 360) * (Math.PI / 180)) % 360;
+                    if (rotateXAngle < 0)
+                        rotateXAngle += 360;
+                    rotateX.setAngle(rotateXAngle);
+                    System.out.println("rotateXAngle: " + rotateXAngle);
+
+                    if (rotateXAngle > 270 || (rotateXAngle < 90 && rotateXAngle > 0)) {
+                        if (rotateXAngle > 270)
+                            pitchValue = (int) (360 - rotateXAngle - 90);
+                        else
+                            pitchValue = (int) (180 - rotateXAngle - 270);
+                    } else if (rotateXAngle <= 270 || rotateXAngle >= 90) {
+                        if (rotateXAngle <= 270 && rotateXAngle <= 180)
+                            pitchValue = (int) (270 - rotateXAngle);
+                        else
+                            pitchValue = (int) (360 - rotateXAngle - 90);
+                    }
+
+                    pitchSlider.setValue(pitchValue);
+                    updateSliderValues();
+
+                    double rotateYAngle = (rotateY.getAngle() - (dx * 10 / box.getWidth() * -360) * (Math.PI / 180)) % 360;
+                    if (rotateYAngle < 0) {
+                        rotateYAngle += 360;
+                    }
+
+                    rotateY.setAngle(rotateYAngle);
+                    rollSlider.setValue(rotateYAngle);
+
+                    updateSliderValues();
+                }
+                mousePosX = mouseEvent.getSceneX();
+                mousePosY = mouseEvent.getSceneY();
+            } else {
+
+                if(mouseEvent.getX() > 0 && mouseEvent.getX() < 250)
+                    box.setLayoutX(mouseEvent.getX());
+                if(mouseEvent.getY() > 0 && mouseEvent.getY() < 250)
+                    box.setLayoutY(mouseEvent.getY());
+
+                //int newMoveX = (int) ((mouseMoveX - (mouseEvent.getX() - mousePosX))*1.2);
+                int newMoveX = (int) ((mouseMoveX - (mouseEvent.getX() - mousePosX)));
+                int newMoveZ = (int) ((mouseMoveZ - (mouseEvent.getY() - mousePosY)) / 2) - 40;
+
+                System.out.println("\n****X*****");
+                System.out.println("mouseMoveX: " + mouseMoveX);
+                System.out.println("mouseEvent.getx: " + mouseEvent.getX());
+                System.out.println("mousePosX: " + mousePosX);
+                System.out.println("newMoveX: " + newMoveX);
+
+                System.out.println("\n****Y*****");
+                System.out.println("mouseMoveY: " + mouseMoveZ);
+                System.out.println("mouseEvent.gety: " + mouseEvent.getY());
+                System.out.println("mousePosY: " + mousePosY);
+                System.out.println("newMoveY: " + newMoveZ);
+
+                accelerometerModel.setMoveX(newMoveX);
+                accelerometerModel.setMoveZ(newMoveZ);
+
+                updateAccelerometerData();
+            }
+        });
+    }
+
+    private void updateSliderValues() {
+        // Restrict pitch value to -90 to +90
+        if (pitchValue < -90) {
+            pitchValue = -180 - pitchValue;
+            //yawValue += 180;
+            //rollValue += 180;
+        } else if (pitchValue > 90) {
+            pitchValue = 180 - pitchValue;
+            //yawValue += 180;
+            //rollValue += 180;
+        }
+
+        // yaw from 0 to 360
+        if (yawValue < 0) {
+            yawValue = yawValue + 360;
+            //yawValue = yawValue + 180;
+        }
+        if (yawValue >= 360) {
+            yawValue = yawValue - 360;
+            //yawValue = yawValue + 180;
+        }
+
+        if (rollValue > 360) {
+            rollValue -= 360;
+        }
+        if(rollValue < 0) {
+            rollValue += 360;
+        }
+
+        // roll from -180 to + 180
+//        if (rollValue >= 180) {
+//            rollValue -= 360;
+//        }
+
+        updateMagneticFieldData();
+        updateAccelerometerData();
+
+        rotateZ.setAngle(yawValue);
+        rotateY.setAngle(rollValue);
+
+        yawLabel.setText(yawValue + "");
+        pitchLabel.setText(pitchValue + "");
+        rollLabel.setText(rollValue + "");
+    }
+
+    private void updateSensorValues() {
+        while(true) {
+            gyroscopeModel.refreshAngularSpeed(10, pitchValue, yawValue, rollValue);
+
+            accelerometerModel.updateSensorReadoutValues();
+            gyroscopeModel.updateSensorReadoutValues();
+            magneticFieldModel.updateSensorReadoutValues();
+
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    gyroscopeLabel.setText(TWO_DECIMAL_FORMAT.format(gyroscopeModel.getReadGyroscopePitch())
+                            + ", "
+                            + TWO_DECIMAL_FORMAT.format(gyroscopeModel.getReadGyroscopeYaw())
+                            + ", "
+                            + TWO_DECIMAL_FORMAT.format(gyroscopeModel.getReadGyroscopeRoll()));
+
+                    magneticFieldLabel.setText(TWO_DECIMAL_FORMAT.format(magneticFieldModel.getReadCompassX())
+                            + ", "
+                            + TWO_DECIMAL_FORMAT.format(magneticFieldModel.getReadCompassY())
+                            + ", "
+                            + TWO_DECIMAL_FORMAT.format(magneticFieldModel.getReadCompassZ()));
+
+                    accelerometerLabel.setText(TWO_DECIMAL_FORMAT.format(accelerometerModel.getReadAccelerometerX())
+                            + ", "
+                            + TWO_DECIMAL_FORMAT.format(accelerometerModel.getReadAccelerometerY())
+                            + ", "
+                            + TWO_DECIMAL_FORMAT.format(accelerometerModel.getReadAccelerometerZ()));
+                }
+            });
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+        }
+    }
+
+    private void updateMagneticFieldData() {
+
+        ThreeDimensionalVector magneticFieldVector = new ThreeDimensionalVector(MAGNETIC_EAST, MAGNETIC_NORTH, -MAGNETIC_VERTICAL);
+        magneticFieldVector.scale(0.001); // convert from nT (nano-Tesla) to uT
+        // (micro-Tesla)
+
+        magneticFieldVector.reverserollpitchyaw(rollValue, pitchValue, yawValue);
+        magneticFieldModel.setCompass(magneticFieldVector);
+    }
+
+    private void updateAccelerometerData() {
+
+        // get component vectors (gravity + linear_acceleration)
+        ThreeDimensionalVector gravityVec = getGravityVector();
+        ThreeDimensionalVector linearVec = getLinearAccVector(accelerometerModel);
+
+        ThreeDimensionalVector resultVec = ThreeDimensionalVector.addVectors(gravityVec, linearVec);
+
+        accelerometerModel.setXYZ(resultVec);
+
+        double limit = GRAVITY_CONSTANT * 10;
+
+        accelerometerModel.limitate(limit);
+    }
+
+    private ThreeDimensionalVector getLinearAccVector(AccelerometerModel accModel) {
+        double meterPerPixel = 1. / 3000;
+        double dt = 0.001 * 1; // from ms to s
+        double k = 500;
+        double gamma = 50;
+
+        accModel.refreshAcceleration(k, gamma, dt);
+
+        // Now calculate this into mobile phone acceleration:
+        // ! Mobile phone's acceleration is just opposite to
+        // lab frame acceleration !
+        ThreeDimensionalVector vec = new ThreeDimensionalVector(-accModel.getAx() * meterPerPixel, 0,
+                -accModel.getAz() * meterPerPixel);
+        vec.reverserollpitchyaw(rollValue, pitchValue, yawValue);
+
+        return vec;
+    }
+
+    private ThreeDimensionalVector getGravityVector() {
+        // apply orientation
+        // we reverse roll, pitch, and yawDegree,
+        // as this is how the mobile phone sees the coordinate system.
+        ThreeDimensionalVector gravityVec = new ThreeDimensionalVector(0, 0, GRAVITY_CONSTANT);
+        gravityVec.reverserollpitchyaw(rollValue, pitchValue, yawValue);
+
+        return gravityVec;
+    }
 
     private void restartThread() {
         thread.run();
@@ -312,16 +619,13 @@ public class SensorsTabController implements Initializable {
 
     private void initHashMap() {
         sensorValues.put(LIGHT, 0.0);
-        sensorValues.put(ACCELEROMETER_1, 0.0);
-        sensorValues.put(ACCELEROMETER_2, 0.0);
-        sensorValues.put(ACCELEROMETER_3, 0.0);
-        sensorValues.put(MAGNETOMETER_1, 0.0);
-        sensorValues.put(MAGNETOMETER_2, 0.0);
-        sensorValues.put(MAGNETOMETER_3, 0.0);
         sensorValues.put(HUMIDITY, 0.0);
         sensorValues.put(PRESSURE, 0.0);
         sensorValues.put(TEMPERATURE, 0.0);
         sensorValues.put(PROXIMITY, 0.0);
+        sensorValues.put(YAW, 0.0);
+        sensorValues.put(PITCH, 0.0);
+        sensorValues.put(ROLL, 0.0);
     }
 
     private class MyThread extends Thread {
@@ -416,6 +720,19 @@ public class SensorsTabController implements Initializable {
                                             if(humiditySlider.getValue() !=  loadedValues.get(i).get(key)) {
                                                 TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
                                                 humiditySlider.setValue(loadedValues.get(i).get(key));
+                                            }
+                                        case YAW:
+                                            if(yawSlider.getValue() !=  loadedValues.get(i).get(key)) {
+                                               // yawValue = (Integer)(loadedValues.get(i).get(key));
+                                                yawSlider.setValue(loadedValues.get(i).get(key));
+                                            }
+                                        case PITCH:
+                                            if(pitchSlider.getValue() !=  loadedValues.get(i).get(key)) {
+                                                pitchSlider.setValue(loadedValues.get(i).get(key));
+                                            }
+                                        case ROLL:
+                                            if(rollSlider.getValue() !=  loadedValues.get(i).get(key)) {
+                                                rollSlider.setValue(loadedValues.get(i).get(key));
                                             }
                                             break;
                                     }
