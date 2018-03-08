@@ -7,7 +7,6 @@
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.shape.Box?>
 
 <Group xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.sensors.SensorsTabController">
@@ -56,14 +55,14 @@
             <Label layoutX="266.0" layoutY="252.0" text="Roll (y)" />
             <Label fx:id="rollLabel" layoutX="413.0" layoutY="278.0" text="0" />
 
-            <AnchorPane fx:id="pane" layoutX="490.0" layoutY="50.0" prefHeight="250.0" prefWidth="250.0" />
-            <Box fx:id="box" depth="20.0" height="100.0" layoutX="615.0" layoutY="177.0" width="50.0" />
+            <AnchorPane fx:id="phonePane" layoutX="490.0" layoutY="50.0" prefHeight="250.0" prefWidth="250.0" />
+            <Box fx:id="phone" depth="20.0" height="100.0" layoutX="615.0" layoutY="177.0" width="50.0" />
 
             <RadioButton fx:id="rotateRadioButton" layoutX="510.0" layoutY="324.0" mnemonicParsing="false" text="Rotate" />
             <RadioButton fx:id="moveRadioButton" layoutX="612.0" layoutY="323.0" mnemonicParsing="false" text="Move" />
 
             <Label layoutX="266.0" layoutY="378.0" text="Magnetic Field:" />
-            <Label fx:id="magneticFieldLabel" layoutX="350.0" layoutY="378.0"/>
+            <Label fx:id="magneticFieldLabel" layoutX="350.0" layoutY="378.0" />
 
             <Label layoutX="266.0" layoutY="410.0" text="Gyroscope:" />
             <Label fx:id="gyroscopeLabel" layoutX="350.0" layoutY="410.0" />
@@ -71,6 +70,7 @@
             <Label layoutX="266.0" layoutY="442.0" text="Accelerometer:" />
             <Label fx:id="accelerometerLabel" layoutX="350.0" layoutY="442.0" />
 
+             <AnchorPane fx:id="buttonsPane" layoutX="490.0" layoutY="363.0" prefHeight="200.0" prefWidth="250.0" />
             <Button fx:id="recordButton" layoutX="636.0" layoutY="383.0" mnemonicParsing="false" onAction="#handleRecordButtonClicked" text="Record Values" />
             <Button fx:id="saveButton" layoutX="468.0" layoutY="377.0" mnemonicParsing="false" onAction="#handleSaveButtonClicked" text="Save" />
             <Button fx:id="loadButton" layoutX="525.0" layoutY="377.0" mnemonicParsing="false" onAction="#handleLoadButtonClicked" text="Load" />

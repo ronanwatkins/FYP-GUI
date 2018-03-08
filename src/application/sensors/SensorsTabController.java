@@ -102,10 +102,12 @@ public class SensorsTabController implements Initializable {
     private CheckBox loopBox;
 
     @FXML
-    private AnchorPane pane;
+    private AnchorPane phonePane;
+    @FXML
+    private AnchorPane buttonsPane;
 
     @FXML
-    private Box box;
+    private Box phone;
 
     @FXML
     private AnchorPane anchorPane;
@@ -160,17 +162,17 @@ public class SensorsTabController implements Initializable {
         redMaterial.setSpecularColor(Color.ORANGE);
         redMaterial.setDiffuseColor(Color.RED);
 
-        box.setMaterial(redMaterial);
-        box.getTransforms().addAll(rotateZ, rotateY, rotateX);
-        box.setManaged(false);
+        phone.setMaterial(redMaterial);
+        phone.getTransforms().addAll(rotateZ, rotateY, rotateX);
+        phone.setManaged(false);
 
-        HBox hb = new HBox();
-        box.setLayoutX(125);
-        box.setLayoutY(125);
-        hb.getChildren().addAll(box);
+        HBox phonePaneHBox = new HBox();
+        phone.setLayoutX(125);
+        phone.setLayoutY(125);
+        phonePaneHBox.getChildren().add(phone);
 
-        pane.getChildren().addAll(hb);
-        pane.setStyle("-fx-background-color: gray;");
+        phonePane.getChildren().addAll(phonePaneHBox);
+        phonePane.setStyle("-fx-background-color: gray;");
 
         rotateRadioButton.setSelected(true);
 
@@ -312,92 +314,98 @@ public class SensorsTabController implements Initializable {
     //endregion
 
     private void handleSliderEvents() {
-        lightSlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    double lightValue = newvalue.doubleValue();
-                    sensorValues.put(LIGHT, lightValue);
-                    lightLabel.setText(String.format("%.2f",lightValue)+"");
-                    TelnetServer.setSensor("light " + String.format("%.2f",lightValue));
-                } );
+        lightSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
+        {
+            double lightValue = newvalue.doubleValue();
+            sensorValues.put(LIGHT, lightValue);
+            lightLabel.setText(String.format("%.2f",lightValue)+"");
+            TelnetServer.setSensor("light " + String.format("%.2f",lightValue));
+        });
 
-        temperatureSlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    double temperatureValue = newvalue.doubleValue();
-                    sensorValues.put(TEMPERATURE,  temperatureValue);
-                    temperatureLabel.setText(String.format("%.2f",temperatureValue)+"");
-                    TelnetServer.setSensor("temperature " + String.format("%.2f",temperatureValue));
-                } );
+        temperatureSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
+        {
+            double temperatureValue = newvalue.doubleValue();
+            sensorValues.put(TEMPERATURE,  temperatureValue);
+            temperatureLabel.setText(String.format("%.2f",temperatureValue)+"");
+            TelnetServer.setSensor("temperature " + String.format("%.2f",temperatureValue));
+        });
 
-        pressureSlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    double pressureValue = newvalue.doubleValue();
-                    sensorValues.put(PRESSURE, pressureValue);
-                    pressureLabel.setText(String.format("%.2f",pressureValue)+"");
-                    TelnetServer.setSensor("pressure " + String.format("%.2f",pressureValue));
-                } );
+        pressureSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
+        {
+            double pressureValue = newvalue.doubleValue();
+            sensorValues.put(PRESSURE, pressureValue);
+            pressureLabel.setText(String.format("%.2f",pressureValue)+"");
+            TelnetServer.setSensor("pressure " + String.format("%.2f",pressureValue));
+        });
 
-        proximitySlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    double proximityValue = newvalue.doubleValue();
-                    sensorValues.put(PROXIMITY, proximityValue);
-                    proximityLabel.setText(String.format("%.2f",proximityValue)+"");
-                    TelnetServer.setSensor("proximity " + String.format("%.2f",proximityValue));
-                } );
+        proximitySlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
+        {
+            double proximityValue = newvalue.doubleValue();
+            sensorValues.put(PROXIMITY, proximityValue);
+            proximityLabel.setText(String.format("%.2f",proximityValue)+"");
+            TelnetServer.setSensor("proximity " + String.format("%.2f",proximityValue));
+        });
 
-        humiditySlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    double humidityValue = newvalue.doubleValue();
-                    sensorValues.put(HUMIDITY, humidityValue);
-                    humidityLabel.setText(String.format("%.2f",humidityValue)+"");
-                    TelnetServer.setSensor("humidity " + String.format("%.2f",humidityValue));
-                } );
+        humiditySlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
+        {
+            double humidityValue = newvalue.doubleValue();
+            sensorValues.put(HUMIDITY, humidityValue);
+            humidityLabel.setText(String.format("%.2f",humidityValue)+"");
+            TelnetServer.setSensor("humidity " + String.format("%.2f",humidityValue));
+        });
 
         yawSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
             yawValue = newvalue.intValue();
             sensorValues.put(YAW, (double) yawValue);
-            System.out.println("just pu in a yaw");
-            updateSliderValues();
-        } );
 
-        pitchSlider.setOnMouseDragged((mouseEvent) -> {
-            rotateX.setAngle(180-pitchBeforeValue-270);
+            updateSliderValues();
         });
+
+        pitchSlider.setOnMouseDragged((mouseEvent) -> rotateX.setAngle(180-pitchBeforeValue-270));
 
         pitchSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
             pitchBeforeValue = pitchValue = newvalue.intValue();
             sensorValues.put(PITCH, (double) pitchBeforeValue);
-            System.out.println("just pu in a pitch");
+            if(thread != null) {
+                if (thread.isRunning()) {
+                    rotateX.setAngle(180 - pitchBeforeValue - 270);
+                }
+            }
+
             updateSliderValues();
-        } );
+        });
 
         rollSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
             rollValue = newvalue.intValue();
             sensorValues.put(ROLL, (double) rollValue);
-            System.out.println("just pu in a roll");
+
             updateSliderValues();
-        } );
+        });
     }
 
     private void handleMouseEvents() {
         moveRadioButton.setOnMouseClicked(event -> {
-            isRotate = false;
-            rotateRadioButton.setSelected(false);
+            if(moveRadioButton.isSelected()) {
+                isRotate = false;
+                rotateRadioButton.setSelected(false);
+            } else {
+                moveRadioButton.setSelected(true);
+            }
         });
 
         rotateRadioButton.setOnMouseClicked(event -> {
-            isRotate = true;
-            moveRadioButton.setSelected(false);
+            if(rotateRadioButton.isSelected()) {
+                isRotate = true;
+                moveRadioButton.setSelected(false);
+            } else {
+                rotateRadioButton.setSelected(true);
+            }
         });
 
-        pane.setOnMousePressed((MouseEvent mouseEvent) -> {
+        phonePane.setOnMousePressed((MouseEvent mouseEvent) -> {
             mousePosX = mouseEvent.getSceneX();
             mousePosY = mouseEvent.getSceneY();
 
@@ -406,14 +414,14 @@ public class SensorsTabController implements Initializable {
             mouseMoveZ = accelerometerModel.getMoveZ();
         });
 
-        pane.setOnMouseDragged((MouseEvent mouseEvent) -> {
+        phonePane.setOnMouseDragged((MouseEvent mouseEvent) -> {
             if(isRotate) {
 
                 double dx = (mousePosX - mouseEvent.getSceneX());
                 double dy = (mousePosY - mouseEvent.getSceneY());
 
                 if (mouseEvent.isPrimaryButtonDown()) {
-                    double rotateXAngle = (rotateX.getAngle() - (dy * 10 / box.getHeight() * 360) * (Math.PI / 180)) % 360;
+                    double rotateXAngle = (rotateX.getAngle() - (dy * 10 / phone.getHeight() * 360) * (Math.PI / 180)) % 360;
                     if (rotateXAngle < 0)
                         rotateXAngle += 360;
                     rotateX.setAngle(rotateXAngle);
@@ -432,9 +440,10 @@ public class SensorsTabController implements Initializable {
                     }
 
                     pitchSlider.setValue(pitchValue);
+
                     updateSliderValues();
 
-                    double rotateYAngle = (rotateY.getAngle() - (dx * 10 / box.getWidth() * -360) * (Math.PI / 180)) % 360;
+                    double rotateYAngle = (rotateY.getAngle() - (dx * 10 / phone.getWidth() * -360) * (Math.PI / 180)) % 360;
                     if (rotateYAngle < 0) {
                         rotateYAngle += 360;
                     }
@@ -449,9 +458,9 @@ public class SensorsTabController implements Initializable {
             } else {
 
                 if(mouseEvent.getX() > 0 && mouseEvent.getX() < 250)
-                    box.setLayoutX(mouseEvent.getX());
+                    phone.setLayoutX(mouseEvent.getX());
                 if(mouseEvent.getY() > 0 && mouseEvent.getY() < 250)
-                    box.setLayoutY(mouseEvent.getY());
+                    phone.setLayoutY(mouseEvent.getY());
 
                 //int newMoveX = (int) ((mouseMoveX - (mouseEvent.getX() - mousePosX))*1.2);
                 int newMoveX = (int) ((mouseMoveX - (mouseEvent.getX() - mousePosX)));
@@ -478,6 +487,7 @@ public class SensorsTabController implements Initializable {
     }
 
     private void updateSliderValues() {
+        //System.out.println("in updateSliderValues");
         // Restrict pitch value to -90 to +90
         if (pitchValue < -90) {
             pitchValue = -180 - pitchValue;
@@ -520,6 +530,11 @@ public class SensorsTabController implements Initializable {
         yawLabel.setText(yawValue + "");
         pitchLabel.setText(pitchValue + "");
         rollLabel.setText(rollValue + "");
+
+//        System.out.println("yawValue: " + yawValue);
+//        System.out.println("pitchValue: " + pitchValue);
+//        System.out.println("rollValue: " + pitchValue);
+//        System.out.println("finished updateSliderValues");
     }
 
     private void updateSensorValues() {
@@ -660,6 +675,10 @@ public class SensorsTabController implements Initializable {
             }
         }
 
+        private boolean isRunning() {
+            return !(pauseFlag.get() && stopFlag.get());
+        }
+
         @Override
         public void run() {
                 Task task = new Task<Void>() {
@@ -691,52 +710,49 @@ public class SensorsTabController implements Initializable {
                                 }
 
                                 Platform.runLater(() -> {
+
                                     switch (key) {
                                         case LIGHT:
-                                            if(lightSlider.getValue() !=  loadedValues.get(i).get(key)) {
+                                            if(lightSlider.getValue() != loadedValues.get(i).get(key)) {
                                                 lightSlider.setValue(loadedValues.get(i).get(key));
-                                                TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
                                             }
                                             break;
                                         case PROXIMITY:
-                                            if(proximitySlider.getValue() !=  loadedValues.get(i).get(key)) {
+                                            if(proximitySlider.getValue() != loadedValues.get(i).get(key)) {
                                                 proximitySlider.setValue(loadedValues.get(i).get(key));
-                                                TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
                                             }
                                             break;
                                         case TEMPERATURE:
-                                            if(temperatureSlider.getValue() !=  loadedValues.get(i).get(key)) {
-                                                TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
+                                            if(temperatureSlider.getValue() != loadedValues.get(i).get(key)) {
                                                 temperatureSlider.setValue(loadedValues.get(i).get(key));
                                             }
                                             break;
                                         case PRESSURE:
-                                            if(pressureSlider.getValue() !=  loadedValues.get(i).get(key)) {
-                                                TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
+                                            if(pressureSlider.getValue() != loadedValues.get(i).get(key)) {
                                                 pressureSlider.setValue(loadedValues.get(i).get(key));
                                             }
                                             break;
                                         case HUMIDITY:
-                                            if(humiditySlider.getValue() !=  loadedValues.get(i).get(key)) {
-                                                TelnetServer.setSensor(key + " " + loadedValues.get(i).get(key));
+                                            if(humiditySlider.getValue() != loadedValues.get(i).get(key)) {
                                                 humiditySlider.setValue(loadedValues.get(i).get(key));
                                             }
+                                            break;
                                         case YAW:
-                                            if(yawSlider.getValue() !=  loadedValues.get(i).get(key)) {
-                                               // yawValue = (Integer)(loadedValues.get(i).get(key));
+                                            if(yawSlider.getValue() != loadedValues.get(i).get(key)) {
                                                 yawSlider.setValue(loadedValues.get(i).get(key));
                                             }
+                                            break;
                                         case PITCH:
                                             if(pitchSlider.getValue() !=  loadedValues.get(i).get(key)) {
                                                 pitchSlider.setValue(loadedValues.get(i).get(key));
                                             }
+                                            break;
                                         case ROLL:
                                             if(rollSlider.getValue() !=  loadedValues.get(i).get(key)) {
                                                 rollSlider.setValue(loadedValues.get(i).get(key));
                                             }
                                             break;
                                     }
-                                    //System.out.println(i + " " + key + " " + loadedValues.get(i).get(key));
                                 });
                             }
 
@@ -761,6 +777,7 @@ public class SensorsTabController implements Initializable {
                         wasPaused = false;
                         pauseButton.setDisable(true);
                         playButton.setDisable(false);
+                        recordButton.setDisable(false);
                     }
                 });
 

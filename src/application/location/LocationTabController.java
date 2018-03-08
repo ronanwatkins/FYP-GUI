@@ -8,17 +8,11 @@ import com.lynden.gmapsfx.javascript.object.GoogleMap;
 import com.lynden.gmapsfx.javascript.object.LatLong;
 import com.lynden.gmapsfx.javascript.object.MapOptions;
 import com.lynden.gmapsfx.javascript.object.MapTypeIdEnum;
-import com.lynden.gmapsfx.zoom.MaxZoomResult;
-import com.lynden.gmapsfx.zoom.MaxZoomStatus;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -54,7 +48,7 @@ public class LocationTabController implements Initializable {
         sendButton.setOnAction(event -> TelnetServer.setLocation(longitude + " " + latitude));
     }
 
-    protected void configureMap() {
+    private void configureMap() {
         MapOptions mapOptions = new MapOptions();
 
         mapOptions.streetViewControl(false);

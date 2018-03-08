@@ -122,7 +122,8 @@ public class XMLUtil {
                                 Double value = Double.parseDouble(element.getElementsByTagName("value").item(0).getTextContent());
                                 valueString = String.format("%.2f", value);
 
-                                sensorValues.put(element.getAttribute("type"), Double.parseDouble(valueString));
+                                //System.out.println(type + ": " + Double.parseDouble(valueString));
+                                sensorValues.put(type, Double.parseDouble(valueString));
                             }
                         }
 
