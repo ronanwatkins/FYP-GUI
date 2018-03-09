@@ -51,7 +51,8 @@
             <Label layoutX="266.0" layoutY="144.0" text="Pitch (x)" />
             <Label fx:id="pitchLabel" layoutX="413.0" layoutY="170.0" text="0" />
 
-            <Slider fx:id="rollSlider" layoutX="266.0" layoutY="279.0" max="360.0" />
+            <!--<Slider fx:id="rollSlider" layoutX="266.0" layoutY="279.0" max="360.0" />-->
+            <Slider fx:id="rollSlider" layoutX="266.0" layoutY="279.0" max="180.0" min="-180.0" />
             <Label layoutX="266.0" layoutY="252.0" text="Roll (y)" />
             <Label fx:id="rollLabel" layoutX="413.0" layoutY="278.0" text="0" />
 

@@ -453,7 +453,19 @@ public class SensorsTabController implements Initializable {
                     }
 
                     rotateY.setAngle(rotateYAngle);
-                    rollSlider.setValue(rotateYAngle);
+
+                    if (rotateYAngle > 270 || (rotateYAngle < 90 && rotateYAngle > 0)) {
+                        if (rotateYAngle > 270)
+                            rollValue = (int) (360 - rotateYAngle - 90);
+                        else
+                            rollValue = (int) (180 - rotateYAngle - 270);
+                    } else if (rotateYAngle <= 270 || rotateYAngle >= 90) {
+                        if (rotateYAngle <= 270 && rotateYAngle <= 180)
+                            rollValue = (int) (270 - rotateYAngle);
+                        else
+                            rollValue = (int) (360 - rotateYAngle - 90);
+                    }
+                    rollSlider.setValue(rollValue);
 
                     updateSliderValues();
                 }
@@ -562,12 +574,19 @@ public class SensorsTabController implements Initializable {
             yawValue = yawValue - 360;
         }
 
-        if (rollValue > 360) {
-            rollValue -= 360;
+//        if (rollValue > 360) {
+//            rollValue -= 360;
+//        }
+//        if(rollValue < 0) {
+//            rollValue += 360;
+//        }
+
+        if (rollValue < -90) {
+            rollValue = -180 - rollValue;
+        } else if (rollValue > 90) {
+            rollValue = 180 - rollValue;
         }
-        if(rollValue < 0) {
-            rollValue += 360;
-        }
+
 
         updateMagneticFieldData();
         updateAccelerometerData();
