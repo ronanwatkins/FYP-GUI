@@ -73,7 +73,9 @@ public class TelnetServer {
     public static void setSensor(String command) {
         if(out != null) {
             out.println("sensor set " + command);
-            //System.out.println("sensor set " + command);
+            System.out.println("sensor set " + command);
+        } else {
+            System.out.println("HI");
         }
     }
 

@@ -31,6 +31,7 @@ public class Main extends Application {
             stage.setScene(scene);
             stage.show();
 
+            TelnetServer.connect();
             ADBUtil.initADB();
 
             if (!createDirectories())
