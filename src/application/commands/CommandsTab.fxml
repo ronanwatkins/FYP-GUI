@@ -9,7 +9,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.commands.CommandsTabController">
+<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.commands.CommandsTabController">
    <children>
       <TabPane fx:id="tabPane" layoutX="-1.0" prefHeight="600.0" prefWidth="800.0" tabClosingPolicy="UNAVAILABLE">
         <tabs>
@@ -17,11 +17,11 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <ListView fx:id="selectListView" layoutX="46.0" layoutY="62.0" prefHeight="251.0" prefWidth="310.0" />
-                        <ListView fx:id="allCommandsListView" layoutX="430.0" layoutY="62.0" prefHeight="251.0" prefWidth="310.0" />
-                        <Button fx:id="editButton" onAction="#handleEditButtonClicked" layoutX="46.0" layoutY="28.0" mnemonicParsing="false" text="Edit" />
-                        <Button fx:id="deleteCommandsButton" onAction="#handleDeleteCommandsButtonClicked" layoutX="102.0" layoutY="28.0" mnemonicParsing="false" text="Delete" />
-                        <Button fx:id="runCommandsButton" onAction="#handleRunCommandsButtonClicked" layoutX="46.0" layoutY="342.0" mnemonicParsing="false" text="Run Commands" />
+                        <ListView fx:id="selectListView" layoutX="29.0" layoutY="26.0" prefHeight="250.0" prefWidth="310.0" />
+                        <ListView fx:id="allCommandsListView" layoutX="408.0" layoutY="26.0" prefHeight="250.0" prefWidth="359.0" />
+                        <Button fx:id="editButton" layoutX="252.0" layoutY="293.0" mnemonicParsing="false" onAction="#handleEditButtonClicked" />
+                        <Button fx:id="deleteCommandsButton" layoutX="302.0" layoutY="293.0" mnemonicParsing="false" onAction="#handleDeleteCommandsButtonClicked" />
+                        <Button fx:id="runCommandsButton" layoutX="46.0" layoutY="342.0" mnemonicParsing="false" onAction="#handleRunCommandsButtonClicked" text="Run Commands" />
                         <ListView fx:id="runningCommandsListView" layoutX="430.0" layoutY="342.0" prefHeight="157.0" prefWidth="312.0" />
                      </children></AnchorPane>
             </content>
@@ -30,23 +30,24 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                         <Label layoutX="29.0" layoutY="330.0" prefHeight="17.0" prefWidth="65.0" text="Command:" />
-                         <TextField fx:id="commandField" layoutX="114.0" layoutY="326.0" prefHeight="25.0" prefWidth="274.0" />
+                         <Label layoutX="29.0" layoutY="297.0" prefHeight="17.0" prefWidth="65.0" text="Command:" />
+                         <TextField fx:id="commandField" layoutX="96.0" layoutY="293.0" prefHeight="28.0" prefWidth="274.0" />
 
-                         <ListView fx:id="indexListView" layoutX="408.0" layoutY="26.0" prefHeight="249.0" prefWidth="44.0" />
-                        <ListView fx:id="commandsListView" layoutX="457.0" layoutY="26.0" prefHeight="250.0" prefWidth="306.0" />
-                        <ListView fx:id="possibleCommandsListView" layoutX="29.0" layoutY="26.0" prefHeight="247.0" prefWidth="296.0" />
+                         <ListView fx:id="indexListView" layoutX="408.0" layoutY="26.0" prefHeight="250.0" prefWidth="44.0" />
+                        <ListView fx:id="commandsListView" layoutX="457.0" layoutY="26.0" prefHeight="250.0" prefWidth="310.0" />
+                        <ListView fx:id="possibleCommandsListView" layoutX="29.0" layoutY="26.0" prefHeight="250.0" prefWidth="310.0" />
 
-                         <Button fx:id="addCommandButton" onAction="#handleAddCommandButtonClicked" layoutX="291.0" layoutY="365.0" mnemonicParsing="false" text="Add Command" />
-                        <Label layoutX="161.0" layoutY="369.0" text="Index:" />
-                        <ChoiceBox fx:id="indexBox" layoutX="204.0" layoutY="365.0" prefHeight="25.0" prefWidth="58.0" />
-                        <Button fx:id="deleteButton" onAction="#handleDeleteButtonClicked" layoutX="679.0" layoutY="318.0" mnemonicParsing="false" text="Delete" />
-                        <Button fx:id="moveUpButton" onAction="#handleMoveUpButtonClicked" layoutX="602.0" layoutY="318.0" mnemonicParsing="false" text="Move Up" />
-                        <Button fx:id="moveDownButton" onAction="#handleMoveDownButtonClicked" layoutX="514.0" layoutY="318.0" mnemonicParsing="false" text="Move Down" />
-                        <Button fx:id="saveButton" onAction="#handleSaveButtonClicked" layoutX="514.0" layoutY="365.0" mnemonicParsing="false" text="Save Batch Commands" />
-                        <Button fx:id="enterTextButton" onAction="#handleEnterTextButtonClicked" layoutX="291.0" layoutY="404.0" mnemonicParsing="false" text="Enter Text" />
-                        <Button fx:id="getCursorLocationButton"  onAction="#handleGetCursorLocationClicked" layoutX="139.0" layoutY="404.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="123.0" text="Get Cursor Location" />
-                        <Button fx:id="recordInputsButton" onAction="#handleRecordInputsClicked" layoutX="172.0" layoutY="447.0" mnemonicParsing="false" text="Record Inputs" />
+                         <Button fx:id="addCommandButton" layoutX="382.0" layoutY="293.0" mnemonicParsing="false" onAction="#handleAddCommandButtonClicked" />
+                        <Label layoutX="262.0" layoutY="333.0" text="Index:" />
+                        <ChoiceBox fx:id="indexBox" layoutX="312.0" layoutY="329.0" prefHeight="25.0" prefWidth="58.0" />
+
+                         <Button fx:id="moveDownButton" layoutX="623.0" layoutY="293.0" mnemonicParsing="false" onAction="#handleMoveDownButtonClicked" />
+                         <Button fx:id="moveUpButton" layoutX="675.0" layoutY="293.0" mnemonicParsing="false" onAction="#handleMoveUpButtonClicked" />
+                         <Button fx:id="deleteButton" layoutX="725.0" layoutY="293.0" mnemonicParsing="false" onAction="#handleDeleteButtonClicked" />
+                         <Button fx:id="saveButton" layoutX="623.0" layoutY="354.0" mnemonicParsing="false" onAction="#handleSaveButtonClicked" text="Save Batch Commands" />
+                        <Button fx:id="enterTextButton" layoutX="291.0" layoutY="404.0" mnemonicParsing="false" onAction="#handleEnterTextButtonClicked" text="Enter Text" />
+                        <Button fx:id="getCursorLocationButton" layoutX="139.0" layoutY="404.0" mnemonicParsing="false" onAction="#handleGetCursorLocationClicked" prefHeight="25.0" prefWidth="123.0" text="Get Cursor Location" />
+                        <Button fx:id="recordInputsButton" layoutX="172.0" layoutY="447.0" mnemonicParsing="false" onAction="#handleRecordInputsClicked" text="Record Inputs" />
 
                      </children></AnchorPane>
             </content>

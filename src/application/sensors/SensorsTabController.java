@@ -7,13 +7,15 @@ import application.sensors.model.GyroscopeModel;
 import application.sensors.model.MagneticFieldModel;
 import application.sensors.server.HTTPServer;
 import application.utilities.ThreeDimensionalVector;
+import application.utilities.Utilities;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -24,49 +26,54 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.BindException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SensorsTabController implements Initializable {
 
     //region fields
     private final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\sensors";
 
-    private final String LIGHT = "light";
-    private final String HUMIDITY = "humidity";
-    private final String PRESSURE = "pressure";
-    private final String PROXIMITY = "proximity";
-    private final String TEMPERATURE = "temperature";
-    private final String ACCELERATION = "acceleration";
-    private final String GYROSCOPE = "gyroscope";
-    private final String ORIENTATION = "orientation";
-    private final String MAGNETIC_FIELD = "magnetic-field";
-    private final String YAW = "yaw";
-    private final String PITCH = "pitch";
-    private final String ROLL = "roll";
-    private final String LOCATION = "location";
-    private final String BATTERY = "battery";
+    public static final String LIGHT = "light";
+    public static final String HUMIDITY = "humidity";
+    public static final String PRESSURE = "pressure";
+    public static final String PROXIMITY = "proximity";
+    public static final String TEMPERATURE = "temperature";
+    public static final String ACCELERATION = "acceleration";
+    public static final String GYROSCOPE = "gyroscope";
+    public static final String ORIENTATION = "orientation";
+    public static final String MAGNETIC_FIELD = "magnetic-field";
+    public static final String YAW = "yaw";
+    public static final String PITCH = "pitch";
+    public static final String ROLL = "roll";
+    public static final String LOCATION = "location";
+    public static final String BATTERY = "battery";
 
-    private final int PERIOD = 5; //record/playback period in ms
+    private final int RECORDING_PERIOD = 20; //record period in ms
+    private AtomicInteger playbackSpeed = new AtomicInteger(RECORDING_PERIOD);
 
     @FXML
-    private Slider lightSlider;
+    public Slider lightSlider;
     @FXML
-    private Slider temperatureSlider;
+    public Slider temperatureSlider;
     @FXML
-    private Slider pressureSlider;
+    public Slider pressureSlider;
     @FXML
-    private Slider proximitySlider;
+    public Slider proximitySlider;
     @FXML
-    private Slider humiditySlider;
+    public Slider humiditySlider;
     @FXML
-    private Slider yawSlider;
+    public Slider yawSlider;
     @FXML
-    private Slider pitchSlider;
+    public Slider pitchSlider;
     @FXML
-    private Slider rollSlider;
+    public Slider rollSlider;
+    @FXML
+    private Slider playbackSlider;
 
     @FXML
     private Label lightLabel;
@@ -92,22 +99,36 @@ public class SensorsTabController implements Initializable {
     private Label gyroscopeLabel;
     @FXML
     private Label orientationLabel;
+    @FXML
+    private Label playbackTitleLabel;
+    @FXML
+    private Label playbackLabel;
+    @FXML
+    private Label playbackValueLabel;
+    @FXML
+    private Label loggerLabel;
+    @FXML
+    public Label batteryLabel;
+    @FXML
+    public Label locationLabel;
 
     @FXML
     private Button recordButton;
     @FXML
-    private Button saveButton;
+    private Button stopRecordingButton;
+   // @FXML
+   // private Button saveButton;
     @FXML
     private Button loadButton;
     @FXML
     private Button connectButton;
-
     @FXML
     private Button playButton;
-    @FXML
-    private Button pauseButton;
+
     @FXML
     private CheckBox loopBox;
+    @FXML
+    private CheckBox listenBox;
 
     @FXML
     private AnchorPane phonePane;
@@ -125,16 +146,19 @@ public class SensorsTabController implements Initializable {
     @FXML
     private RadioButton moveRadioButton;
 
+    @FXML
+    private ComboBox<String> axisComboBox;
+
+    private boolean isPhoneDragged = false;
     private boolean isRotate = true;
+    private boolean isConnected = false;
 
     private int yawValue;
     private int pitchValue;
     private int rollValue;
-    private int lastYawValue;
-    private int lastPitchValue;
-    private int lastRollValue;
 
     private int pitchBeforeValue;
+    private int rollBeforeValue;
 
     private double accelerometerX;
     private double accelerometerY;
@@ -164,53 +188,43 @@ public class SensorsTabController implements Initializable {
     private double mouseMoveX = 0;
     private double mouseMoveZ = 0;
 
-    private Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
-    private Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
-    private Rotate rotateZ = new Rotate(0, Rotate.Z_AXIS);
+    public Rotate rotateX = new Rotate(90, Rotate.X_AXIS);
+    public Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
+    public Rotate rotateZ = new Rotate(0, Rotate.Z_AXIS);
 
-    private Map<String, Double> sensorValues = new HashMap<>();
-    private MyThread thread;
+    private volatile Map<String, Double> sensorValues = new HashMap<>();
+    private playbackThread playbackThread;
+    private Timer recordingTimer;
 
     private XMLUtil xmlUtil;
+    private HTTPServer server;
 
     private boolean isRecording = false;
+    private boolean startNewTimerTask = true;
     private boolean isLoaded = false;
     private boolean wasPaused = false;
     //endregion
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
-        PhongMaterial redMaterial = new PhongMaterial();
-        redMaterial.setSpecularColor(Color.ORANGE);
-        redMaterial.setDiffuseColor(Color.RED);
-
-        phone.setMaterial(redMaterial);
-        phone.getTransforms().addAll(rotateZ, rotateY, rotateX);
-        phone.setManaged(false);
-
-        HBox phonePaneHBox = new HBox();
-        phone.setLayoutX(125);
-        phone.setLayoutY(125);
-        phonePaneHBox.getChildren().add(phone);
-
-        phonePane.getChildren().addAll(phonePaneHBox);
-        phonePane.setStyle("-fx-background-color: gray;");
-
-        rotateRadioButton.setSelected(true);
-
-        //region intialise
-        pitchSlider.setValue(-90);
-
-        if(!isLoaded) {
-            playButton.setVisible(false);
-            pauseButton.setVisible(false);
-            loopBox.setVisible(false);
-        }
+        initializePhone();
+        initializeButtons();
+        initHashMap();
 
         xmlUtil = new XMLUtil();
-        saveButton.setDisable(true);
-        initHashMap();
+
+        listenBox.setVisible(false);
+        axisComboBox.getSelectionModel().select(0);
+
+        //region initialize
+        yawValue = 180;
+        yawSlider.setValue(yawValue);
+        pitchValue = -180;
+        pitchSlider.setValue(pitchValue);
+        rollValue = 0;
+        rollSlider.setValue(rollValue);
+
+        playbackSlider.setValue(50);
 
         accelerometerModel = new AccelerometerModel();
         gyroscopeModel = new GyroscopeModel();
@@ -231,10 +245,61 @@ public class SensorsTabController implements Initializable {
 
         handleSliderEvents();
         handleMouseEvents();
+
+        updateSliderValues();
         //endregion
     }
 
+    private void initializeButtons() {
+        rotateRadioButton.setSelected(true);
+        stopRecordingButton.setDisable(true);
+
+        Utilities.setImage("/resources/record_cropped.png", recordButton);
+        Utilities.setImage("/resources/stop.png", stopRecordingButton);
+        Utilities.setImage("/resources/play_cropped.png", playButton);
+
+        if(!isLoaded) {
+            playButton.setVisible(false);
+            loopBox.setVisible(false);
+            playbackLabel.setVisible(false);
+            playbackSlider.setVisible(false);
+            playbackTitleLabel.setVisible(false);
+            playbackValueLabel.setVisible(false);
+        }
+    }
+
     //region buttonHandlers
+    @FXML
+    private void handleStopRecordingButtonPressed(ActionEvent event) {
+        isRecording = false;
+
+        recordButton.setDisable(false);
+        stopRecordingButton.setDisable(true);
+
+        FileChooser fileChooser = new FileChooser();
+
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml");
+        fileChooser.getExtensionFilters().add(extFilter);
+        fileChooser.setInitialDirectory(new File(DIRECTORY));
+
+        Stage stage = (Stage) anchorPane.getScene().getWindow();
+        File file = fileChooser.showSaveDialog(stage);
+
+        if(file != null) {
+            xmlUtil.saveFile(file);
+            loggerLabel.setTextFill(Color.GREEN);
+            loggerLabel.setText("File \"" + file.getName().replace(".xml", "") + "\" saved");
+        } else {
+            loggerLabel.setTextFill(Color.RED);
+            loggerLabel.setText("File not saved");
+        }
+
+        xmlUtil = new XMLUtil();
+
+        recordingTimer.cancel();
+        startNewTimerTask = true;
+    }
+
     @FXML
     private void handleLoadButtonClicked(ActionEvent event) {
         isRecording = false;
@@ -249,98 +314,127 @@ public class SensorsTabController implements Initializable {
 
         HashMap<Integer, HashMap<String, Double>> loadedValues;
         if(file != null) {
+            loggerLabel.setTextFill(Color.GREEN);
+            loggerLabel.setText("File \"" + file.getName().replace(".xml", "") + "\" loaded");
             System.out.println(file.getAbsolutePath());
+
+            xmlUtil = new XMLUtil();
             loadedValues = xmlUtil.loadXML(file);
 
-            if(thread != null) {
-                thread.stopThread();
+            if(playbackThread != null) {
+                playbackThread.stopThread();
 
                 wasPaused = false;
                 playButton.setDisable(false);
             }
 
-            thread = new MyThread(loadedValues);
+            playbackThread = new playbackThread(loadedValues);
 
             isLoaded = true;
 
             playButton.setVisible(true);
-            pauseButton.setVisible(true);
             loopBox.setVisible(true);
-
-            pauseButton.setDisable(true);
+            playbackLabel.setVisible(true);
+            playbackSlider.setVisible(true);
+            playbackTitleLabel.setVisible(true);
+            playbackValueLabel.setVisible(true);
+        } else {
+            loggerLabel.setTextFill(Color.RED);
+            loggerLabel.setText("File not loaded");
         }
-    }
-
-    @FXML
-    private void handleSaveButtonClicked(ActionEvent event) {
-        isRecording = false;
-
-        recordButton.setDisable(false);
-        saveButton.setDisable(true);
-
-        FileChooser fileChooser = new FileChooser();
-
-        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("XML files (*.xml)", "*.xml");
-        fileChooser.getExtensionFilters().add(extFilter);
-        fileChooser.setInitialDirectory(new File(DIRECTORY));
-
-        Stage stage = (Stage) anchorPane.getScene().getWindow();
-        File file = fileChooser.showSaveDialog(stage);
-
-        if(file != null)
-            xmlUtil.saveFile(file);
     }
 
     @FXML
     private void handleRecordButtonClicked(ActionEvent event) {
-        isRecording = true;
+        isRecording = !isRecording;
 
-        recordButton.setDisable(true);
-        saveButton.setDisable(false);
-
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if(isRecording) {
-                    xmlUtil.addElement(sensorValues);
+        if(startNewTimerTask) {
+            recordingTimer = new Timer();
+            recordingTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    if (isRecording) {
+                        System.out.println("adding element");
+                        xmlUtil.addElement(sensorValues);
+                    }
                 }
-            }
-        }, 0, PERIOD);
-    }
+            }, 0, RECORDING_PERIOD);
 
-    @FXML
-    private void handlePlayButtonClicked(ActionEvent event) {
-        playButton.setDisable(true);
-        recordButton.setDisable(true);
-        pauseButton.setDisable(false);
+            startNewTimerTask = false;
+        }
 
-        if(wasPaused) {
-            thread.play();
-            System.out.println("RESUMING");
+        if(isRecording) {
+            Image image = new Image("/resources/pause.png",20,20,true,true);
+            ImageView imageView = new ImageView(image);
+            recordButton.setGraphic(imageView);
+            stopRecordingButton.setDisable(true);
         } else {
-            thread.run();
-            System.out.println("STARTING");
+            Image image = new Image("/resources/record_cropped.png",20,20,true,true);
+            ImageView imageView = new ImageView(image);
+            recordButton.setGraphic(imageView);
+            stopRecordingButton.setDisable(false);
         }
     }
 
     @FXML
-    private void handlePauseButtonClicked(ActionEvent event) {
-        wasPaused = true;
+    private void handlePlayButtonClicked(ActionEvent event) {
+        if (playbackThread.isPaused()) {
+            playbackThread.play();
+            System.out.println("RESUMING");
 
-        pauseButton.setDisable(true);
-        recordButton.setDisable(false);
-        playButton.setDisable(false);
+            Image image = new Image("/resources/pause.png", 20, 20, true, true);
+            ImageView imageView = new ImageView(image);
+            playButton.setGraphic(imageView);
+        } else {
+            if(!wasPaused) {
+                playbackThread.run();
+                System.out.println("STARTING");
 
-        System.out.println("PAUSING");
-        thread.pause();
+                Image image = new Image("/resources/pause.png", 20, 20, true, true);
+                ImageView imageView = new ImageView(image);
+                playButton.setGraphic(imageView);
+
+                wasPaused = true;
+            } else {
+                playbackThread.pause();
+                System.out.println("PAUSING");
+
+                Image image = new Image("/resources/play_cropped.png", 20, 20, true, true);
+                ImageView imageView = new ImageView(image);
+                playButton.setGraphic(imageView);
+            }
+        }
     }
 
     @FXML
     private void handleConnectButtonClicked(ActionEvent event) {
         try {
-            HTTPServer server = new HTTPServer(this);
+            server = new HTTPServer(this);
+            connectButton.setDisable(true);
+            loggerLabel.setTextFill(Color.GREEN);
+            loggerLabel.setText("Connect your app to " + server.getIPAddress() + " Port " + server.getPORT());
 
-            server.listen();
+            Task<Boolean> task = new Task<Boolean>() {
+                @Override
+                protected Boolean call() throws Exception {
+                    while(!server.listen());
+                    isConnected = true;
+                    return isConnected;
+                }
+            };
+            new Thread(task).start();
+
+            task.setOnSucceeded(event1 -> {
+                loggerLabel.setText("Connected");
+                listenBox.setVisible(true);
+                listenBox.setSelected(true);
+                //connectButton.setDisable(false);
+            });
+
+            task.setOnFailed(event1 -> {
+                loggerLabel.setTextFill(Color.RED);
+                loggerLabel.setText("Could not connect");
+            });
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -361,7 +455,11 @@ public class SensorsTabController implements Initializable {
         yawSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
             yawValue = newvalue.intValue();
-            sensorValues.put(YAW, (double) yawValue);
+
+            //if(isConnected && listenBox.isSelected())
+              //  sensorValues.put(YAW, (double) (-1*(yawValue)));
+            //else
+                sensorValues.put(YAW, (double) yawValue);
 
             updateSliderValues();
         });
@@ -371,26 +469,100 @@ public class SensorsTabController implements Initializable {
         pitchSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
             pitchBeforeValue = pitchValue = newvalue.intValue();
-            sensorValues.put(PITCH, (double) pitchBeforeValue);
-            if(thread != null) {
-                if (thread.isRunning()) {
+
+            if(playbackThread != null) {
+                if (playbackThread.isRunning()) {
                     rotateX.setAngle(180 - pitchBeforeValue - 270);
                 }
             }
 
+            if(isConnected && listenBox.isSelected()) {
+                rotateX.setAngle(180 - -1 * (pitchBeforeValue) - 270);
+                sensorValues.put(PITCH, (double) (-1*(pitchBeforeValue)));
+            }
+            else
+                sensorValues.put(PITCH, (double) pitchBeforeValue);
+
             updateSliderValues();
         });
+
+        rollSlider.setOnMouseDragged((mouseEvent) -> rotateZ.setAngle(90-rollBeforeValue-90));
 
         rollSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
-            rollValue = newvalue.intValue();
-            sensorValues.put(ROLL, (double) rollValue);
+            if(!isPhoneDragged) {
+                rollBeforeValue = rollValue = newvalue.intValue() * -1;
+            }
+            else {
+                rollBeforeValue = rollValue = newvalue.intValue();
+            }
+
+            sensorValues.put(ROLL, (double) rollBeforeValue);
+
+            if(playbackThread != null) {
+                if (playbackThread.isRunning()) {
+                    rotateZ.setAngle(90 - rollBeforeValue - 90);
+                }
+            }
+
+            if(isConnected && listenBox.isSelected()) {
+                rotateZ.setAngle(90 - rollBeforeValue - 90);
+                sensorValues.put(ROLL, (double) (-1*(rollBeforeValue)));
+            } else
+                sensorValues.put(ROLL, (double) rollBeforeValue);
 
             updateSliderValues();
         });
+
+        playbackSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->  {
+            double value = newvalue.intValue();
+
+            if(value >= 50) {
+                value -= 50;
+                value /= 5;
+                if(value < 1) value = 1;
+                int result = RECORDING_PERIOD / (int)value;
+
+                playbackSpeed.set(result);
+                playbackLabel.setText((int) value + "");
+            } else {
+                value += 50;
+                value /= 50;
+                value -= 1;
+                if(value < 0.1) value = 0.1;
+                if(value == 0) value = 1;
+                if(value > 0.9) value = 0.9;
+                double newValue = Double.parseDouble(String.format("%.1f", value));
+                newValue = 1 - newValue;
+                int result = (int) (newValue*(RECORDING_PERIOD*10));
+
+                playbackSpeed.set(result);
+                playbackLabel.setText(String.format("%.1f", value));
+            }
+        });
+    }
+
+    private void initializePhone() {
+        PhongMaterial redMaterial = new PhongMaterial();
+        redMaterial.setSpecularColor(Color.ORANGE);
+        redMaterial.setDiffuseColor(Color.RED);
+
+        phone.setMaterial(redMaterial);
+        phone.getTransforms().addAll(rotateZ, rotateY, rotateX);
+        phone.setManaged(false);
+
+        HBox phonePaneHBox = new HBox();
+        phone.setLayoutX(125);
+        phone.setLayoutY(125);
+        phonePaneHBox.getChildren().add(phone);
+
+        phonePane.getChildren().addAll(phonePaneHBox);
+        phonePane.setStyle("-fx-background-color: gray;");
     }
 
     private void handleMouseEvents() {
+        listenBox.setOnMouseClicked(event -> server.setIsListening(listenBox.isSelected()));
+
         moveRadioButton.setOnMouseClicked(event -> {
             if(moveRadioButton.isSelected()) {
                 isRotate = false;
@@ -409,70 +581,64 @@ public class SensorsTabController implements Initializable {
             }
         });
 
-        phonePane.setOnMousePressed((MouseEvent mouseEvent) -> {
+        phonePane.setOnMousePressed((mouseEvent) -> {
             mousePosX = mouseEvent.getSceneX();
             mousePosY = mouseEvent.getSceneY();
 
 //            mouseMoveX = accelerometerModel.getMoveX();
             mouseMoveX = 10;
             mouseMoveZ = accelerometerModel.getMoveZ();
+
+            isPhoneDragged = true;
         });
 
-        phonePane.setOnMouseDragged((MouseEvent mouseEvent) -> {
-            if(isRotate) {
+        phonePane.setOnMouseReleased((mouseEvent) -> isPhoneDragged = false);
 
+        phonePane.setOnMouseDragged((mouseEvent) -> {
+            if(isRotate) {
                 double dx = (mousePosX - mouseEvent.getSceneX());
                 double dy = (mousePosY - mouseEvent.getSceneY());
 
                 if (mouseEvent.isPrimaryButtonDown()) {
+                    /* Pitch */
                     double rotateXAngle = (rotateX.getAngle() - (dy * 10 / phone.getHeight() * 360) * (Math.PI / 180)) % 360;
                     if (rotateXAngle < 0)
                         rotateXAngle += 360;
                     rotateX.setAngle(rotateXAngle);
-                    //System.out.println("rotateXAngle: " + rotateXAngle);
 
-                    if (rotateXAngle > 270 || (rotateXAngle < 90 && rotateXAngle > 0)) {
-                        if (rotateXAngle > 270)
-                            pitchValue = (int) (360 - rotateXAngle - 90);
-                        else
-                            pitchValue = (int) (180 - rotateXAngle - 270);
-                    } else if (rotateXAngle <= 270 || rotateXAngle >= 90) {
-                        if (rotateXAngle <= 270 && rotateXAngle <= 180)
-                            pitchValue = (int) (270 - rotateXAngle);
-                        else
-                            pitchValue = (int) (360 - rotateXAngle - 90);
-                    }
-
+                    pitchValue = adjustValue(rotateXAngle);
                     pitchSlider.setValue(pitchValue);
 
+                    if(axisComboBox.getSelectionModel().isSelected(0) || axisComboBox.getSelectionModel().isSelected(2) ) {
+                        /* Yaw */
+                        double rotateYAngle = (rotateY.getAngle() - (dx * 10 / phone.getWidth() * -360) * (Math.PI / 180)) % 360;
+                        if (rotateYAngle < 0) {
+                            rotateYAngle += 360;
+                        }
+                        rotateY.setAngle(rotateYAngle);
+                        yawValue = (int) rotateYAngle;
+
+                        if (yawValue > 180)
+                            yawValue -= 360;
+                        yawSlider.setValue(yawValue);
+                    }
+
+                    if(axisComboBox.getSelectionModel().isSelected(1) || axisComboBox.getSelectionModel().isSelected(2)) {
+                        /* Roll */
+                        double rotateZAngle = (rotateZ.getAngle() + (dy * 10 / phone.getWidth() * -360) * (Math.PI / 180)) % 360;
+                        if (rotateZAngle < 0) {
+                            rotateZAngle += 360;
+                        }
+                        rotateZ.setAngle(rotateZAngle);
+                        rollValue = adjustValue(rotateZAngle);
+                    }
+
                     updateSliderValues();
-
-                    double rotateYAngle = (rotateY.getAngle() - (dx * 10 / phone.getWidth() * -360) * (Math.PI / 180)) % 360;
-                    if (rotateYAngle < 0) {
-                        rotateYAngle += 360;
-                    }
-
-                    rotateY.setAngle(rotateYAngle);
-
-                    if (rotateYAngle > 270 || (rotateYAngle < 90 && rotateYAngle > 0)) {
-                        if (rotateYAngle > 270)
-                            rollValue = (int) (360 - rotateYAngle - 90);
-                        else
-                            rollValue = (int) (180 - rotateYAngle - 270);
-                    } else if (rotateYAngle <= 270 || rotateYAngle >= 90) {
-                        if (rotateYAngle <= 270 && rotateYAngle <= 180)
-                            rollValue = (int) (270 - rotateYAngle);
-                        else
-                            rollValue = (int) (360 - rotateYAngle - 90);
-                    }
                     rollSlider.setValue(rollValue);
-
-                    updateSliderValues();
                 }
                 mousePosX = mouseEvent.getSceneX();
                 mousePosY = mouseEvent.getSceneY();
             } else {
-
                 if(mouseEvent.getX() > 0 && mouseEvent.getX() < 250)
                     phone.setLayoutX(mouseEvent.getX());
                 if(mouseEvent.getY() > 0 && mouseEvent.getY() < 250)
@@ -508,19 +674,19 @@ public class SensorsTabController implements Initializable {
 
         switch (sensor) {
             case LIGHT:
-                lightLabel.setText(String.format("%.2f",value)+"");
+                lightLabel.setText((int) value+"");
                 break;
             case TEMPERATURE:
-                temperatureLabel.setText(String.format("%.2f",value)+"");
+                temperatureLabel.setText((int) value+"");
                 break;
             case PRESSURE:
-                pressureLabel.setText(String.format("%.2f",value)+"");
+                pressureLabel.setText((int) value+"");
                 break;
             case PROXIMITY:
-                proximityLabel.setText(String.format("%.2f",value)+"");
+                proximityLabel.setText((int) value+"");
                 break;
             case HUMIDITY:
-                humidityLabel.setText(String.format("%.2f",value)+"");
+                humidityLabel.setText((int) value+"");
                 break;
         }
     }
@@ -558,8 +724,23 @@ public class SensorsTabController implements Initializable {
         }
     }
 
-    private void updateSliderValues() {
-        // Restrict pitch value to -90 to +90
+    private int adjustValue(double angle) {
+
+        int result = 0;
+
+        if (angle > 270 || (angle < 90 && angle > 0)) {
+            if (angle > 270) result = (int) (360 - angle - 90);
+            else result = (int) (180 - angle - 270);
+        } else if (angle <= 270 || angle >= 90) {
+            if (angle <= 270 && angle <= 180) result = (int) (270 - angle);
+            else result = (int) (360 - angle - 90);
+        }
+
+        return result;
+    }
+
+    protected void updateSliderValues() {
+        // Restrict pitch value to -90 and +90
         if (pitchValue < -90) {
             pitchValue = -180 - pitchValue;
         } else if (pitchValue > 90) {
@@ -574,19 +755,11 @@ public class SensorsTabController implements Initializable {
             yawValue = yawValue - 360;
         }
 
-//        if (rollValue > 360) {
-//            rollValue -= 360;
-//        }
-//        if(rollValue < 0) {
-//            rollValue += 360;
-//        }
-
         if (rollValue < -90) {
             rollValue = -180 - rollValue;
         } else if (rollValue > 90) {
             rollValue = 180 - rollValue;
         }
-
 
         updateMagneticFieldData();
         updateAccelerometerData();
@@ -594,8 +767,9 @@ public class SensorsTabController implements Initializable {
         orientationLabel.setText(pitchValue + ", " + rollValue + ", " + yawValue);
         TelnetServer.setSensor(ORIENTATION + " " + pitchValue + ":" + rollValue + ":" + yawValue);
 
-        rotateZ.setAngle(yawValue);
-        rotateY.setAngle(rollValue);
+        if(!isPhoneDragged) {
+            rotateY.setAngle(yawValue);
+        }
 
         yawLabel.setText(yawValue + "");
         pitchLabel.setText(pitchValue + "");
@@ -611,7 +785,6 @@ public class SensorsTabController implements Initializable {
             magneticFieldModel.updateSensorReadoutValues();
 
             if(accelerometerX != accelerometerModel.getReadAccelerometerX() || accelerometerY != accelerometerModel.getReadAccelerometerY() || accelerometerZ != accelerometerModel.getReadAccelerometerZ()) {
-
                 accelerometerX = accelerometerModel.getReadAccelerometerX();
                 accelerometerY = accelerometerModel.getReadAccelerometerY();
                 accelerometerZ = accelerometerModel.getReadAccelerometerZ();
@@ -620,7 +793,6 @@ public class SensorsTabController implements Initializable {
             }
 
             if(magneticFieldX != magneticFieldModel.getReadCompassX() || magneticFieldY != magneticFieldModel.getReadCompassY() || magneticFieldZ != magneticFieldModel.getReadCompassZ()) {
-
                 magneticFieldX = magneticFieldModel.getReadCompassX();
                 magneticFieldY = magneticFieldModel.getReadCompassY();
                 magneticFieldZ = magneticFieldModel.getReadCompassZ();
@@ -629,7 +801,6 @@ public class SensorsTabController implements Initializable {
             }
 
             if(gyroscopePitch != gyroscopeModel.getReadGyroscopePitch() || gyroscopeYaw != gyroscopeModel.getReadGyroscopeYaw() || gyroscopeRoll != gyroscopeModel.getReadGyroscopeRoll()) {
-
                 gyroscopePitch = gyroscopeModel.getReadGyroscopePitch();
                 gyroscopeYaw = gyroscopeModel.getReadGyroscopeYaw();
                 gyroscopeRoll = gyroscopeModel.getReadGyroscopeRoll();
@@ -646,7 +817,6 @@ public class SensorsTabController implements Initializable {
     }
 
     private void updateMagneticFieldData() {
-
         ThreeDimensionalVector magneticFieldVector = new ThreeDimensionalVector(MAGNETIC_EAST, MAGNETIC_NORTH, -MAGNETIC_VERTICAL);
         magneticFieldVector.scale(0.001); // convert from nT (nano-Tesla) to uT
         // (micro-Tesla)
@@ -656,7 +826,6 @@ public class SensorsTabController implements Initializable {
     }
 
     private void updateAccelerometerData() {
-
         // get component vectors (gravity + linear_acceleration)
         ThreeDimensionalVector gravityVec = getGravityVector();
         ThreeDimensionalVector linearVec = getLinearAccVector(accelerometerModel);
@@ -699,7 +868,7 @@ public class SensorsTabController implements Initializable {
     }
 
     private void restartThread() {
-        thread.run();
+        playbackThread.run();
     }
 
     private void initHashMap() {
@@ -713,14 +882,14 @@ public class SensorsTabController implements Initializable {
         sensorValues.put(ROLL, 0.0);
     }
 
-    private class MyThread extends Thread {
+    private class playbackThread extends Thread {
 
         private final AtomicBoolean pauseFlag = new AtomicBoolean(false);
         private final AtomicBoolean stopFlag = new AtomicBoolean(false);
 
         private HashMap<Integer, HashMap<String, Double>> loadedValues;
 
-        private MyThread (HashMap<Integer, HashMap<String, Double>> loadedValues) {
+        private playbackThread(HashMap<Integer, HashMap<String, Double>> loadedValues) {
             this.loadedValues = loadedValues;
         }
 
@@ -745,113 +914,112 @@ public class SensorsTabController implements Initializable {
             }
         }
 
+        private boolean isPaused() {
+            return pauseFlag.get();
+        }
+
         private boolean isRunning() {
-            return !(pauseFlag.get() && stopFlag.get());
+            return !(pauseFlag.get() || stopFlag.get());
         }
 
         @Override
         public void run() {
-                Task task = new Task<Void>() {
+            pauseFlag.set(false);
+            stopFlag.set(false);
 
-                    @Override
-                    public Void call() {
+            Task task = new Task<Void>() {
 
-                        for (Integer i : loadedValues.keySet()) {
-                            for (String key : loadedValues.get(i).keySet()) {
+                @Override
+                public Void call() {
 
-                                if (pauseFlag.get()) {
-                                    synchronized (pauseFlag) {
-                                        while (pauseFlag.get()) {
-                                            try {
-                                                System.out.println("WAITING.....");
-                                                pauseFlag.wait();
-                                            } catch (InterruptedException e) {
-                                                System.out.println("waiting.....");
-                                                Thread.currentThread().interrupt();
-                                                return null;
-                                            }
+                    for (Integer i : loadedValues.keySet()) {
+                        for (String key : loadedValues.get(i).keySet()) {
+
+                            if (pauseFlag.get()) {
+                                synchronized (pauseFlag) {
+                                    while (pauseFlag.get()) {
+                                        try {
+                                            System.out.println("WAITING.....");
+                                            pauseFlag.wait();
+                                        } catch (InterruptedException e) {
+                                            System.out.println("waiting.....");
+                                            Thread.currentThread().interrupt();
+                                            return null;
                                         }
                                     }
                                 }
-
-                                if(stopFlag.get()) {
-                                    System.out.println("STOPPING");
-                                    return null;
-                                }
-
-                                Platform.runLater(() -> {
-
-                                    switch (key) {
-                                        case LIGHT:
-                                            if(lightSlider.getValue() != loadedValues.get(i).get(key)) {
-                                                lightSlider.setValue(loadedValues.get(i).get(key));
-                                            }
-                                            break;
-                                        case PROXIMITY:
-                                            if(proximitySlider.getValue() != loadedValues.get(i).get(key)) {
-                                                proximitySlider.setValue(loadedValues.get(i).get(key));
-                                            }
-                                            break;
-                                        case TEMPERATURE:
-                                            if(temperatureSlider.getValue() != loadedValues.get(i).get(key)) {
-                                                temperatureSlider.setValue(loadedValues.get(i).get(key));
-                                            }
-                                            break;
-                                        case PRESSURE:
-                                            if(pressureSlider.getValue() != loadedValues.get(i).get(key)) {
-                                                pressureSlider.setValue(loadedValues.get(i).get(key));
-                                            }
-                                            break;
-                                        case HUMIDITY:
-                                            if(humiditySlider.getValue() != loadedValues.get(i).get(key)) {
-                                                humiditySlider.setValue(loadedValues.get(i).get(key));
-                                            }
-                                            break;
-                                        case YAW:
-                                            if(yawSlider.getValue() != loadedValues.get(i).get(key)) {
-                                                yawSlider.setValue(loadedValues.get(i).get(key));
-                                            }
-                                            break;
-                                        case PITCH:
-                                            if(pitchSlider.getValue() !=  loadedValues.get(i).get(key)) {
-                                                pitchSlider.setValue(loadedValues.get(i).get(key));
-                                            }
-                                            break;
-                                        case ROLL:
-                                            if(rollSlider.getValue() !=  loadedValues.get(i).get(key)) {
-                                                rollSlider.setValue(loadedValues.get(i).get(key));
-                                            }
-                                            break;
-                                    }
-                                });
                             }
 
-                            try {
-                                Thread.sleep(PERIOD);
-                            } catch (InterruptedException ie) {
-                                ie.printStackTrace();
+                            if(stopFlag.get()) {
+                                System.out.println("STOPPING");
+                                return null;
+                            }
+
+                            switch (key) {
+                                case LIGHT:
+                                    if(lightSlider.getValue() != loadedValues.get(i).get(key))
+                                        Platform.runLater(() -> lightSlider.setValue(loadedValues.get(i).get(key)));
+                                    break;
+                                case PROXIMITY:
+                                    if(proximitySlider.getValue() != loadedValues.get(i).get(key))
+                                        Platform.runLater(() -> proximitySlider.setValue(loadedValues.get(i).get(key)));
+                                    break;
+                                case TEMPERATURE:
+                                    if(temperatureSlider.getValue() != loadedValues.get(i).get(key))
+                                        Platform.runLater(() -> temperatureSlider.setValue(loadedValues.get(i).get(key)));
+                                    break;
+                                case PRESSURE:
+                                    if(pressureSlider.getValue() != loadedValues.get(i).get(key))
+                                        Platform.runLater(() -> pressureSlider.setValue(loadedValues.get(i).get(key)));
+                                    break;
+                                case HUMIDITY:
+                                    if(humiditySlider.getValue() != loadedValues.get(i).get(key))
+                                        Platform.runLater(() -> humiditySlider.setValue(loadedValues.get(i).get(key)));
+                                    break;
+                                case YAW:
+                                    if(yawSlider.getValue() != loadedValues.get(i).get(key))
+                                        Platform.runLater(() -> yawSlider.setValue(loadedValues.get(i).get(key)));
+                                    break;
+                                case PITCH:
+                                    if(pitchSlider.getValue() !=  loadedValues.get(i).get(key))
+                                        Platform.runLater(() -> pitchSlider.setValue(loadedValues.get(i).get(key)));
+                                    break;
+                                case ROLL:
+                                    if(rollSlider.getValue() !=  loadedValues.get(i).get(key))
+                                        Platform.runLater(() -> rollSlider.setValue(loadedValues.get(i).get(key)));
+                                    break;
                             }
                         }
 
-                        return null;
+                        try {
+                            Thread.sleep(playbackSpeed.get());
+                        } catch (InterruptedException ie) {
+                            ie.printStackTrace();
+                        }
                     }
-                };
 
-                task.setOnSucceeded(event -> {
-                    if(loopBox.isSelected()) {
-                        System.out.println("RESTARTING");
-                        if(!stopFlag.get())
-                            restartThread();
-                    } else {
-                        System.out.println("FINISHED");
-                        wasPaused = false;
-                        pauseButton.setDisable(true);
-                        playButton.setDisable(false);
-                        recordButton.setDisable(false);
-                    }
-                });
+                    return null;
+                }
+            };
 
-                new Thread(task).start();
+            task.setOnSucceeded(event -> {
+                if(loopBox.isSelected()) {
+                    System.out.println("RESTARTING");
+                    if(!stopFlag.get())
+                        restartThread();
+                } else {
+                    System.out.println("FINISHED");
+                    stopFlag.set(true);
+                    pauseFlag.set(false);
+                    wasPaused = false;
+                    playButton.setDisable(false);
+                    recordButton.setDisable(false);
+
+                    Utilities.setImage("/resources/play_cropped.png", playButton);
+                }
+            });
+
+            new Thread(task).start();
         }
     }
 }

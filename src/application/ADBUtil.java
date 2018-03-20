@@ -18,38 +18,62 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ADBUtil {
 
-    private static File adbLocation = new File(System.getProperty("user.home") + "\\AppData\\Local\\Android\\Sdk\\platform-tools");
-    private static String DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands\\";
+    private static File adbLocation;
+    private static String DIRECTORY;
     private static String adbPath;
-    private static String[] params = null;
-    private static boolean isDeviceNameSet = false;
-    private static boolean isADBFound = false;
-    private static Integer decimal = 0;
-    private static String lineGlobal = "";
+    private static String[] params;
+    private static boolean isDeviceNameSet;
+    private static boolean isADBFound;
+    private static Integer decimal;
+    private static String lineGlobal;
     private static double resolutionX;
     private static double resolutionY;
     private static double maxPositionX;
     private static double maxPositionY;
 
-    public static String deviceName = "";
-    public static final Object lock = new Object();
-    private static AtomicBoolean isFirstRun = new AtomicBoolean(true);
+    private static String deviceName;
+    private static final Object lock;
+    private static AtomicBoolean isFirstRun;
 
-    private static double xStart = 0.0;
-    private static double yStart = 0.0;
-    private static double xEnd = 0.0;
-    private static double yEnd = 0.0;
+    private static double xStart;
+    private static double yStart;
+    private static double xEnd;
+    private static double yEnd;
 
-    private static int deviceCount = 0;
-    private static ADBConnectionController controller = null;
+    private static int deviceCount;
+    private static ADBConnectionController controller;
 
     private static StringBuilder sendEventBuilder;
-    private static AtomicBoolean stopRecordingFlag = new AtomicBoolean(false);
+    private static AtomicBoolean stopRecordingFlag;
     private static Task recordValuesTask;
 
     private static HashMap<String, String> keyMap;
 
-    private static AtomicBoolean swipeFlag = new AtomicBoolean(false);
+    private static AtomicBoolean swipeFlag;
+
+    static {
+        adbLocation = new File(System.getProperty("user.home") + "\\AppData\\Local\\Android\\Sdk\\platform-tools");
+        DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands\\";
+        params = null;
+        isDeviceNameSet = false;
+        isADBFound = false;
+        decimal = 0;
+        lineGlobal = "";
+        deviceName = "";
+        lock = new Object();
+        isFirstRun = new AtomicBoolean(true);
+
+        xStart = 0.0;
+        yStart = 0.0;
+        xEnd = 0.0;
+        yEnd = 0.0;
+
+        deviceCount = 0;
+        controller = null;
+
+        stopRecordingFlag = new AtomicBoolean(false);
+        swipeFlag = new AtomicBoolean(false);
+    }
 
     public static void setSwipeFlag(Boolean flag) {
             swipeFlag.set(flag);
@@ -62,7 +86,7 @@ public class ADBUtil {
 
     public static void initADB() {
         try {
-            for (File file : adbLocation.listFiles()) {
+            for (File file : Objects.requireNonNull(adbLocation.listFiles())) {
                 if (file.getName().equalsIgnoreCase("adb.exe")) {
                     adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
                     isADBFound = true;
@@ -97,7 +121,7 @@ public class ADBUtil {
             File possibleADBLocation = new File(result.get());
 
             try {
-                for (File file : possibleADBLocation.listFiles()) {
+                for (File file : Objects.requireNonNull(possibleADBLocation.listFiles())) {
                     if (file.getName().equalsIgnoreCase("adb.exe")) {
                         System.out.println("Found ADB, path: " + file.getAbsolutePath());
                         adbLocation = new File(file.getAbsolutePath());
@@ -172,7 +196,7 @@ public class ADBUtil {
         }
     }
 
-    public synchronized static void setStopRecordingFlag(boolean flag) {
+    public static void setStopRecordingFlag(boolean flag) {
         if(flag) {
             recordValuesTask.cancel();
 

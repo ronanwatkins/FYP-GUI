@@ -22,7 +22,6 @@ public class LocationTabController implements Initializable {
 
     @FXML
     private TextField latitudeField;
-
     @FXML
     private TextField longitudeField;
 

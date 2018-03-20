@@ -7,18 +7,25 @@ import javafx.concurrent.Task;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.*;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HTTPServer {
     private SensorsTabController controller;
     private ServerSocket ss;
-    private final int PORT = 80;
+    private final int PORT = 1338;
     private String IPAddress;
+
+    private double initialYawValue;
+
+    private double latitude;
+    private double longitude;
+    private double battery;
+
+    private AtomicBoolean isListening = new AtomicBoolean(true);
 
     private boolean isConnected = false;
 
@@ -28,91 +35,175 @@ public class HTTPServer {
 
         IPAddress = getIPAddress();
         System.out.println(IPAddress);
-        ss.bind(new InetSocketAddress(IPAddress, PORT));
+
+        try {
+            ss.bind(new InetSocketAddress(IPAddress, PORT));
+        } catch (BindException be) {
+            //NOOP
+        }
+
+        initialYawValue = 0;
     }
 
-    public void listen() throws IOException {
-        Task task = new Task<Void>() {
+    public boolean listen() throws IOException {
+        Task task = new Task<Boolean>() {
 
-            @Override public Void call() {
+            @Override public Boolean call() {
+
                 try {
                     while(true) {
-                        System.out.println("Here");
                         Socket cs = ss.accept();
-                        System.out.println("connected");
-                        PrintWriter out = new PrintWriter(cs.getOutputStream(), true);
+                        isConnected = true;
+
                         BufferedReader br = new BufferedReader(new InputStreamReader(cs.getInputStream()));
 
                         String request;
                         String clString = "";
+
+                        String method = null;
                         do {
                             request = br.readLine();
+                            if(method == null) {
+                                if(request.startsWith("POST")) {
+                                    method = "POST";
+                                    System.out.println("its post");
+                                }
+                            }
 
-                            if (request.toLowerCase().startsWith("content-length")) clString = request;
+                            if (request.toLowerCase().startsWith("content-length")) {
+                                clString = request;
+                            }
                             if (request.isEmpty()) break;
                         } while (true);
 
-                        int contentLength = Integer.parseInt(clString.substring(16));
-                        //System.out.println("Num: " + contentLength);
+                        if(method !=  null) {
+                            int contentLength = Integer.parseInt(clString.substring(16));
+                            final char[] contents = new char[contentLength + 2];
+                            br.read(contents);
+                            String POSTContent = URLDecoder.decode(new String(contents), "UTF-8");
 
-                        final char[] contents = new char[contentLength + 2];
-                        br.read(contents);
-                        String POSTContent = decodePOSTString(new String(contents));
-                        //System.out.println("Content: " + POSTContent);
-                        //System.out.println("done");
+                            System.out.println("fucking here");
+                            displayAndSendData(POSTContent.substring(POSTContent.indexOf('{')));
+                        }
 
-                        out.print("HTTP/ 1.1 200 OK\n" +
+                        OutputStream os = cs.getOutputStream();
+                        PrintWriter pw = new PrintWriter(os);
+                        pw.print("HTTP/1.1 200 OK\n" +
                                 "Content-Type: text/html\n" +
-                                "Content-Length: 20\n" +
                                 "Connection: keep-alive\n\n" +
-                                "RESPONSE OK");
-                        out.flush();
+                                "OK");
+
+                        pw.close();
+                        os.close();
                         cs.close();
-
-                        isConnected = true;
-                        System.out.println(POSTContent);
-
-                        displayAndSendData(POSTContent.substring(POSTContent.indexOf('{')));
-                        //displayAndSendData(POSTContent);
                     }
 
-                } catch (Exception ee) {
-                    ee.printStackTrace();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                } catch (JSONException jse) {
+                    jse.printStackTrace();
                 }
-                return null;
+                return isConnected;
             }
         };
 
         new Thread(task).start();
+
+        return isConnected;
     }
 
-    private synchronized void displayAndSendData(String jsonString) {
+    public void setIsListening(boolean flag) {
+        isListening.set(flag);
+    }
 
-        Platform.runLater(() -> {
+    private synchronized void displayAndSendData(String jsonString) throws JSONException {
+        System.out.println(jsonString);
+
+        if(isListening.get()) {
             try {
                 JSONObject jsonObject = new JSONObject(jsonString);
 
-                System.out.println(jsonObject.get("light"));
+                Iterator iterator = jsonObject.keys();
+                while (iterator.hasNext()) {
+                    String key = (String) iterator.next();
+
+                    switch (key) {
+                        case SensorsTabController.ORIENTATION:
+                            double yaw = Double.parseDouble((String) jsonObject.getJSONArray(key).get(0));
+                            final double pitch = Double.parseDouble((String) jsonObject.getJSONArray(key).get(1));
+                            final double roll = Double.parseDouble((String) jsonObject.getJSONArray(key).get(2));
+
+                            yaw *= -1;
+
+                            if (initialYawValue == 0)
+                                initialYawValue = yaw;
+
+                            yaw += 180 - initialYawValue;
+
+                            if (yaw > 180)
+                                yaw -= 360;
+
+                            final double newYaw = yaw;
+
+                            Platform.runLater(() -> {
+                                controller.yawSlider.setValue(newYaw*-1);
+                                controller.pitchSlider.setValue(pitch);
+                                controller.rollSlider.setValue(roll*-1);
+                            });
+                            break;
+                        case SensorsTabController.LIGHT:
+                            double light = jsonObject.getDouble(key);
+                            if(controller.lightSlider.getValue() != light)
+                                Platform.runLater(() -> controller.lightSlider.setValue(light));
+                            break;
+                        case SensorsTabController.HUMIDITY:
+                            double humidity = jsonObject.getDouble(key);
+                            if(controller.humiditySlider.getValue() != humidity)
+                                Platform.runLater(() -> controller.humiditySlider.setValue(humidity));
+                            break;
+                        case SensorsTabController.TEMPERATURE:
+                            double temperature = jsonObject.getDouble(key);
+                            if(controller.temperatureSlider.getValue() != temperature)
+                                Platform.runLater(() -> controller.temperatureSlider.setValue(temperature));
+                            break;
+                        case SensorsTabController.PRESSURE:
+                            double pressure = jsonObject.getDouble(key);
+                            if(controller.pressureSlider.getValue() != pressure)
+                                Platform.runLater(() -> controller.pressureSlider.setValue(pressure));
+                            break;
+                        case SensorsTabController.PROXIMITY:
+                            double proximity = jsonObject.getDouble(key);
+                            if(controller.proximitySlider.getValue() != proximity)
+                                Platform.runLater(() -> controller.proximitySlider.setValue(proximity));
+                            break;
+                        case SensorsTabController.BATTERY:
+                            if(battery != jsonObject.getDouble(key)) {
+                                battery = jsonObject.getDouble(key);
+                                TelnetServer.powerCapacity(""+battery);
+                                Platform.runLater(() -> controller.batteryLabel.setText(""+battery));
+                            }
+                            break;
+                        case SensorsTabController.LOCATION:
+                            if(latitude != (Double) jsonObject.getJSONArray(key).get(0) || longitude != (Double) jsonObject.getJSONArray(key).get(1)){
+                                latitude =  (Double) jsonObject.getJSONArray(key).get(0);
+                                longitude = (Double) jsonObject.getJSONArray(key).get(1);
+                                TelnetServer.setLocation(longitude + " " + latitude);
+                                Platform.runLater(() -> controller.locationLabel.setText("Latidude: " + latitude + "\n" + "Longitude: " + longitude));
+                            }
+                            break;
+                    }
+                }
             } catch (JSONException je) {
                 je.printStackTrace();
             }
-        });
+        }
     }
 
-    private String decodePOSTString(String input) {
-        input = input.replace("%7B", "{");
-        input = input.replace("%22", "\"");
-        input = input.replace("%3A", ":");
-        input = input.replace("%2C", ",");
-        input = input.replace("%3D", "=");
-        input = input.replace("%7D", "}");
-        input = input.replace("+", " ");
-
-        return input;
+    public int getPORT() {
+        return PORT;
     }
 
-
-    private String getIPAddress() {
+    public String getIPAddress() {
         String ip = "";
 
         try {

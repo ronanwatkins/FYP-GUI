@@ -2,7 +2,6 @@ package application.phone;
 
 import application.TelnetServer;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -19,13 +18,13 @@ public class PhoneTabController implements Initializable {
     private TextField phoneNumberField;
 
     @FXML
-    private Button makeCall;
+    private Button makeCallButton;
     @FXML
-    private Button holdCall;
+    private Button holdCallButton;
     @FXML
-    private Button endCall;
+    private Button endCallButton;
     @FXML
-    private Button sendSMS;
+    private Button sendSMSButton;
 
     @FXML
     private TextArea messageArea;
@@ -47,71 +46,46 @@ public class PhoneTabController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        networkType.getSelectionModel().select(2);
+        signalStrength.getSelectionModel().select(4);
+        voiceStatus.getSelectionModel().select(0);
+        dataStatus.getSelectionModel().select(0);
 
-        holdCall.setDisable(true);
-        endCall.setDisable(true);
-        makeCall.setDisable(true);
-        sendSMS.setDisable(true);
+        holdCallButton.setDisable(true);
+        endCallButton.setDisable(true);
+        makeCallButton.setDisable(true);
+        sendSMSButton.setDisable(true);
 
+        handleTextAreaEvents();
+        handleComboBoxEvents();
+    }
+
+    private void handleTextAreaEvents() {
         phoneNumberField.textProperty().addListener((observable, oldValue, newValue) -> {
             if(!phoneNumberField.getText().isEmpty()) {
                 try {
                     Integer.parseInt(phoneNumberField.getText());
                     isInteger = true;
                 } catch (NumberFormatException nfe) {
-                    nfe.printStackTrace();
+                    //nfe.printStackTrace();
                     isInteger = false;
                 }
 
                 if(isInteger)
-                    makeCall.setDisable(false);
-                else makeCall.setDisable(true);
+                    makeCallButton.setDisable(false);
+                else makeCallButton.setDisable(true);
             }
-            else makeCall.setDisable(true);
+            else makeCallButton.setDisable(true);
         });
 
         messageArea.textProperty().addListener((observable, oldValue, newValue) -> {
             if(!phoneNumberField.getText().isEmpty())
-                sendSMS.setDisable(false);
-            else sendSMS.setDisable(true);
+                sendSMSButton.setDisable(false);
+            else sendSMSButton.setDisable(true);
         });
+    }
 
-        makeCall.setOnAction(event -> {
-            phoneNumber = phoneNumberField.getText();
-            if(!phoneNumber.isEmpty()) {
-                TelnetServer.makeCall(phoneNumber);
-                isInCall = true;
-                makeCall.setDisable(true);
-                holdCall.setDisable(false);
-                endCall.setDisable(false);
-            }
-        });
-
-        holdCall.setOnAction(event -> {
-            if(!isOnHold) {
-                TelnetServer.holdCall(phoneNumber);
-                isOnHold = true;
-                holdCall.setText("Un-Hold");
-            } else {
-                TelnetServer.unHoldCall(phoneNumber);
-                isOnHold = false;
-                holdCall.setText("Hold");
-            }
-        });
-
-        endCall.setOnAction(event -> {
-           TelnetServer.endCall(phoneNumber);
-           makeCall.setDisable(false);
-           endCall.setDisable(true);
-           holdCall.setDisable(true);
-        });
-
-        sendSMS.setOnAction(event -> {
-            phoneNumber  = phoneNumberField.getText();
-            String command =  messageArea.getText().replaceAll("\n", "\\\\n");
-            TelnetServer.sendSMS(phoneNumber + " " + command);
-        });
-
+    private void handleComboBoxEvents() {
         networkType.setOnAction(event -> {
             String network = networkType.getValue().toString().toLowerCase();
             System.out.println(network);
@@ -152,5 +126,45 @@ public class PhoneTabController implements Initializable {
             System.out.println(data);
             TelnetServer.dataStatus(data);
         });
+    }
+
+    @FXML
+    private void handleMakeCallButtonClicked(ActionEvent event) {
+        phoneNumber = phoneNumberField.getText();
+        if(!phoneNumber.isEmpty()) {
+            TelnetServer.makeCall(phoneNumber);
+            isInCall = true;
+            makeCallButton.setDisable(true);
+            holdCallButton.setDisable(false);
+            endCallButton.setDisable(false);
+        }
+    }
+
+    @FXML
+    private void handleEndCallButtonClicked(ActionEvent event) {
+        TelnetServer.endCall(phoneNumber);
+        makeCallButton.setDisable(false);
+        endCallButton.setDisable(true);
+        holdCallButton.setDisable(true);
+    }
+
+    @FXML
+    private void handleHoldCallButtonClicked(ActionEvent event) {
+        if(!isOnHold) {
+            TelnetServer.holdCall(phoneNumber);
+            isOnHold = true;
+            holdCallButton.setText("Un-Hold");
+        } else {
+            TelnetServer.unHoldCall(phoneNumber);
+            isOnHold = false;
+            holdCallButton.setText("Hold");
+        }
+    }
+
+    @FXML
+    private void handleSendSMSButtonClicked(ActionEvent event) {
+        phoneNumber  = phoneNumberField.getText();
+        String command =  messageArea.getText().replaceAll("\n", "\\\\n");
+        TelnetServer.sendSMS(phoneNumber + " " + command);
     }
 }

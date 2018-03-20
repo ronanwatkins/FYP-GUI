@@ -31,13 +31,16 @@ public class PowerTabController implements Initializable{
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        batterySlider.valueProperty().addListener(
-                (observable, oldvalue, newvalue) ->
-                {
-                    int batteryValue = newvalue.intValue();
-                    batteryLabel.setText(batteryValue+"");
-                    TelnetServer.powerCapacity(batteryValue+"");
-                } );
+        batteryHealth.getSelectionModel().select(2);
+        batteryStatus.getSelectionModel().select(3);
+        charging.getSelectionModel().select(0);
+
+        batterySlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
+        {
+            int batteryValue = newvalue.intValue();
+            batteryLabel.setText(batteryValue+"");
+            TelnetServer.powerCapacity(batteryValue+"");
+        });
 
         batteryHealth.setOnAction(event -> {
             String health = batteryHealth.getValue().toString().toLowerCase();

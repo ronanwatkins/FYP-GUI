@@ -195,7 +195,7 @@ public class AccelerometerModel extends SensorModel {
     }
 
     public double getReadAccelerometerX() {
-        return mReadAccelx;
+        return -mReadAccelx;
     }
 
     public double getReadAccelerometerY() {

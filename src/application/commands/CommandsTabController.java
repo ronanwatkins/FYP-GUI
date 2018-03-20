@@ -2,6 +2,8 @@ package application.commands;
 
 import application.ADBUtil;
 import application.XMLUtil;
+import application.sensors.SensorsTabController;
+import application.utilities.Utilities;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -82,11 +85,9 @@ public class CommandsTabController implements Initializable{
     private ObservableList<String> commandFilesList;
     private ObservableList<Integer> indexList;
 
-    //public CommandsTabController(){}
-    
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
+        initializeButtons();
         RunBatchTab();
 
         createBatchTab.setOnSelectionChanged(event -> {
@@ -103,6 +104,16 @@ public class CommandsTabController implements Initializable{
                 RunBatchTab();
             }
         });
+    }
+
+    private void initializeButtons() {
+        Utilities.setImage("/resources/edit.png", editButton);
+        Utilities.setImage("/resources/delete.png", deleteCommandsButton);
+
+        Utilities.setImage("/resources/right.png", addCommandButton);
+        Utilities.setImage("/resources/up.png", moveUpButton);
+        Utilities.setImage("/resources/down.png", moveDownButton);
+        Utilities.setImage("/resources/delete.png", deleteButton);
     }
 
     private void CreateBatchTab(File file) {
@@ -190,7 +201,7 @@ public class CommandsTabController implements Initializable{
         directory = new File(DIRECTORY);
 
         try {
-            for (File file : directory.listFiles()) {
+            for (File file : Objects.requireNonNull(directory.listFiles())) {
                 commandFilesList.add(file.getName().replace(".xml", ""));
             }
         } catch (NullPointerException npe) {
@@ -248,7 +259,7 @@ public class CommandsTabController implements Initializable{
             runningCommandsListView.getItems().clear();
             runningCommandsListView.getItems().add(command);
             try {
-                Thread.sleep(1500);
+                Thread.sleep(2000);
             } catch (InterruptedException ie) {
                 ie.printStackTrace();
             }
@@ -378,9 +389,7 @@ public class CommandsTabController implements Initializable{
         dialog.setHeaderText("Type Text To Enter");
 
         Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            commandField.setText("shell input text " + result.get());
-        }
+        result.ifPresent(s -> commandField.setText("shell input text " + s));
     }
 
     //Utilities
@@ -425,7 +434,7 @@ public class CommandsTabController implements Initializable{
     private void refreshCommandsList() {
         XMLUtil xmlUtil = new XMLUtil();
         String commandName = selectListView.getSelectionModel().getSelectedItem();
-        System.out.println("Comand NAme: " + commandName);
+        System.out.println("Comand Name: " + commandName);
         if(commandName != null) {
             ObservableList<String> batchCommands = xmlUtil.openBatchCommands(new File(DIRECTORY + "\\" + commandName + ".xml"));
             allCommandsListView.setItems(batchCommands);

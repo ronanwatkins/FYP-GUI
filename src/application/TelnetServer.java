@@ -15,7 +15,6 @@ public class TelnetServer {
     private static int port = 5554;
 
     public static void connect() {
-
         Task task = new Task<Void>() {
 
             @Override
@@ -29,8 +28,8 @@ public class TelnetServer {
                 int data = in.read();
                 StringBuilder input = new StringBuilder();
                 while (data != -1) {
-                    char theChar = (char) data;
-                    input.append(theChar);
+                    char ch = (char) data;
+                    input.append(ch);
                     if (input.toString().contains("OK"))
                         break;
                     data = in.read();
@@ -67,15 +66,14 @@ public class TelnetServer {
         });
 
         new Thread(task).start();
-
     }
 
     public static void setSensor(String command) {
         if(out != null) {
             out.println("sensor set " + command);
-            System.out.println("sensor set " + command);
+            //System.out.println("sensor set " + command);
         } else {
-            System.out.println("HI");
+//            System.out.println("HI");
         }
     }
 
