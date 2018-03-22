@@ -56,12 +56,12 @@ public class TelnetServer {
         };
 
         task.setOnFailed(event -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Failed to connect to emulator");
-            alert.setContentText("Your emulator must be turned on to use most functionality of this program");
-
-            alert.showAndWait();
+//            Alert alert = new Alert(Alert.AlertType.ERROR);
+//            alert.setTitle("Error");
+//            alert.setHeaderText("Failed to connect to emulator");
+//            alert.setContentText("Your emulator must be turned on to use most functionality of this program");
+//
+//            alert.showAndWait();
             //System.exit(0);
         });
 

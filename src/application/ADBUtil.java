@@ -13,7 +13,10 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ADBUtil {
@@ -93,7 +96,7 @@ public class ADBUtil {
                     Task task = new Task() {
                         @Override
                         protected Object call() throws Exception {
-                            checkDevices();
+                           // checkDevices();
                             return null;
                         }
                     };
@@ -105,7 +108,6 @@ public class ADBUtil {
                 }
             }
         } catch (NullPointerException npe) {
-            npe.printStackTrace();
             showInputDialog();
         }
     }
@@ -205,7 +207,6 @@ public class ADBUtil {
     }
 
     public static void recordInputValues(RecordInputsController controller) throws Exception{
-
         System.out.println("Recording....");
         sendEventBuilder = new StringBuilder();
         try {
@@ -336,6 +337,7 @@ public class ADBUtil {
     public static void checkDevices() {
         while(true) {
             String[] result = consoleCommand(new String[] {"devices"}, false).split("\n");
+            //System.out.println(result.length);
 
             if(result.length == 2 && isFirstRun.get()) {
                 deviceName = result[1].split("\t")[0].trim();
@@ -400,6 +402,14 @@ public class ADBUtil {
         }
     }
 
+    public static ArrayList<String> listApplications() {
+        String[] applications = consoleCommand(new String[] {"shell", "pm", "list" ,"packages"}, false).replace("package:", "").trim().split("\n");
+
+        List<String> apps = Arrays.asList(applications);
+
+        return new ArrayList<>(apps);
+    }
+
     public static String connectOverWifi(String name) {
         deviceName = name;
         deviceName = consoleCommand(new String[] {"shell", "ifconfig", "wlan0"}, false).split(" ")[2] + ":5555";
@@ -415,67 +425,138 @@ public class ADBUtil {
     }
 
     public static String consoleCommand(String[] parameters, boolean runInBackground) {
+        if(!isFirstRun.get() && !deviceName.equals("")) {
+            params = new String[parameters.length+3];
+            params[0] = adbPath;
+            params[1] = "-s";
+            params[2] = deviceName;
+
+            System.arraycopy(parameters, 0, params, 3, parameters.length);
+        } else {
+            params = new String[parameters.length+1];
+            params[0] = adbPath;
+
+            System.arraycopy(parameters, 0, params, 1, parameters.length);
+        }
         StringBuilder result = new StringBuilder();
+        Task<String> task = new Task<String>() {
+            @Override
+            protected String call() throws Exception {
+                //for(String param : params)
+                    //System.out.println("param: " + param);
 
+                Process process = Runtime.getRuntime().exec(params);
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    if(!line.isEmpty()) {
+                        System.out.println(Thread.currentThread().getId() + " InputStream >> " + line);
+                        result.append(line).append("\n");
+                    }
+                }
+
+                bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                while ((line = bufferedReader.readLine()) != null) {
+                    if(!line.isEmpty()) {
+                        System.out.println(Thread.currentThread().getId() + " ErrorStream >> " + line);
+                        result.append(line).append("\n");
+                    }
+                }
+
+                bufferedReader.close();
+                //process.waitFor();
+                //process.waitFor(2, TimeUnit.SECONDS);
+
+                System.out.println("going to return now");
+                return result.toString();
+            }
+        };
+
+        Thread thread = new Thread(task);
+        if(runInBackground)
+            thread.start();
+        else
+            thread.run();
+
+//        try {
+//            thread.join(2000);
+//        } catch (InterruptedException ie) {
+//            ie.printStackTrace();
+//        }
+
+       // System.out.println("here now hey");
+//        if(runInBackground) {
+//            CountDownLatch latch = new CountDownLatch(1);
+//            try {
+//                latch.await();
+//            } catch (InterruptedException ie) {
+//                ie.printStackTrace();
+//            }
+//        }
+        System.out.println("is it runnnong? " + task);
+        System.out.println("is it runnnong? " + task.isRunning());
+
+        task.setOnSucceeded(event -> {
+            //return result.toString();
+            //return;
+            //return task.getValue();
+            System.out.println("succeeded");
+        });
+        System.out.println("Im finished");
+        task.setOnFailed(event -> System.out.println("failed"));
+
+        System.out.println(Thread.currentThread().getId() + " result: " + result);
+        return result.toString();
+    }
+
+    public static String consoleCommand(String[] parameters) {
+        if(!isFirstRun.get() && !deviceName.equals("")) {
+            params = new String[parameters.length+3];
+            params[0] = adbPath;
+            params[1] = "-s";
+            params[2] = deviceName;
+
+            System.arraycopy(parameters, 0, params, 3, parameters.length);
+        } else {
+            params = new String[parameters.length+1];
+            params[0] = adbPath;
+
+            System.arraycopy(parameters, 0, params, 1, parameters.length);
+        }
+
+        StringBuilder result = new StringBuilder();
         try {
-            if(!isFirstRun.get() && !deviceName.equals("")) {
-                params = new String[parameters.length+3];
-                params[0] = adbPath;
-                params[1] = "-s";
-                params[2] = deviceName;
+            Process process = Runtime.getRuntime().exec(params);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-                System.arraycopy(parameters, 0, params, 3, parameters.length);
-            } else {
-                params = new String[parameters.length+1];
-                params[0] = adbPath;
-
-                System.arraycopy(parameters, 0, params, 1, parameters.length);
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                if (!line.isEmpty()) {
+                    result.append(line).append("\n");
+                }
             }
 
-            Task task = new Task() {
-                @Override
-                protected Object call() throws Exception {
-                    //for(String param : params)
-                        //System.out.println("param: " + param);
-                    
-                    Process process = Runtime.getRuntime().exec(params);
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        //System.out.println(line);
-                        result.append(line).append("\n");
-                    }
-
-                    bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                    while ((line = bufferedReader.readLine()) != null) {
-                        //System.out.println(line);
-                        result.append(line).append("\n");
-                    }
-
-                    bufferedReader.close();
-                    process.waitFor();
-
-                    return null;
+            bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            while ((line = bufferedReader.readLine()) != null) {
+                if (!line.isEmpty()) {
+                    result.append(line).append("\n");
                 }
-            };
+            }
 
-            if(runInBackground)
-                new Thread(task).start();
-            else
-                new Thread(task).run();
+            process.waitFor(10, TimeUnit.SECONDS);
+            bufferedReader.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
 
-        } catch (Exception ee) {
-            ee.printStackTrace();
-        }
-        finally {
-           // tmp.delete();
-        }
         return result.toString();
     }
 
     public static void disconnect() {
-        System.out.println("In disonnect yo");
-        System.out.println(consoleCommand(new String[] {"disonnect"}, false));
+        System.out.println("In disconnect yo");
+        System.out.println(consoleCommand(new String[] {"disconnect"}, false));
     }
 }

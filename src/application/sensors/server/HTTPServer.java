@@ -26,7 +26,6 @@ public class HTTPServer {
     private double battery;
 
     private AtomicBoolean isListening = new AtomicBoolean(true);
-
     private boolean isConnected = false;
 
     public HTTPServer(SensorsTabController controller) throws IOException {
@@ -45,15 +44,21 @@ public class HTTPServer {
         initialYawValue = 0;
     }
 
-    public boolean listen() throws IOException {
-        Task task = new Task<Boolean>() {
+    public void listen() throws IOException {
+        Task<Void> task = new Task<Void>() {
 
-            @Override public Boolean call() {
-
+            @Override public Void call() {
                 try {
                     while(true) {
                         Socket cs = ss.accept();
-                        isConnected = true;
+                        if(!isConnected) {
+                            isConnected = true;
+                            System.out.println("Im fconnected");
+                            controller.setConnected(isConnected);
+//                            Platform.runLater(() -> {
+//
+//                            });
+                        }
 
                         BufferedReader br = new BufferedReader(new InputStreamReader(cs.getInputStream()));
 
@@ -103,13 +108,11 @@ public class HTTPServer {
                 } catch (JSONException jse) {
                     jse.printStackTrace();
                 }
-                return isConnected;
+                return null;
             }
         };
 
         new Thread(task).start();
-
-        return isConnected;
     }
 
     public void setIsListening(boolean flag) {

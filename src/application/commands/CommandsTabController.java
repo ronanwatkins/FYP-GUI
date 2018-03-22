@@ -2,29 +2,25 @@ package application.commands;
 
 import application.ADBUtil;
 import application.XMLUtil;
-import application.sensors.SensorsTabController;
 import application.utilities.Utilities;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.AnchorPane;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class CommandsTabController implements Initializable{
+public class CommandsTabController implements Initializable {
 
     private final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands";
 
@@ -62,7 +58,26 @@ public class CommandsTabController implements Initializable{
     @FXML
     private Button runCommandsButton;
     @FXML
+    private Button stopCommandsButton;
+    @FXML
     private Button enterTextButton;
+
+    @FXML
+    private ComboBox<String> runTypeComboBox;
+
+    @FXML
+    private CheckBox stopOnFailureCheckBox;
+
+    @FXML
+    private ToggleButton inputsToggleButton;
+    @FXML
+    private ToggleButton applicationsToggleButton;
+
+    @FXML
+    private Label actionLabel;
+
+    @FXML
+    private ComboBox<String> actionComboBox;
 
     @FXML
     private Tab runBatchTab;
@@ -75,38 +90,59 @@ public class CommandsTabController implements Initializable{
     @FXML
     private ChoiceBox<Integer> indexBox;
 
-    private HashMap<String, String> commandsMap;
+    private HashMap<String, String> inputCommandsMap;
+    private HashMap<String, String> applicationCommandsMap;
+    private HashMap<String, String> actionMap;
 
     private int index = 0;
+    private int selectedIndex = 0;
+
+    private final String keyEvent = "shell input keyevent ";
 
     private File editFile = null;
     private File directory = null;
 
+    private ObservableList<String> inputCommands;
+    private ObservableList<String> applicationCommands;
     private ObservableList<String> commandFilesList;
     private ObservableList<Integer> indexList;
+
+    private Task<Void> runCommandsTask;
+    private Thread runCommandsThread;
+
+    private AtomicBoolean pauseFlag = new AtomicBoolean(false);
+    private AtomicBoolean wasPaused = new AtomicBoolean(false);
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
-        RunBatchTab();
+        runBatchTab();
 
         createBatchTab.setOnSelectionChanged(event -> {
             if(createBatchTab.isSelected()) {
                 System.out.println("Create Batch Tab Selected");
 
-                CreateBatchTab(editFile);
+                createBatchTab(editFile);
             }
         });
 
         runBatchTab.setOnSelectionChanged(event -> {
             if(runBatchTab.isSelected()) {
                 System.out.println("Run Batch Tab Selected");
-                RunBatchTab();
+                runBatchTab();
             }
         });
     }
 
     private void initializeButtons() {
+        ToggleGroup toggleGroup = new ToggleGroup();
+        inputsToggleButton.setToggleGroup(toggleGroup);
+        applicationsToggleButton.setToggleGroup(toggleGroup);
+        inputsToggleButton.setSelected(true);
+
+        Utilities.setImage("/resources/play.png", runCommandsButton);
+        Utilities.setImage("/resources/stop.png", stopCommandsButton);
+
         Utilities.setImage("/resources/edit.png", editButton);
         Utilities.setImage("/resources/delete.png", deleteCommandsButton);
 
@@ -116,7 +152,10 @@ public class CommandsTabController implements Initializable{
         Utilities.setImage("/resources/delete.png", deleteButton);
     }
 
-    private void CreateBatchTab(File file) {
+    private void createBatchTab(File file) {
+        stopCommandsButton.fire();
+        initInputCommandsMap();
+        initApplicationCommandsMap();
 
         if(file != null) {
             saveButton.setDisable(false);
@@ -126,13 +165,10 @@ public class CommandsTabController implements Initializable{
             commandsListView.setItems(commands);
 
             indexList = FXCollections.observableArrayList();
-
             index = commands.size();
-
             for (int i = 0; i <= index; i++) {
                 indexList.add(i);
             }
-
             indexBox.setItems(indexList);
             indexBox.setValue(index);
 
@@ -140,7 +176,6 @@ public class CommandsTabController implements Initializable{
             for (int i = 0; i < indexBox.getValue(); i++) {
                 indexListView.getItems().add(i);
             }
-
         } else {
             saveButton.setDisable(true);
 
@@ -153,13 +188,13 @@ public class CommandsTabController implements Initializable{
             commandsListView.getItems().clear();
         }
 
-        String keyEvent = "shell input keyevent ";
-
-        initCommandsMap();
-
-        ObservableList<String> possibleCommands = FXCollections.observableArrayList(
-                commandsMap.keySet()
+        inputCommands = FXCollections.observableArrayList(
+                inputCommandsMap.keySet()
         );
+
+        actionComboBox.setVisible(false);
+        actionLabel.setVisible(false);
+        inputsToggleButton.setSelected(true);
 
         commandField.setText("");
 
@@ -170,9 +205,13 @@ public class CommandsTabController implements Initializable{
         indexBox.setItems(indexList);
         indexBox.setValue(index);
 
-        possibleCommandsListView.setItems(possibleCommands);
+        possibleCommandsListView.setItems(inputCommands);
 
-        possibleCommandsListView.setOnMouseClicked(event -> commandField.setText(keyEvent + commandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
+        if(inputsToggleButton.isSelected()) {
+            possibleCommandsListView.setOnMouseClicked(event -> commandField.setText(keyEvent + inputCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
+        } else {
+            possibleCommandsListView.setOnMouseClicked(event -> commandField.setText(keyEvent + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
+        }
 
         indexBox.setItems(indexList);
 
@@ -189,9 +228,10 @@ public class CommandsTabController implements Initializable{
         });
     }
 
-    private void RunBatchTab() {
-
+    private void runBatchTab() {
         editFile = null;
+        runTypeComboBox.getSelectionModel().select(0);
+        stopCommandsButton.setDisable(true);
         deleteCommandsButton.setDisable(true);
         editButton.setDisable(true);
         runCommandsButton.setDisable(true);
@@ -221,6 +261,7 @@ public class CommandsTabController implements Initializable{
                     deleteCommandsButton.setDisable(false);
                     editButton.setDisable(false);
                     runCommandsButton.setDisable(false);
+                    stopCommandsButton.fire();
 
                     refreshCommandsList();
                 }
@@ -230,11 +271,78 @@ public class CommandsTabController implements Initializable{
 
     //Run Tab
     @FXML
+    private void handleInputsButtonPressed(ActionEvent event) {
+        inputsToggleButton.setSelected(true);
+        actionComboBox.setVisible(false);
+        actionLabel.setVisible(false);
+
+        possibleCommandsListView.setItems(inputCommands);
+        possibleCommandsListView.setOnMouseClicked(mouseEvent -> commandField.setText(keyEvent + inputCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
+    }
+
+    @FXML
+    private void handleApplicationsButtonPressed(ActionEvent event) {
+        applicationsToggleButton.setSelected(true);
+        actionComboBox.setVisible(true);
+        actionLabel.setVisible(true);
+
+        initActionMap();
+
+
+        actionComboBox.setItems(FXCollections.observableArrayList(
+                actionMap.keySet()
+        ));
+        actionComboBox.getSelectionModel().select(5);
+
+        applicationCommands = FXCollections.observableArrayList(
+                applicationCommandsMap.keySet()
+        );
+        possibleCommandsListView.setItems(applicationCommands);
+        possibleCommandsListView.getSelectionModel().select(selectedIndex);
+
+        possibleCommandsListView.setOnMouseClicked(mouseEvent -> {
+            System.out.println("here 1");
+            if(possibleCommandsListView.getSelectionModel().getSelectedItem() != null) {
+                commandField.setText(actionMap.get(actionComboBox.getValue()) + " "
+                        + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem()));
+                if (actionComboBox.getSelectionModel().isSelected(5))
+                    commandField.setText(commandField.getText() + " 1");
+
+                selectedIndex = possibleCommandsListView.getSelectionModel().getSelectedIndex();
+            }
+        });
+
+//        actionComboBox.setOnAction(mouseEvent -> {
+//            System.out.println("here 2");
+//            if(possibleCommandsListView.getSelectionModel().getSelectedItem() != null) {
+//                commandField.setText(actionMap.get(actionComboBox.getValue()) + " "
+//                        + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem()));
+//                if (actionComboBox.getSelectionModel().isSelected(5))
+//                    commandField.setText(commandField.getText() + " 1");
+//            }
+//        });
+
+        //actionComboBox.setOn
+    }
+
+    @FXML
+    private void handleActionComboBoxClicked(ActionEvent event) {
+        System.out.println("here 2");
+        //if(possibleCommandsListView.getSelectionModel().getSelectedItem() != null || commandField.getText().contains(".")) {
+        if (actionMap.get(actionComboBox.getValue()) != null && possibleCommandsListView.getSelectionModel().getSelectedItem() !=  null) {
+            commandField.setText(actionMap.get(actionComboBox.getValue()) + " "
+                    + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem()));
+            if (actionComboBox.getSelectionModel().isSelected(5))
+                commandField.setText(commandField.getText() + " 1");
+        }
+    }
+
+    @FXML
     private void handleEditButtonClicked(ActionEvent event) {
-            String fileName = selectListView.getSelectionModel().getSelectedItem();
-            editFile = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
-            CreateBatchTab(editFile);
-            tabPane.getSelectionModel().select(createBatchTab);
+        String fileName = selectListView.getSelectionModel().getSelectedItem();
+        editFile = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
+        createBatchTab(editFile);
+        tabPane.getSelectionModel().select(createBatchTab);
     }
 
     @FXML
@@ -253,17 +361,127 @@ public class CommandsTabController implements Initializable{
 
     @FXML
     private void handleRunCommandsButtonClicked(ActionEvent event) {
-        for (String command : allCommandsListView.getItems()) {
-            System.out.println(ADBUtil.consoleCommand(formatCommand(command).split(" "), true));
+        if(runCommandsTask != null) {
+            if(runCommandsTask.isRunning()) {
+                if (!pauseFlag.get()) {
+                    synchronized (pauseFlag) {
+                        pauseFlag.set(true);
+                    }
 
-            runningCommandsListView.getItems().clear();
-            runningCommandsListView.getItems().add(command);
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ie) {
-                ie.printStackTrace();
+                    Utilities.setImage("/resources/play.png", runCommandsButton);
+                } else {
+                    synchronized (pauseFlag) {
+                        pauseFlag.set(false);
+                        pauseFlag.notify();
+                    }
+
+                    Utilities.setImage("/resources/pause.png", runCommandsButton);
+                    wasPaused.set(true);
+                }
             }
         }
+
+        if(!wasPaused.get() && !pauseFlag.get()) {
+            Utilities.setImage("/resources/pause.png", runCommandsButton);
+            System.out.println("Starting new batch commands");
+            runningCommandsListView.getItems().clear();
+            stopCommandsButton.setDisable(false);
+
+            ObservableList<String> commandsList = allCommandsListView.getItems();
+
+            int startIndex;
+            if(runTypeComboBox.getSelectionModel().isSelected(1) || runTypeComboBox.getSelectionModel().isSelected(2))
+                startIndex = allCommandsListView.getSelectionModel().getSelectedIndex();
+            else
+                startIndex = 0;
+
+            int endIndex;
+            if(runTypeComboBox.getSelectionModel().isSelected(2))
+                endIndex = startIndex+1;
+            else
+                endIndex = allCommandsListView.getItems().size();
+
+            runCommandsTask = new Task<Void>() {
+                @Override
+                protected Void call() {
+                    int index = startIndex;
+                    for (String command : commandsList.subList(startIndex, endIndex)) {
+
+                        if (pauseFlag.get()) {
+                            synchronized (pauseFlag) {
+                                while (pauseFlag.get()) {
+                                    try {
+                                        System.out.println("WAITING.....");
+                                        pauseFlag.wait();
+                                    } catch (InterruptedException e) {
+                                        System.out.println("waiting.....");
+                                        Thread.currentThread().interrupt();
+                                        return null;
+                                    }
+                                }
+                            }
+                        }
+
+                        System.out.println("Running: " + formatCommand(command));
+                        String result = ADBUtil.consoleCommand(formatCommand(command).split(" "));
+                        if(stopOnFailureCheckBox.isSelected() && (isError(result)))
+                            Platform.runLater(() -> stopCommandsButton.fire());
+
+                        if (result.isEmpty())
+                            result = "Command completed successfully";
+
+                        final String newResult = result;
+                        final int newIndex = index++;
+
+                        Platform.runLater(() -> {
+                            allCommandsListView.getSelectionModel().select(newIndex);
+
+                            if (allCommandsListView.getSelectionModel().getSelectedIndex() > 10) {
+                                //allCommandsListView.scrollTo(newIndex);
+                                allCommandsListView.scrollTo(allCommandsListView.getSelectionModel().getSelectedIndex());
+                            }
+
+                            runningCommandsListView.getItems().add(newResult);
+                            int selectedIndex = allCommandsListView.getSelectionModel().getSelectedIndex();
+                            runningCommandsListView.getSelectionModel().select(selectedIndex);
+                            //System.out.println("runningCommandsListView index: " + allCommandsListView.getSelectionModel().getSelectedIndex());
+                            runningCommandsListView.scrollTo(selectedIndex);
+                        });
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException ie) {
+                            return null;
+                        }
+                    }
+                    return null;
+                }
+            };
+
+            runCommandsTask.setOnSucceeded(event1 -> {
+                Utilities.setImage("/resources/play.png", runCommandsButton);
+                wasPaused.set(false);
+                pauseFlag.set(false);
+            });
+
+            runCommandsTask.setOnFailed(event1 -> {
+                Utilities.setImage("/resources/play.png", runCommandsButton);
+                wasPaused.set(false);
+                pauseFlag.set(false);
+            });
+
+            runCommandsThread = new Thread(runCommandsTask);
+            runCommandsThread.start();
+        }
+    }
+
+    @FXML
+    private void handleStopCommandsButtonClicked(ActionEvent event) {
+        stopCommandsButton.setDisable(true);
+        runCommandsThread.interrupt();
+        runCommandsTask.cancel();
+        wasPaused.set(false);
+        pauseFlag.set(false);
+        Utilities.setImage("/resources/play.png", runCommandsButton);
     }
 
     //Create Tab
@@ -290,12 +508,9 @@ public class CommandsTabController implements Initializable{
         if(!commandField.getText().isEmpty()) {
             saveButton.setDisable(false);
             commandsListView.getItems().add(indexBox.getValue(), commandField.getText());
-
-            index+=1;
-            indexList.add(index);
+            indexList.add(index++);
             indexBox.setItems(indexList);
             indexBox.setValue(index);
-
             indexListView.getItems().clear();
             for (int i = 0; i < indexBox.getValue(); i++) {
                 indexListView.getItems().add(i);
@@ -305,18 +520,13 @@ public class CommandsTabController implements Initializable{
 
     @FXML
     private void handleDeleteButtonClicked(ActionEvent event) {
-
         int commandsListViewIndex = commandsListView.getSelectionModel().getSelectedIndex();
         if (commandsListViewIndex > -1) {
             try {
                 commandsListView.getItems().remove(commandsListViewIndex);
-
-                indexList.remove(index);
-                index -= 1;
-
+                indexList.remove(index--);
                 indexBox.setItems(indexList);
                 indexBox.setValue(index);
-
                 indexListView.getItems().clear();
             } catch (Exception ee) {
             }
@@ -404,37 +614,40 @@ public class CommandsTabController implements Initializable{
     private String formatCommand(String command) {
         if(command.startsWith("shell input text")) {
             String tempCommand = command.substring(17);
-            System.out.println("TempCommand: " + tempCommand);
+            //System.out.println("TempCommand: " + tempCommand);
 
-            String temp2 = "";
+            StringBuilder temp2 = new StringBuilder();
             for(char ch : tempCommand.toCharArray()) {
                 String temp = ch+"";
                 if(!Character.isAlphabetic(ch) && ch != ' ')
                     temp = "\\" + temp;
 
-                temp2 += temp;
+                temp2.append(temp);
             }
 
-            tempCommand = temp2;
+            tempCommand = temp2.toString();
             //tempCommand = tempCommand.replaceAll("[^a-zA-Z0-9 ]", "\\[^a-zA-Z0-9]");
             tempCommand = tempCommand.replace(" ", "%s");
 
-            System.out.println("TempCommand now: " + tempCommand);
+            //System.out.println("TempCommand now: " + tempCommand);
             tempCommand  = "\"" + tempCommand + "\"";
 
-
             command = "shell input text " + tempCommand;
-            System.out.println("Command formatted: " + command);
-
         }
 
+        //System.out.print("Command: " + command);
         return command;
+    }
+
+    private boolean isError(String input) {
+        return (input.startsWith("Failure") || input.startsWith("Error") || input.startsWith("** No activities found"));
     }
 
     private void refreshCommandsList() {
         XMLUtil xmlUtil = new XMLUtil();
+
         String commandName = selectListView.getSelectionModel().getSelectedItem();
-        System.out.println("Comand Name: " + commandName);
+        System.out.println("Command name: " + commandName);
         if(commandName != null) {
             ObservableList<String> batchCommands = xmlUtil.openBatchCommands(new File(DIRECTORY + "\\" + commandName + ".xml"));
             allCommandsListView.setItems(batchCommands);
@@ -446,30 +659,49 @@ public class CommandsTabController implements Initializable{
         }
     }
 
-    private void initCommandsMap() {
-        commandsMap = new HashMap<>();
-        commandsMap.put("Back", "KEYCODE_BACK");
-        commandsMap.put("Home", "KEYCODE_HOME");
-        commandsMap.put("List Open Apps", "KEYCODE_APP_SWITCH");
-        commandsMap.put("Volume Up", "KEYCODE_VOLUME_UP");
-        commandsMap.put("Volume Down", "KEYCODE_VOLUME_DOWN");
-        commandsMap.put("Power", "KEYCODE_POWER");
-        commandsMap.put("Enter", "KEYCODE_ENTER");
-        commandsMap.put("Menu", "KEYCODE_MENU");
-        commandsMap.put("Call", "KEYCODE_CALL");
-        commandsMap.put("End Call", "KEYCODE_ENDCALL");
-        commandsMap.put("Up", "KEYCODE_DPAD_UP");
-        commandsMap.put("Down", "KEYCODE_DPAD_DOWN");
-        commandsMap.put("Left", "KEYCODE_DPAD_LEFT");
-        commandsMap.put("Right", "KEYCODE_DPAD_RIGHT");
-        commandsMap.put("Centre", "KEYCODE_DPAD_CENTRE");
-        commandsMap.put("Camera", "KEYCODE_CAMERA");
-        commandsMap.put("Tab", "KEYCODE_TAB");
-        commandsMap.put("Space", "KEYCODE_SPACE");
-        commandsMap.put("Change Keyboard", "KEYCODE_SYM");
-        commandsMap.put("Browser", "KEYCODE_EXPLORER");
-        commandsMap.put("Gmail", "KEYCODE_ENVELOPE");
-        commandsMap.put("Delete", "KEYCODE_DEL");
-        commandsMap.put("Search", "KEYCODE_SEARCH");
+    private void initActionMap() {
+        actionMap = new HashMap<>();
+        actionMap.put("Disable App", "shell pm disable");
+        actionMap.put("Enable App", "shell pm enable");
+        actionMap.put("Clear App Data", "shell pm clear");
+        actionMap.put("Uninstall", "shell pm uninstall");
+        actionMap.put("Close", "shell am force-stop");
+        actionMap.put("Open", "shell monkey -p");
+    }
+
+    private void initApplicationCommandsMap() {
+        applicationCommandsMap = new HashMap<>();
+
+        ArrayList<String> applications = ADBUtil.listApplications();
+        for(String application : applications) {
+            applicationCommandsMap.put(application, application);
+        }
+    }
+
+    private void initInputCommandsMap() {
+        inputCommandsMap = new HashMap<>();
+        inputCommandsMap.put("Back", "KEYCODE_BACK");
+        inputCommandsMap.put("Home", "KEYCODE_HOME");
+        inputCommandsMap.put("List Open Apps", "KEYCODE_APP_SWITCH");
+        inputCommandsMap.put("Volume Up", "KEYCODE_VOLUME_UP");
+        inputCommandsMap.put("Volume Down", "KEYCODE_VOLUME_DOWN");
+        inputCommandsMap.put("Power", "KEYCODE_POWER");
+        inputCommandsMap.put("Enter", "KEYCODE_ENTER");
+        inputCommandsMap.put("Menu", "KEYCODE_MENU");
+        inputCommandsMap.put("Call", "KEYCODE_CALL");
+        inputCommandsMap.put("End Call", "KEYCODE_ENDCALL");
+        inputCommandsMap.put("Up", "KEYCODE_DPAD_UP");
+        inputCommandsMap.put("Down", "KEYCODE_DPAD_DOWN");
+        inputCommandsMap.put("Left", "KEYCODE_DPAD_LEFT");
+        inputCommandsMap.put("Right", "KEYCODE_DPAD_RIGHT");
+        inputCommandsMap.put("Centre", "KEYCODE_DPAD_CENTRE");
+        inputCommandsMap.put("Camera", "KEYCODE_CAMERA");
+        inputCommandsMap.put("Tab", "KEYCODE_TAB");
+        inputCommandsMap.put("Space", "KEYCODE_SPACE");
+        inputCommandsMap.put("Change Keyboard", "KEYCODE_SYM");
+        inputCommandsMap.put("Browser", "KEYCODE_EXPLORER");
+        inputCommandsMap.put("Gmail", "KEYCODE_ENVELOPE");
+        inputCommandsMap.put("Delete", "KEYCODE_DEL");
+        inputCommandsMap.put("Search", "KEYCODE_SEARCH");
     }
 }

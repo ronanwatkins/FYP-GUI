@@ -318,6 +318,8 @@ public class SensorsTabController implements Initializable {
             loggerLabel.setText("File \"" + file.getName().replace(".xml", "") + "\" loaded");
             System.out.println(file.getAbsolutePath());
 
+            Utilities.setImage("/resources/play_cropped.png", playButton);
+
             xmlUtil = new XMLUtil();
             loadedValues = xmlUtil.loadXML(file);
 
@@ -364,16 +366,15 @@ public class SensorsTabController implements Initializable {
         }
 
         if(isRecording) {
-            Image image = new Image("/resources/pause.png",20,20,true,true);
-            ImageView imageView = new ImageView(image);
-            recordButton.setGraphic(imageView);
-            stopRecordingButton.setDisable(true);
+            Utilities.setImage("/resources/pause.png", recordButton);
         } else {
-            Image image = new Image("/resources/record_cropped.png",20,20,true,true);
-            ImageView imageView = new ImageView(image);
-            recordButton.setGraphic(imageView);
-            stopRecordingButton.setDisable(false);
+            Utilities.setImage("/resources/record_cropped.png", recordButton);
         }
+
+        stopRecordingButton.setDisable(isRecording);
+        playButton.setDisable(isRecording);
+        loopBox.setDisable(isRecording);
+        loadButton.setDisable(isRecording);
     }
 
     @FXML
@@ -381,27 +382,23 @@ public class SensorsTabController implements Initializable {
         if (playbackThread.isPaused()) {
             playbackThread.play();
             System.out.println("RESUMING");
-
-            Image image = new Image("/resources/pause.png", 20, 20, true, true);
-            ImageView imageView = new ImageView(image);
-            playButton.setGraphic(imageView);
+            Utilities.setImage("/resources/pause.png", playButton);
+            recordButton.setDisable(true);
+            stopRecordingButton.setDisable(true);
         } else {
             if(!wasPaused) {
                 playbackThread.run();
                 System.out.println("STARTING");
-
-                Image image = new Image("/resources/pause.png", 20, 20, true, true);
-                ImageView imageView = new ImageView(image);
-                playButton.setGraphic(imageView);
-
+                Utilities.setImage("/resources/pause.png", playButton);
                 wasPaused = true;
+                recordButton.setDisable(true);
+                stopRecordingButton.setDisable(true);
             } else {
                 playbackThread.pause();
                 System.out.println("PAUSING");
-
-                Image image = new Image("/resources/play_cropped.png", 20, 20, true, true);
-                ImageView imageView = new ImageView(image);
-                playButton.setGraphic(imageView);
+                Utilities.setImage("/resources/play_cropped.png", playButton);
+                recordButton.setDisable(false);
+                stopRecordingButton.setDisable(false);
             }
         }
     }
@@ -414,27 +411,32 @@ public class SensorsTabController implements Initializable {
             loggerLabel.setTextFill(Color.GREEN);
             loggerLabel.setText("Connect your app to " + server.getIPAddress() + " Port " + server.getPORT());
 
-            Task<Boolean> task = new Task<Boolean>() {
+            Task<Void> task = new Task<Void>() {
                 @Override
-                protected Boolean call() throws Exception {
-                    while(!server.listen());
-                    isConnected = true;
-                    return isConnected;
+                protected Void call() throws Exception {
+                    server.listen();
+                    while (true) {
+                        if (isConnected) {
+                            Platform.runLater(() -> {
+                                loggerLabel.setText("Connected");
+                                listenBox.setVisible(true);
+                                listenBox.setSelected(true);
+                            });
+                            break;
+                        }
+                    }
+                    return null;
                 }
             };
             new Thread(task).start();
 
-            task.setOnSucceeded(event1 -> {
-                loggerLabel.setText("Connected");
-                listenBox.setVisible(true);
-                listenBox.setSelected(true);
-                //connectButton.setDisable(false);
-            });
-
             task.setOnFailed(event1 -> {
                 loggerLabel.setTextFill(Color.RED);
                 loggerLabel.setText("Could not connect");
+                listenBox.setVisible(false);
+                listenBox.setSelected(false);
             });
+
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -814,6 +816,10 @@ public class SensorsTabController implements Initializable {
                 ie.printStackTrace();
             }
         }
+    }
+
+    public void setConnected(boolean flag) {
+        isConnected = true;
     }
 
     private void updateMagneticFieldData() {
