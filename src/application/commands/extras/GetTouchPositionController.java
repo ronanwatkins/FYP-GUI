@@ -1,6 +1,8 @@
-package application.commands;
+package application.commands.extras;
 
 import application.ADBUtil;
+import application.commands.CommandsTabController;
+import application.commands.CreateBatchTabController;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -51,7 +53,7 @@ public class GetTouchPositionController implements Initializable {
     @FXML
     private Button OKButton;
 
-    private static CommandsTabController controller;
+    private static CreateBatchTabController controller;
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -155,10 +157,10 @@ public class GetTouchPositionController implements Initializable {
 
 
 
-    public static void showScreen(CommandsTabController commandsTabController) throws IOException {
-        controller = commandsTabController;
+    public static void showScreen(CreateBatchTabController createBatchTabController) throws IOException {
+        controller = createBatchTabController;
 
-        FXMLLoader fxmlLoader = new FXMLLoader(commandsTabController.getClass().getResource("/application/commands/GetTouchPosition.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(createBatchTabController.getClass().getResource("/application/commands/extras/GetTouchPosition.fxml"));
         Parent root = fxmlLoader.load();
 
         Stage stage = new Stage();

@@ -1,6 +1,8 @@
-package application.commands;
+package application.commands.extras;
 
 import application.ADBUtil;
+import application.commands.CommandsTabController;
+import application.commands.CreateBatchTabController;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,17 +24,17 @@ public class RecordInputsController implements Initializable {
     @FXML
     private Button stopButton;
 
-    private static CommandsTabController controller;
+    private static CreateBatchTabController controller;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
     }
 
-    public static void showScreen(CommandsTabController commandsTabController) throws IOException {
-        controller = commandsTabController;
+    public static void showScreen(CreateBatchTabController createBatchTabController) throws IOException {
+        controller = createBatchTabController;
 
-        FXMLLoader fxmlLoader = new FXMLLoader(commandsTabController.getClass().getResource("/application/commands/RecordInputs.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(createBatchTabController.getClass().getResource("/application/commands/extras/RecordInputs.fxml"));
         Parent root = fxmlLoader.load();
 
         Stage stage = new Stage();

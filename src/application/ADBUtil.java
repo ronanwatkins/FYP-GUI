@@ -1,7 +1,7 @@
 package application;
 
-import application.commands.GetTouchPositionController;
-import application.commands.RecordInputsController;
+import application.commands.extras.GetTouchPositionController;
+import application.commands.extras.RecordInputsController;
 import application.utilities.ADBConnectionController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -13,9 +13,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -442,8 +440,6 @@ public class ADBUtil {
         Task<String> task = new Task<String>() {
             @Override
             protected String call() throws Exception {
-                //for(String param : params)
-                    //System.out.println("param: " + param);
 
                 Process process = Runtime.getRuntime().exec(params);
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -465,7 +461,7 @@ public class ADBUtil {
                 }
 
                 bufferedReader.close();
-                //process.waitFor();
+                process.waitFor();
                 //process.waitFor(2, TimeUnit.SECONDS);
 
                 System.out.println("going to return now");
@@ -479,23 +475,8 @@ public class ADBUtil {
         else
             thread.run();
 
-//        try {
-//            thread.join(2000);
-//        } catch (InterruptedException ie) {
-//            ie.printStackTrace();
-//        }
-
-       // System.out.println("here now hey");
-//        if(runInBackground) {
-//            CountDownLatch latch = new CountDownLatch(1);
-//            try {
-//                latch.await();
-//            } catch (InterruptedException ie) {
-//                ie.printStackTrace();
-//            }
-//        }
-        System.out.println("is it runnnong? " + task);
-        System.out.println("is it runnnong? " + task.isRunning());
+        System.out.println("is it runnning? " + task);
+        System.out.println("is it runnning? " + task.isRunning());
 
         task.setOnSucceeded(event -> {
             //return result.toString();
@@ -504,7 +485,10 @@ public class ADBUtil {
             System.out.println("succeeded");
         });
         System.out.println("Im finished");
-        task.setOnFailed(event -> System.out.println("failed"));
+        task.setOnFailed(event -> {
+            System.out.println("failed: " + task);
+            System.out.println(task.getException());
+        });
 
         System.out.println(Thread.currentThread().getId() + " result: " + result);
         return result.toString();
@@ -527,7 +511,9 @@ public class ADBUtil {
 
         StringBuilder result = new StringBuilder();
         try {
+            System.out.println("Runtime: " + Runtime.getRuntime());
             Process process = Runtime.getRuntime().exec(params);
+            System.out.println("process: " + process);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;
@@ -546,7 +532,10 @@ public class ADBUtil {
 
             process.waitFor(10, TimeUnit.SECONDS);
             bufferedReader.close();
-        } catch (IOException ioe) {
+        } catch (NullPointerException npe) {
+            npe.printStackTrace();
+        }
+        catch (IOException ioe) {
             ioe.printStackTrace();
         } catch (InterruptedException ie) {
             ie.printStackTrace();

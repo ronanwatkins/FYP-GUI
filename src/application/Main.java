@@ -2,7 +2,9 @@ package application;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -12,12 +14,12 @@ import java.io.File;
 
 public class Main extends Application {
 
+    private static Parent root;
     @Override
     public void start(Stage stage) throws Exception {
 
         try {
-            Parent root = FXMLLoader.load(getClass().getResource("FXMLMain.fxml"));
-
+            root = FXMLLoader.load(getClass().getResource("FXMLMain.fxml"));
             Scene scene = new Scene(root);
 
             stage.getIcons().add(new Image("/resources/Android.png"));
@@ -43,6 +45,10 @@ public class Main extends Application {
         }
 
 
+    }
+
+    public static ObservableList<Node> getChildren() {
+        return root.getChildrenUnmodifiable();
     }
 
     private boolean createDirectories() {

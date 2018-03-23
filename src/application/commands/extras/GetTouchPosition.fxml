@@ -6,7 +6,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="200.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.commands.GetTouchPositionController">
+<AnchorPane prefHeight="200.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.commands.extras.GetTouchPositionController">
    <children>
       <Label layoutX="30.0" layoutY="24.0" text="Click the screen on your emulator to get cursor location" />
       <Label layoutX="30.0" layoutY="83.0" text="Cursor location:" />
