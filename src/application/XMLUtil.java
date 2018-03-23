@@ -95,6 +95,10 @@ public class XMLUtil {
         }
     }
 
+    public boolean isFileSavedYet() {
+        return isFileSaved.get();
+    }
+
     public HashMap<Integer, HashMap<String, Double>> loadXML(File file) {
         HashMap<Integer, HashMap<String, Double>> returnMap = new HashMap<>();
 

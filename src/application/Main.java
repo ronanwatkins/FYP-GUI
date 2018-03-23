@@ -69,6 +69,10 @@ public class Main extends Application {
         if(!directory.exists())
             result = directory.mkdir();
 
+        directory = new File(path + "\\files");
+        if(!directory.exists())
+            result = directory.mkdir();
+
         return result;
     }
 

@@ -14,7 +14,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -26,10 +27,18 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import static application.commands.CommandsTabController.DIRECTORY;
+
 public class CreateBatchTabController implements Initializable {
+
+    private final String FILES_DIRECTORY = System.getProperty("user.dir") + "\\misc";
 
     @FXML
     private TextField commandField;
+    @FXML
+    private TextField filesTextField1;
+    @FXML
+    private TextField filesTextField2;
 
     @FXML
     private ListView<String> possibleCommandsListView;
@@ -50,29 +59,41 @@ public class CreateBatchTabController implements Initializable {
     private Button saveButton;
     @FXML
     private Button enterTextButton;
+    @FXML
+    private Button filesFinder1;
+    @FXML
+    private Button filesFinder2;
+    @FXML
+    private Button enterButton;
 
     @FXML
     private ToggleButton inputsToggleButton;
     @FXML
     private ToggleButton applicationsToggleButton;
+    @FXML
+    private ToggleButton filesToggleButton;
 
     @FXML
     private Label actionLabel;
+    @FXML
+    private Label filesLabel1;
+    @FXML
+    private Label filesLabel2;
 
     @FXML
     private ComboBox<String> actionComboBox;
-
     @FXML
-    private Tab runBatchTab;
-
-    @FXML
-    private TabPane tabPane;
+    private ComboBox filesComboBox;
 
     @FXML
     private ChoiceBox<Integer> indexBox;
 
+    private static CommandsTabController controller;
+
     private int index = 0;
     private int selectedIndex = 0;
+
+    private static File editFile;
 
     private final String keyEvent = "shell input keyevent ";
 
@@ -81,31 +102,14 @@ public class CreateBatchTabController implements Initializable {
     private HashMap<String, String> actionMap;
 
     private ObservableList<String> inputCommands;
-    private ObservableList<String> applicationCommands;
-
     private ObservableList<Integer> indexList;
-
-    //@FXML
-   // private RunBatchTabController runBatchTabController;
-
-    private static File editFile;
-
-    public static void setEditFile(File file) {
-        editFile = file;
-    }
-
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
-        //stopCommandsButton.fire();
-        //runBatchTabController.stopCommandsButton.fire();
-
-
-
+        showFilesSection(false);
+        initApplicationCommandsMap();
         initializeButtons();
         initInputCommandsMap();
-
 
         if(editFile != null) {
             saveButton.setDisable(false);
@@ -163,8 +167,6 @@ public class CreateBatchTabController implements Initializable {
             possibleCommandsListView.setOnMouseClicked(event -> commandField.setText(keyEvent + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
         }
 
-        indexBox.setItems(indexList);
-
         commandsListView.setOnMouseClicked(event -> {
             try {
                 if (!commandsListView.getSelectionModel().getSelectedItem().isEmpty()) {
@@ -178,11 +180,27 @@ public class CreateBatchTabController implements Initializable {
         });
     }
 
+    public static void showScreen(CommandsTabController commandsTabController, File file) throws IOException {
+        controller = commandsTabController;
+        editFile = file;
+
+        FXMLLoader fxmlLoader = new FXMLLoader(commandsTabController.getClass().getResource("/application/commands/CreateBatchTabView.fxml"));
+        Parent root = fxmlLoader.load();
+
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        String title = file == null ? "Create Batch Commands" : "Editing \"" + file.getName().replace(".xml", "") + "\"";
+        stage.setTitle(title);
+        stage.setScene(new Scene(root));
+        stage.show();
+    }
+
     @FXML
     private void handleInputsButtonPressed(ActionEvent event) {
+        showFilesSection(false);
+        showApplicationSection(false);
+        possibleCommandsListView.setVisible(true);
         inputsToggleButton.setSelected(true);
-        actionComboBox.setVisible(false);
-        actionLabel.setVisible(false);
 
         possibleCommandsListView.setItems(inputCommands);
         possibleCommandsListView.setOnMouseClicked(mouseEvent -> commandField.setText(keyEvent + inputCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
@@ -190,11 +208,10 @@ public class CreateBatchTabController implements Initializable {
 
     @FXML
     private void handleApplicationsButtonPressed(ActionEvent event) {
-        System.out.println("handleApplicationsButtonPressed >>");
-        initApplicationCommandsMap();
+        showFilesSection(false);
+        showApplicationSection(true);
+        possibleCommandsListView.setVisible(true);
         applicationsToggleButton.setSelected(true);
-        actionComboBox.setVisible(true);
-        actionLabel.setVisible(true);
 
         initActionMap();
 
@@ -203,7 +220,7 @@ public class CreateBatchTabController implements Initializable {
         ));
         actionComboBox.getSelectionModel().select(5);
 
-        applicationCommands = FXCollections.observableArrayList(
+        ObservableList<String> applicationCommands = FXCollections.observableArrayList(
                 applicationCommandsMap.keySet()
         );
         possibleCommandsListView.setItems(applicationCommands);
@@ -220,18 +237,59 @@ public class CreateBatchTabController implements Initializable {
                 selectedIndex = possibleCommandsListView.getSelectionModel().getSelectedIndex();
             }
         });
+    }
 
-//        actionComboBox.setOnAction(mouseEvent -> {
-//            System.out.println("here 2");
-//            if(possibleCommandsListView.getSelectionModel().getSelectedItem() != null) {
-//                commandField.setText(actionMap.get(actionComboBox.getValue()) + " "
-//                        + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem()));
-//                if (actionComboBox.getSelectionModel().isSelected(5))
-//                    commandField.setText(commandField.getText() + " 1");
-//            }
-//        });
+    boolean isCopyToAndroid = true;
+    @FXML
+    private void handleFilesToggleButtonPressed(ActionEvent event) {
+        showFilesSection(true);
+        showApplicationSection(false);
 
-        //actionComboBox.setOn
+        filesToggleButton.setSelected(true);
+        possibleCommandsListView.setVisible(false);
+        filesFinder2.setVisible(false);
+
+        filesComboBox.getSelectionModel().select(0);
+        filesComboBox.setOnAction(event1 -> {
+            filesTextField1.setText("");
+            filesTextField2.setText("");
+
+            isCopyToAndroid = filesComboBox.getSelectionModel().isSelected(0);
+
+            filesFinder1.setVisible(isCopyToAndroid);
+            filesFinder2.setVisible(!isCopyToAndroid);
+            filesLabel1.setText(isCopyToAndroid ? "Location on PC:" : "Location on Android:");
+            filesLabel2.setText(!isCopyToAndroid ? "Location on PC:" : "Location on Android:");
+        });
+    }
+
+    @FXML
+    private void handleFilesFinder1Clicked(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choose file to copy");
+        fileChooser.setInitialDirectory(new File(FILES_DIRECTORY));
+
+        Stage stage = (Stage) filesFinder1.getScene().getWindow();
+        File file = fileChooser.showOpenDialog(stage);
+
+        filesTextField1.setText(file.getAbsolutePath());
+    }
+
+    @FXML
+    private void handleFilesFinder2Clicked(ActionEvent event) {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Choose folder to copy file to");
+        directoryChooser.setInitialDirectory(new File(FILES_DIRECTORY));
+
+        Stage stage = (Stage) filesFinder1.getScene().getWindow();
+        File selectedDirectory = directoryChooser.showDialog(stage);
+
+        filesTextField2.setText(selectedDirectory.getAbsolutePath());
+    }
+
+    @FXML
+    private void handleEnterButtonClicked(ActionEvent event) {
+        commandField.setText((isCopyToAndroid ? "push " : "pull ") + filesTextField1.getText() + " " + filesTextField2.getText());
     }
 
     @FXML
@@ -270,6 +328,8 @@ public class CreateBatchTabController implements Initializable {
             saveButton.setDisable(false);
             commandsListView.getItems().add(indexBox.getValue(), commandField.getText());
             indexList.add(index++);
+            if(indexList.get(0) == 0 && indexList.get(1) == 0)
+                indexList.remove(0);
             indexBox.setItems(indexList);
             indexBox.setValue(index);
             indexListView.getItems().clear();
@@ -330,11 +390,6 @@ public class CreateBatchTabController implements Initializable {
         if(editFile != null) {
             xmlUtil.saveBatchCommands(commandsListView.getItems(), editFile);
             editFile = null;
-
-
-
-            //tabPane.getSelectionModel().select(runBatchTab);
-//            runBatchTabController.init();
         } else {
             TextInputDialog dialog = new TextInputDialog();
             dialog.setTitle("Save Batch Commands");
@@ -344,21 +399,18 @@ public class CreateBatchTabController implements Initializable {
             if (result.isPresent()) {
                 System.out.println(result.get());
 
-                xmlUtil.saveBatchCommands(commandsListView.getItems(), new File(CommandsTabController.DIRECTORY + "\\" + result.get() + ".xml"));
-
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ie) {
-                    ie.printStackTrace();
-                } finally {
-                    //tabPane.getSelectionModel().select(runBatchTab);
-//                    runBatchTabController.init();
-
-
-
-                }
+                xmlUtil.saveBatchCommands(commandsListView.getItems(), new File(DIRECTORY + "\\" + result.get() + ".xml"));
             }
         }
+
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
+
+        controller.updateCommandsList();
+        ((Stage) indexBox.getScene().getWindow()).close();
     }
 
     @FXML
@@ -378,6 +430,22 @@ public class CreateBatchTabController implements Initializable {
 
     public TextField getCommandField() {
         return commandField;
+    }
+
+    private void showApplicationSection(boolean flag) {
+        actionComboBox.setVisible(flag);
+        actionLabel.setVisible(flag);
+    }
+
+    private void showFilesSection(boolean flag) {
+        filesComboBox.setVisible(flag);
+        filesFinder1.setVisible(flag);
+        filesFinder2.setVisible(flag);
+        filesLabel1.setVisible(flag);
+        filesLabel2.setVisible(flag);
+        filesTextField1.setVisible(flag);
+        filesTextField2.setVisible(flag);
+        enterButton.setVisible(flag);
     }
 
     private void initActionMap() {
@@ -435,11 +503,16 @@ public class CreateBatchTabController implements Initializable {
         ToggleGroup toggleGroup = new ToggleGroup();
         inputsToggleButton.setToggleGroup(toggleGroup);
         applicationsToggleButton.setToggleGroup(toggleGroup);
+        filesToggleButton.setToggleGroup(toggleGroup);
+
         inputsToggleButton.setSelected(true);
 
         Utilities.setImage("/resources/right.png", addCommandButton);
         Utilities.setImage("/resources/up.png", moveUpButton);
         Utilities.setImage("/resources/down.png", moveDownButton);
         Utilities.setImage("/resources/delete.png", deleteButton);
+        Utilities.setImage("/resources/open_folder.png", filesFinder1);
+        Utilities.setImage("/resources/open_folder.png", filesFinder2);
+        Utilities.setImage("/resources/enter.png", enterButton);
     }
 }
