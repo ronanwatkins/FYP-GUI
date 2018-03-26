@@ -1,8 +1,8 @@
-package application.commands.extras;
+package application.automation.extras;
 
 import application.ADBUtil;
-import application.commands.CommandsTabController;
-import application.commands.CreateBatchTabController;
+import application.automation.CreateBatchTabController;
+import application.utilities.Showable;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,11 +13,12 @@ import javafx.scene.control.Button;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class RecordInputsController implements Initializable {
+public class RecordInputsController implements Initializable, Showable<CreateBatchTabController> {
 
     @FXML
     private Button startButton;
@@ -31,10 +32,11 @@ public class RecordInputsController implements Initializable {
 
     }
 
-    public static void showScreen(CreateBatchTabController createBatchTabController) throws IOException {
+    @Override
+    public void showScreen(CreateBatchTabController createBatchTabController, File file) throws IOException {
         controller = createBatchTabController;
 
-        FXMLLoader fxmlLoader = new FXMLLoader(createBatchTabController.getClass().getResource("/application/commands/extras/RecordInputs.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(createBatchTabController.getClass().getResource("/application/automation/extras/RecordInputs.fxml"));
         Parent root = fxmlLoader.load();
 
         Stage stage = new Stage();

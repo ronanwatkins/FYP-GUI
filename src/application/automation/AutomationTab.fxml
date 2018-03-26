@@ -8,7 +8,7 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.commands.CommandsTabController">
+<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.automation.AutomationTabController">
 
     <children>
         <ListView fx:id="selectListView" layoutX="29.0" layoutY="57.0" prefHeight="250.0" prefWidth="310.0" />

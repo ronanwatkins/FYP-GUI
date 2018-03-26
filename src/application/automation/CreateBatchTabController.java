@@ -1,9 +1,10 @@
-package application.commands;
+package application.automation;
 
 import application.ADBUtil;
 import application.XMLUtil;
-import application.commands.extras.GetTouchPositionController;
-import application.commands.extras.RecordInputsController;
+import application.automation.extras.GetTouchPositionController;
+import application.automation.extras.RecordInputsController;
+import application.utilities.Showable;
 import application.utilities.Utilities;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,22 +15,24 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 
-import static application.commands.CommandsTabController.DIRECTORY;
+import static application.automation.AutomationTabController.DIRECTORY;
 
-public class CreateBatchTabController implements Initializable {
+public class CreateBatchTabController implements Initializable, Showable<AutomationTabController> {
 
     private final String FILES_DIRECTORY = System.getProperty("user.dir") + "\\misc";
 
@@ -39,6 +42,18 @@ public class CreateBatchTabController implements Initializable {
     private TextField filesTextField1;
     @FXML
     private TextField filesTextField2;
+    @FXML
+    private TextField actionTextField;
+    @FXML
+    private TextField dataTextField;
+    @FXML
+    private TextField mimeTypeTextField;
+    @FXML
+    private TextField categoryTextField;
+    @FXML
+    private TextField componentTextField;
+    @FXML
+    private TextField flagsTextField;
 
     @FXML
     private ListView<String> possibleCommandsListView;
@@ -72,6 +87,8 @@ public class CreateBatchTabController implements Initializable {
     private ToggleButton applicationsToggleButton;
     @FXML
     private ToggleButton filesToggleButton;
+    @FXML
+    private ToggleButton actionsToggleButton;
 
     @FXML
     private Label actionLabel;
@@ -81,14 +98,37 @@ public class CreateBatchTabController implements Initializable {
     private Label filesLabel2;
 
     @FXML
+    private Hyperlink actionLabel1;
+    @FXML
+    private Hyperlink dataLabel;
+    @FXML
+    private Hyperlink mimeTypeLabel;
+    @FXML
+    private Hyperlink categoryLabel;
+    @FXML
+    private Hyperlink componentLabel;
+    @FXML
+    private Hyperlink flagsLabel;
+    @FXML
+    private Hyperlink helpLabel;
+
+    @FXML
+    private ComboBox<String> applicationActionComboBox;
+    @FXML
+    private ComboBox<String> selectionComboBox;
+    @FXML
     private ComboBox<String> actionComboBox;
     @FXML
-    private ComboBox filesComboBox;
+    private ComboBox<String> categoryComboBox;
+    @FXML
+    private ComboBox<String> mimeTypeComboBox;
+    @FXML
+    private ComboBox<String> componentComboBox;
 
     @FXML
     private ChoiceBox<Integer> indexBox;
 
-    private static CommandsTabController controller;
+    private static AutomationTabController controller;
 
     private int index = 0;
     private int selectedIndex = 0;
@@ -107,9 +147,12 @@ public class CreateBatchTabController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         showFilesSection(false);
+        showActionsSection(false);
         initApplicationCommandsMap();
         initializeButtons();
         initInputCommandsMap();
+        filesFinder1.setVisible(false);
+        filesFinder2.setVisible(false);
 
         if(editFile != null) {
             saveButton.setDisable(false);
@@ -146,7 +189,7 @@ public class CreateBatchTabController implements Initializable {
                 inputCommandsMap.keySet()
         );
 
-        actionComboBox.setVisible(false);
+        applicationActionComboBox.setVisible(false);
         actionLabel.setVisible(false);
         inputsToggleButton.setSelected(true);
 
@@ -180,11 +223,12 @@ public class CreateBatchTabController implements Initializable {
         });
     }
 
-    public static void showScreen(CommandsTabController commandsTabController, File file) throws IOException {
+    @Override
+    public void showScreen(AutomationTabController commandsTabController, File file) throws IOException {
         controller = commandsTabController;
         editFile = file;
 
-        FXMLLoader fxmlLoader = new FXMLLoader(commandsTabController.getClass().getResource("/application/commands/CreateBatchTabView.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(commandsTabController.getClass().getResource("/application/automation/CreateBatchTabView.fxml"));
         Parent root = fxmlLoader.load();
 
         Stage stage = new Stage();
@@ -195,30 +239,37 @@ public class CreateBatchTabController implements Initializable {
         stage.show();
     }
 
+    //****START TOGGLE BUTTON HANDLERS****//
     @FXML
-    private void handleInputsButtonPressed(ActionEvent event) {
+    private void handleInputsToggleButtonPressed(ActionEvent event) {
         showFilesSection(false);
         showApplicationSection(false);
-        possibleCommandsListView.setVisible(true);
+        showActionsSection(false);
+        filesFinder1.setVisible(false);
+        filesFinder2.setVisible(false);
+       // actionLabel.setVisible(false);
         inputsToggleButton.setSelected(true);
 
+        possibleCommandsListView.setVisible(true);
         possibleCommandsListView.setItems(inputCommands);
         possibleCommandsListView.setOnMouseClicked(mouseEvent -> commandField.setText(keyEvent + inputCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
     }
 
     @FXML
-    private void handleApplicationsButtonPressed(ActionEvent event) {
+    private void handleApplicationsToggleButtonPressed(ActionEvent event) {
         showFilesSection(false);
         showApplicationSection(true);
-        possibleCommandsListView.setVisible(true);
+        showActionsSection(false);
+        filesFinder1.setVisible(false);
+        filesFinder2.setVisible(false);
         applicationsToggleButton.setSelected(true);
 
         initActionMap();
 
-        actionComboBox.setItems(FXCollections.observableArrayList(
+        applicationActionComboBox.setItems(FXCollections.observableArrayList(
                 actionMap.keySet()
         ));
-        actionComboBox.getSelectionModel().select(5);
+        applicationActionComboBox.getSelectionModel().select(5);
 
         ObservableList<String> applicationCommands = FXCollections.observableArrayList(
                 applicationCommandsMap.keySet()
@@ -229,9 +280,9 @@ public class CreateBatchTabController implements Initializable {
         possibleCommandsListView.setOnMouseClicked(mouseEvent -> {
             System.out.println("here 1");
             if(possibleCommandsListView.getSelectionModel().getSelectedItem() != null) {
-                commandField.setText(actionMap.get(actionComboBox.getValue()) + " "
+                commandField.setText(actionMap.get(applicationActionComboBox.getValue()) + " "
                         + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem()));
-                if (actionComboBox.getSelectionModel().isSelected(5))
+                if (applicationActionComboBox.getSelectionModel().isSelected(5))
                     commandField.setText(commandField.getText() + " 1");
 
                 selectedIndex = possibleCommandsListView.getSelectionModel().getSelectedIndex();
@@ -239,28 +290,117 @@ public class CreateBatchTabController implements Initializable {
         });
     }
 
-    boolean isCopyToAndroid = true;
+    private boolean isCopyToAndroid = true;
     @FXML
     private void handleFilesToggleButtonPressed(ActionEvent event) {
         showFilesSection(true);
         showApplicationSection(false);
+        showActionsSection(false);
 
         filesToggleButton.setSelected(true);
-        possibleCommandsListView.setVisible(false);
         filesFinder2.setVisible(false);
 
-        filesComboBox.getSelectionModel().select(0);
-        filesComboBox.setOnAction(event1 -> {
+        ObservableList<String> selections = FXCollections.observableArrayList();
+        selections.add("Copy file to Android");
+        selections.add("Copy file from Android");
+        selectionComboBox.getItems().clear();
+        selectionComboBox.setItems(selections);
+
+        selectionComboBox.getSelectionModel().select(0);
+        selectionComboBox.setOnAction(event1 -> {
             filesTextField1.setText("");
             filesTextField2.setText("");
 
-            isCopyToAndroid = filesComboBox.getSelectionModel().isSelected(0);
+            isCopyToAndroid = selectionComboBox.getSelectionModel().isSelected(0);
 
-            filesFinder1.setVisible(isCopyToAndroid);
-            filesFinder2.setVisible(!isCopyToAndroid);
+            if(filesToggleButton.isSelected()) {
+                filesFinder1.setVisible(isCopyToAndroid);
+                filesFinder2.setVisible(!isCopyToAndroid);
+            }
+
             filesLabel1.setText(isCopyToAndroid ? "Location on PC:" : "Location on Android:");
             filesLabel2.setText(!isCopyToAndroid ? "Location on PC:" : "Location on Android:");
         });
+    }
+
+    private enum ActionSelection {
+        ACTIVITY,
+        SERVICE,
+        BROADCAST
+    }
+    private ActionSelection selection;
+
+    @FXML
+    private void handleActionsToggleButtonPressed(ActionEvent event) {
+        System.out.println("handleActionsToggleButtonPressed >>");
+        actionsToggleButton.setSelected(true);
+        showActionsSection(true);
+        showFilesSection(false);
+        showApplicationSection(false);
+        //filesFinder1.setVisible(false);
+        filesFinder2.setVisible(false);
+        selectionComboBox.setVisible(true);
+        enterButton.setVisible(true);
+        filesFinder1.setVisible(false);
+        filesFinder2.setVisible(false);
+        System.out.println("Done");
+
+        helpLabel.setOnAction(event1 -> browse("https://developer.android.com/studio/command-line/adb.html#IntentSpec"));
+        actionLabel1.setOnAction(event1 -> browse("https://developer.android.com/guide/components/intents-filters.html#Types"));
+        dataLabel.setOnAction(event1 -> browse("https://developer.android.com/guide/topics/manifest/data-element.html"));
+        mimeTypeLabel.setOnAction(event1 -> browse("https://developer.android.com/guide/topics/manifest/data-element.html#mime"));
+        categoryLabel.setOnAction(event1 -> browse("https://developer.android.com/guide/topics/manifest/category-element.html"));
+        componentLabel.setOnAction(event1 -> browse("https://developer.android.com/guide/components/fundamentals.html#ActivatingComponents"));
+        flagsLabel.setOnAction(event1 -> browse("https://developer.android.com/reference/android/content/Intent.html#setFlags(int)"));
+
+        ObservableList<String> selections = FXCollections.observableArrayList();
+        selections.add("Start Activity");
+        selections.add("Start Service");
+        selections.add("Send Broadcast");
+        selectionComboBox.getItems().clear();
+        selectionComboBox.setItems(selections);
+        selectionComboBox.getSelectionModel().select(0);
+
+        selectionComboBox.setOnAction(event1 -> {
+            int index = selectionComboBox.getSelectionModel().getSelectedIndex();
+
+            switch (index) {
+                case 0:
+                    selection = ActionSelection.ACTIVITY;
+                    actionComboBox.getItems().clear();
+                    actionComboBox.setItems(intentsValues());
+                    break;
+                case 1:
+                    selection = ActionSelection.SERVICE;
+                    actionComboBox.getItems().clear();
+                    actionComboBox.setItems(intentsValues());
+                    break;
+                case 2:
+                    selection = ActionSelection.BROADCAST;
+                    actionComboBox.getItems().clear();
+                    actionComboBox.setItems(broadcastValues());
+                    break;
+            }
+        });
+
+        actionComboBox.setOnAction(event1 -> actionTextField.setText(actionComboBox.getValue()));
+        categoryComboBox.setOnAction(event1 -> categoryTextField.setText(categoryComboBox.getValue()));
+        mimeTypeComboBox.setOnAction(event1 -> mimeTypeTextField.setText(mimeTypeComboBox.getValue()));
+        componentComboBox.setOnAction(event1 -> componentTextField.setText(componentComboBox.getValue()));
+    }
+
+    private void browse(String URL) {
+        try {
+            URI uri = new URI(URL);
+            if (Desktop.isDesktopSupported()) {
+                Desktop desktop = Desktop.getDesktop();
+                if (desktop.isSupported(Desktop.Action.BROWSE)) {
+                    desktop.browse(uri);
+                }
+            }
+        } catch (Exception ee) {
+            ee.printStackTrace();
+        }
     }
 
     @FXML
@@ -289,17 +429,24 @@ public class CreateBatchTabController implements Initializable {
 
     @FXML
     private void handleEnterButtonClicked(ActionEvent event) {
-        commandField.setText((isCopyToAndroid ? "push " : "pull ") + filesTextField1.getText() + " " + filesTextField2.getText());
+        if(filesToggleButton.isSelected())
+            commandField.setText((isCopyToAndroid ? "push " : "pull ") + filesTextField1.getText() + " " + filesTextField2.getText());
+        else if(applicationsToggleButton.isSelected()) {
+            switch (selection) {
+                case ACTIVITY:
+
+            }
+        }
     }
 
     @FXML
-    private void handleActionComboBoxClicked(ActionEvent event) {
+    private void handleApplicationActionComboBoxClicked(ActionEvent event) {
         System.out.println("here 2");
         //if(possibleCommandsListView.getSelectionModel().getSelectedItem() != null || commandField.getText().contains(".")) {
-        if (actionMap.get(actionComboBox.getValue()) != null && possibleCommandsListView.getSelectionModel().getSelectedItem() !=  null) {
-            commandField.setText(actionMap.get(actionComboBox.getValue()) + " "
+        if (actionMap.get(applicationActionComboBox.getValue()) != null && possibleCommandsListView.getSelectionModel().getSelectedItem() !=  null) {
+            commandField.setText(actionMap.get(applicationActionComboBox.getValue()) + " "
                     + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem()));
-            if (actionComboBox.getSelectionModel().isSelected(5))
+            if (applicationActionComboBox.getSelectionModel().isSelected(5))
                 commandField.setText(commandField.getText() + " 1");
         }
     }
@@ -307,7 +454,9 @@ public class CreateBatchTabController implements Initializable {
     @FXML
     private void handleGetCursorLocationClicked(ActionEvent event) {
         try {
-            GetTouchPositionController.showScreen(this);
+            GetTouchPositionController getTouchPositionController = new GetTouchPositionController();
+            getTouchPositionController.showScreen(this, null);
+            //GetTouchPositionController.showScreen(this);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -316,7 +465,8 @@ public class CreateBatchTabController implements Initializable {
     @FXML
     private void handleRecordInputsClicked(ActionEvent event) {
         try {
-            RecordInputsController.showScreen(this);
+            RecordInputsController recordInputsController = new RecordInputsController();
+            recordInputsController.showScreen(this, null);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -432,15 +582,85 @@ public class CreateBatchTabController implements Initializable {
         return commandField;
     }
 
-    private void showApplicationSection(boolean flag) {
+
+    private ObservableList<String> broadcastValues() {
+        ObservableList<String> values = FXCollections.observableArrayList();
+        values.add("ACTION_TIME_TICK");
+        values.add("ACTION_TIME_CHANGED");
+        values.add("ACTION_TIMEZONE_CHANGED");
+        values.add("ACTION_BOOT_COMPLETED");
+        values.add("ACTION_PACKAGE_ADDED");
+        values.add("ACTION_PACKAGE_CHANGED");
+        values.add("ACTION_PACKAGE_REMOVED");
+        values.add("ACTION_PACKAGE_RESTARTED");
+        values.add("ACTION_PACKAGE_DATA_CLEARED");
+        values.add("ACTION_PACKAGES_SUSPENDED");
+        values.add("ACTION_PACKAGES_UNSUSPENDED");
+        values.add("ACTION_UID_REMOVED");
+        values.add("ACTION_BATTERY_CHANGED");
+        values.add("ACTION_POWER_CONNECTED");
+        values.add("ACTION_POWER_DISCONNECTED");
+        values.add("ACTION_SHUTDOWN");
+
+        return values;
+    }
+
+    private ObservableList<String> intentsValues() {
+        ObservableList<String> values = FXCollections.observableArrayList();
+        values.add("ACTION_MAIN");
+        values.add("ACTION_VIEW");
+        values.add("ACTION_ATTACH_DATA");
+        values.add("ACTION_EDIT");
+        values.add("ACTION_PICK");
+        values.add("ACTION_CHOOSER");
+        values.add("ACTION_GET_CONTENT");
+        values.add("ACTION_DIAL");
+        values.add("ACTION_CALL");
+        values.add("ACTION_SEND");
+        values.add("ACTION_SENDTO");
+        values.add("ACTION_ANSWER");
+        values.add("ACTION_INSERT");
+        values.add("ACTION_DELETE");
+        values.add("ACTION_RUN");
+        values.add("ACTION_SYNC");
+        values.add("ACTION_PICK_ACTIVITY");
+        values.add("ACTION_SEARCH");
+        values.add("ACTION_WEB_SEARCH");
+        values.add("ACTION_FACTORY_TEST");
+
+        return values;
+    }
+
+    private void showActionsSection(boolean flag) {
+        helpLabel.setVisible(flag);
         actionComboBox.setVisible(flag);
+        categoryComboBox.setVisible(flag);
+        mimeTypeComboBox.setVisible(flag);
+        componentComboBox.setVisible(flag);
+        actionLabel1.setVisible(flag);
+        dataLabel.setVisible(flag);
+        mimeTypeLabel.setVisible(flag);
+        categoryLabel.setVisible(flag);
+        componentLabel.setVisible(flag);
+        flagsLabel.setVisible(flag);
+        actionTextField.setVisible(flag);
+        dataTextField.setVisible(flag);
+        mimeTypeTextField.setVisible(flag);
+        categoryTextField.setVisible(flag);
+        componentTextField.setVisible(flag);
+        flagsTextField.setVisible(flag);
+    }
+
+    private void showApplicationSection(boolean flag) {
+        possibleCommandsListView.setVisible(flag);
+        applicationActionComboBox.setVisible(flag);
         actionLabel.setVisible(flag);
     }
 
     private void showFilesSection(boolean flag) {
-        filesComboBox.setVisible(flag);
+        possibleCommandsListView.setVisible(!flag);
+        selectionComboBox.setVisible(flag);
         filesFinder1.setVisible(flag);
-        filesFinder2.setVisible(flag);
         filesLabel1.setVisible(flag);
         filesLabel2.setVisible(flag);
         filesTextField1.setVisible(flag);
@@ -468,6 +688,7 @@ public class CreateBatchTabController implements Initializable {
         for(String application : applications) {
             System.out.println("application: " + application);
             applicationCommandsMap.put(application, application);
+            componentComboBox.getItems().add(application);
         }
         System.out.println("Done");
     }
@@ -504,6 +725,7 @@ public class CreateBatchTabController implements Initializable {
         inputsToggleButton.setToggleGroup(toggleGroup);
         applicationsToggleButton.setToggleGroup(toggleGroup);
         filesToggleButton.setToggleGroup(toggleGroup);
+        actionsToggleButton.setToggleGroup(toggleGroup);
 
         inputsToggleButton.setSelected(true);
 

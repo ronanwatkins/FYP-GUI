@@ -33,9 +33,9 @@
                       <fx:include fx:id="ConsoleTabPage" source="console/ConsoleTab.fxml" />
                    </content>
                 </Tab>
-                <Tab text="Commands">
+                <Tab text="Automation">
                     <content>
-                        <fx:include fx:id="CommandsTabPage" source="commands/CommandsTab.fxml" />
+                        <fx:include fx:id="AutomationTabPage" source="automation/AutomationTab.fxml" />
                     </content>
                 </Tab>
             </tabs>

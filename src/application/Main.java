@@ -61,7 +61,7 @@ public class Main extends Application {
         if(!directory.exists())
             result = directory.mkdir();
 
-        directory = new File(path + "\\commands");
+        directory = new File(path + "\\automation");
         if(!directory.exists())
             result = directory.mkdir();
 

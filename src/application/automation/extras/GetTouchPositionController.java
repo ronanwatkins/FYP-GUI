@@ -1,8 +1,8 @@
-package application.commands.extras;
+package application.automation.extras;
 
 import application.ADBUtil;
-import application.commands.CommandsTabController;
-import application.commands.CreateBatchTabController;
+import application.automation.CreateBatchTabController;
+import application.utilities.Showable;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -17,11 +17,12 @@ import javafx.scene.control.TextField;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class GetTouchPositionController implements Initializable {
+public class GetTouchPositionController implements Initializable, Showable<CreateBatchTabController> {
 
     @FXML
     private TextField xField;
@@ -73,6 +74,20 @@ public class GetTouchPositionController implements Initializable {
         yEndLabel.setVisible(false);
         xEndField.setVisible(false);
         yEndField.setVisible(false);
+    }
+
+    @Override
+    public void showScreen(CreateBatchTabController createBatchTabController, File file) throws IOException {
+        controller = createBatchTabController;
+
+        FXMLLoader fxmlLoader = new FXMLLoader(createBatchTabController.getClass().getResource("/application/automation/extras/GetTouchPosition.fxml"));
+        Parent root = fxmlLoader.load();
+
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setTitle("Get Cursor Location");
+        stage.setScene(new Scene(root));
+        stage.show();
     }
 
     private void getCursorPositionTap() {
@@ -155,21 +170,6 @@ public class GetTouchPositionController implements Initializable {
         }
     }
 
-
-
-    public static void showScreen(CreateBatchTabController createBatchTabController) throws IOException {
-        controller = createBatchTabController;
-
-        FXMLLoader fxmlLoader = new FXMLLoader(createBatchTabController.getClass().getResource("/application/commands/extras/GetTouchPosition.fxml"));
-        Parent root = fxmlLoader.load();
-
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setTitle("Get Cursor Location");
-        stage.setScene(new Scene(root));
-        stage.show();
-    }
-
     public void setYField(double value) {
         Platform.runLater(() -> yField.setText(String.format("%.2f", value)));
     }
@@ -185,4 +185,5 @@ public class GetTouchPositionController implements Initializable {
     public void setXEndField(double value) {
         Platform.runLater(() -> xEndField.setText(String.format("%.2f", value)));
     }
+
 }

@@ -1,40 +1,30 @@
-package application.commands;
+package application.automation;
 
 import application.ADBUtil;
-import application.Main;
 import application.XMLUtil;
-
-import application.commands.CreateBatchTabController;
 import application.utilities.Utilities;
-import com.sun.javafx.scene.control.skin.TabPaneSkin;
 import javafx.application.Platform;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListView;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class CommandsTabController implements Initializable {
+public class AutomationTabController implements Initializable {
 
-    public static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands";
+    public static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\automation";
 
     @FXML
     private ListView<String> selectListView;
@@ -60,6 +50,8 @@ public class CommandsTabController implements Initializable {
     @FXML
     private CheckBox stopOnFailureCheckBox;
 
+    private CreateBatchTabController createBatchTabController;
+
     private Task<Void> runCommandsTask;
     private Thread runCommandsThread;
 
@@ -73,6 +65,7 @@ public class CommandsTabController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
+        createBatchTabController = new CreateBatchTabController();
 
         runTypeComboBox.getSelectionModel().select(0);
         stopCommandsButton.setDisable(true);
@@ -141,7 +134,7 @@ public class CommandsTabController implements Initializable {
 
         if(!wasPaused.get() && !pauseFlag.get()) {
             Utilities.setImage("/resources/pause.png", runCommandsButton);
-            System.out.println("Starting new batch commands");
+            System.out.println("Starting new batch automation");
             runningCommandsListView.getItems().clear();
             stopCommandsButton.setDisable(false);
 
@@ -246,7 +239,7 @@ public class CommandsTabController implements Initializable {
         File editFile = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
 
         try {
-            CreateBatchTabController.showScreen(this, editFile);
+            createBatchTabController.showScreen(this, editFile);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -255,7 +248,7 @@ public class CommandsTabController implements Initializable {
     @FXML
     private void handleNewButtonClicked(ActionEvent event) {
         try {
-            CreateBatchTabController.showScreen(this, null);
+            createBatchTabController.showScreen(this, null);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }

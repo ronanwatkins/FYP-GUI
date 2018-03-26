@@ -1,7 +1,7 @@
 package application;
 
-import application.commands.extras.GetTouchPositionController;
-import application.commands.extras.RecordInputsController;
+import application.automation.extras.GetTouchPositionController;
+import application.automation.extras.RecordInputsController;
 import application.utilities.ADBConnectionController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -54,7 +54,7 @@ public class ADBUtil {
 
     static {
         adbLocation = new File(System.getProperty("user.home") + "\\AppData\\Local\\Android\\Sdk\\platform-tools");
-        DIRECTORY = System.getProperty("user.dir") + "\\misc\\commands\\";
+        DIRECTORY = System.getProperty("user.dir") + "\\misc\\automation\\";
         params = null;
         isDeviceNameSet = false;
         isADBFound = false;
@@ -511,9 +511,7 @@ public class ADBUtil {
 
         StringBuilder result = new StringBuilder();
         try {
-            System.out.println("Runtime: " + Runtime.getRuntime());
             Process process = Runtime.getRuntime().exec(params);
-            System.out.println("process: " + process);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;

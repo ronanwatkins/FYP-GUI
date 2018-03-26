@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+<?import javafx.scene.control.Hyperlink?>
+<AnchorPane prefHeight="455.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.automation.CreateBatchTabController">
+
+    <children>
+        <Label layoutX="29.0" layoutY="321.0" prefHeight="17.0" prefWidth="65.0" text="Command:" />
+        <TextField fx:id="commandField" layoutX="97.0" layoutY="316.0" prefHeight="28.0" prefWidth="310.0" />
+
+        <ListView fx:id="indexListView" layoutX="410.0" layoutY="57.0" prefHeight="250.0" prefWidth="44.0" />
+        <ListView fx:id="commandsListView" layoutX="460.0" layoutY="57.0" prefHeight="250.0" prefWidth="310.0" />
+        <ListView fx:id="possibleCommandsListView" layoutX="29.0" layoutY="57.0" prefHeight="250.0" prefWidth="310.0" />
+
+        <Button fx:id="addCommandButton" layoutX="416.0" layoutY="315.0" mnemonicParsing="false" onAction="#handleAddCommandButtonClicked" />
+        <Label layoutX="304.0" layoutY="358.0" text="Index:" />
+        <ChoiceBox fx:id="indexBox" layoutX="352.0" layoutY="354.0" prefHeight="25.0" prefWidth="58.0" />
+
+        <Button fx:id="moveDownButton" layoutX="623.0" layoutY="318.0" mnemonicParsing="false" onAction="#handleMoveDownButtonClicked" />
+        <Button fx:id="moveUpButton" layoutX="676.0" layoutY="318.0" mnemonicParsing="false" onAction="#handleMoveUpButtonClicked" />
+        <Button fx:id="deleteButton" layoutX="726.0" layoutY="318.0" mnemonicParsing="false" onAction="#handleDeleteButtonClicked" />
+        <Button fx:id="saveButton" layoutX="624.0" layoutY="400.0" mnemonicParsing="false" onAction="#handleSaveButtonClicked" text="Save Batch Commands" />
+        <Button fx:id="enterTextButton" layoutX="234.0" layoutY="400.0" mnemonicParsing="false" onAction="#handleEnterTextButtonClicked" text="Enter Text" />
+        <Button fx:id="getCursorLocationButton" layoutX="97.0" layoutY="400.0" mnemonicParsing="false" onAction="#handleGetCursorLocationClicked" prefHeight="25.0" prefWidth="123.0" text="Get Cursor Location" />
+        <Button fx:id="recordInputsButton" layoutX="320.0" layoutY="400.0" mnemonicParsing="false" onAction="#handleRecordInputsClicked" text="Record Inputs" />
+
+        <ToggleButton fx:id="inputsToggleButton" layoutX="29.0" layoutY="18.0" mnemonicParsing="false" onAction="#handleInputsToggleButtonPressed" prefHeight="25.0" prefWidth="54.0" text="Inputs" />
+        <ToggleButton fx:id="applicationsToggleButton" layoutX="94.0" layoutY="18.0" mnemonicParsing="false" onAction="#handleApplicationsToggleButtonPressed" prefHeight="25.0" prefWidth="84.0" text="Applications" />
+        <ToggleButton fx:id="filesToggleButton" layoutX="190.0" layoutY="18.0" mnemonicParsing="false" onAction="#handleFilesToggleButtonPressed" text="Files" />
+        <ToggleButton fx:id="actionsToggleButton" layoutX="247.0" layoutY="18.0" mnemonicParsing="false" onAction="#handleActionsToggleButtonPressed" text="Actions" />
+
+        <ComboBox fx:id="selectionComboBox" layoutX="29.0" layoutY="57.0" prefHeight="25.0" prefWidth="192.0" />
+
+        <!--Files start-->
+        <Label fx:id="filesLabel1" layoutX="29.0" layoutY="96.0" text="Location on PC:" />
+        <Label fx:id="filesLabel2" layoutX="29.0" layoutY="165.0" text="Location on Phone:" />
+
+        <TextField fx:id="filesTextField1" layoutX="30.0" layoutY="121.0" prefHeight="28.0" prefWidth="265.0" />
+        <TextField fx:id="filesTextField2" layoutX="30.0" layoutY="195.0" prefHeight="28.0" prefWidth="265.0" />
+
+        <Button fx:id="filesFinder1" layoutX="303.0" layoutY="121.0" mnemonicParsing="false" onAction="#handleFilesFinder1Clicked" prefHeight="25.0" prefWidth="37.0" />
+        <Button fx:id="filesFinder2" layoutX="303.0" layoutY="195.0" mnemonicParsing="false" onAction="#handleFilesFinder2Clicked" prefHeight="25.0" prefWidth="36.0" />
+        <!--Files end-->
+
+        <!--Actions start-->
+        <Hyperlink fx:id="helpLabel" layoutX="250.0" layoutY="57.0" text="?" />
+
+        <Hyperlink fx:id="actionLabel1" layoutX="29.0" layoutY="96.0" text="Action:" />
+        <TextField fx:id="actionTextField" layoutX="102.0" layoutY="92.0" prefHeight="25.0" prefWidth="192.0" />
+        <ComboBox fx:id="actionComboBox" layoutX="299.0" layoutY="92.0" prefWidth="50.0">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                <String fx:value="ACTION_MAIN" />
+                <String fx:value="ACTION_VIEW" />
+                <String fx:value="ACTION_ATTACH_DATA" />
+                <String fx:value="ACTION_EDIT" />
+                <String fx:value="ACTION_PICK" />
+                <String fx:value="ACTION_CHOOSER" />
+                <String fx:value="ACTION_GET_CONTENT" />
+                <String fx:value="ACTION_DIAL" />
+                <String fx:value="ACTION_CALL" />
+                <String fx:value="ACTION_SEND" />
+                <String fx:value="ACTION_SENDTO" />
+                <String fx:value="ACTION_ANSWER" />
+                <String fx:value="ACTION_INSERT" />
+                <String fx:value="ACTION_DELETE" />
+                <String fx:value="ACTION_RUN" />
+                <String fx:value="ACTION_SYNC" />
+                <String fx:value="ACTION_PICK_ACTIVITY" />
+                <String fx:value="ACTION_SEARCH" />
+                <String fx:value="ACTION_WEB_SEARCH" />
+                <String fx:value="ACTION_FACTORY_TEST" />
+                </FXCollections>
+            </items>
+        </ComboBox>
+
+        <Hyperlink fx:id="dataLabel" layoutX="29.0" layoutY="130.0" text="Data:" />
+        <TextField fx:id="dataTextField" layoutX="102.0" layoutY="126.0" prefHeight="25.0" prefWidth="192.0" />
+
+        <Hyperlink fx:id="mimeTypeLabel" layoutX="29.0" layoutY="165.0" text="Mime type:" />
+        <TextField fx:id="mimeTypeTextField" layoutX="103.0" layoutY="161.0" prefHeight="25.0" prefWidth="192.0" />
+        <ComboBox fx:id="mimeTypeComboBox" layoutX="299.0" layoutY="161.0" prefWidth="50.0">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="audio/mpeg" />
+                    <String fx:value="audio/mp4" />
+                    <String fx:value="audio/x-wav" />
+                    <String fx:value="audio/amr" />
+                    <String fx:value="audio/amr-wb" />
+                    <String fx:value="audio/x-ms-wma" />
+                    <String fx:value="audio/ogg" />
+                    <String fx:value="application/ogg" />
+                    <String fx:value="audio/aac" />
+                    <String fx:value="audio/aac-adts" />
+                    <String fx:value="audio/x-matroska" />
+                    <String fx:value="audio/midi" />
+                    <String fx:value="audio/sp-midi" />
+                    <String fx:value="audio/imelody" />
+                    <String fx:value="audio/midi" />
+                    <String fx:value="audio/x-mpegurl" />
+                    <String fx:value="audio/mpegurl" />
+                    <String fx:value="audio/x-mpegurl" />
+                    <String fx:value="audio/flac" />
+                    <String fx:value="audio/x-scpls" />
+                    <String fx:value="text/plain" />
+                    <String fx:value="text/html" />
+                    <String fx:value="video/mpeg" />
+                    <String fx:value="video/mp4" />
+                    <String fx:value="video/3gpp" />
+                    <String fx:value="video/3gpp2" />
+                    <String fx:value="video/x-matroska" />
+                    <String fx:value="video/webm" />
+                    <String fx:value="video/mp2ts" />
+                    <String fx:value="video/avi" />
+                    <String fx:value="video/x-ms-wmv" />
+                    <String fx:value="video/x-ms-asf" />
+                    <String fx:value="video/mp2p" />
+                    <String fx:value="image/jpeg" />
+                    <String fx:value="image/gif" />
+                    <String fx:value="image/png" />
+                    <String fx:value="image/x-ms-bmp" />
+                    <String fx:value="image/vnd.wap.wbmp" />
+                    <String fx:value="image/webp" />
+                    <String fx:value="application/x-mpegurl" />
+                    <String fx:value="application/vnd.ms-wpl" />
+                    <String fx:value="application/vnd.apple.mpegurl" />
+                    <String fx:value="application/x-android-drm-fl" />
+                    <String fx:value="application/pdf" />
+                    <String fx:value="application/msword" />
+                    <String fx:value="application/vnd.ms-excel" />
+                    <String fx:value="application/mspowerpoint" />
+                    <String fx:value="application/zip" />
+                </FXCollections>
+            </items>
+        </ComboBox>
+
+        <Hyperlink fx:id="categoryLabel" layoutX="29.0" layoutY="201.0" text="Category:" />
+        <TextField fx:id="categoryTextField" layoutX="103.0" layoutY="197.0" prefHeight="25.0" prefWidth="192.0" />
+        <ComboBox fx:id="categoryComboBox" layoutX="299.0" layoutY="197.0" prefWidth="50.0">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="CATEGORY_DEFAULT" />
+                    <String fx:value="CATEGORY_BROWSABLE" />
+                    <String fx:value="CATEGORY_TAB" />
+                    <String fx:value="CATEGORY_ALTERNATIVE" />
+                    <String fx:value="CATEGORY_SELECTED_ALTERNATIVE" />
+                    <String fx:value="CATEGORY_LAUNCHER" />
+                    <String fx:value="CATEGORY_INFO" />
+                    <String fx:value="CATEGORY_HOME" />
+                    <String fx:value="CATEGORY_PREFERENCE" />
+                    <String fx:value="CATEGORY_TEST" />
+                    <String fx:value="CATEGORY_CAR_DOCK" />
+                    <String fx:value="CATEGORY_DESK_DOCK" />
+                    <String fx:value="CATEGORY_LE_DESK_DOCK" />
+                    <String fx:value="CATEGORY_HE_DESK_DOCK" />
+                    <String fx:value="CATEGORY_CAR_MODE" />
+                    <String fx:value="CATEGORY_APP_MARKET" />
+                    <String fx:value="CATEGORY_VR_HOME" />
+                </FXCollections>
+            </items>
+        </ComboBox>
+
+        <Hyperlink fx:id="componentLabel" layoutX="29.0" layoutY="237.0" text="Component:" />
+        <TextField fx:id="componentTextField" layoutX="103.0" layoutY="233.0" prefHeight="25.0" prefWidth="192.0" />
+        <ComboBox fx:id="componentComboBox" layoutX="299.0" layoutY="233.0" prefWidth="50.0"/>
+
+        <Hyperlink fx:id="flagsLabel" layoutX="29.0" layoutY="270.0" text="Flags:" />
+        <TextField fx:id="flagsTextField" layoutX="103.0" layoutY="266.0" prefHeight="25.0" prefWidth="192.0" />
+        <!--Actions end-->
+
+        <Button fx:id="enterButton" layoutX="304.0" layoutY="266.0" mnemonicParsing="false" onAction="#handleEnterButtonClicked" />
+
+        <Label fx:id="actionLabel" layoutX="29.0" layoutY="358.0" text="Action:" />
+        <ComboBox fx:id="applicationActionComboBox" layoutX="97.0" layoutY="354.0" onAction="#handleApplicationActionComboBoxClicked" prefWidth="150.0" />
+        <Label layoutX="29.0" layoutY="404.0" text="Inputs:" />
+
+
+    </children>
+</AnchorPane>

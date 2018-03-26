@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.commands.extras.RecordInputsController">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.automation.extras.RecordInputsController">
    <children>
       <Button fx:id="startButton" onAction="#handleStartButtonClicked" layoutX="38.0" layoutY="41.0" mnemonicParsing="false" text="Start Recording" />
       <Button fx:id="stopButton" onAction="#handleStopButtonClicked" layoutX="171.0" layoutY="41.0" mnemonicParsing="false" text="Stop Recording" />
