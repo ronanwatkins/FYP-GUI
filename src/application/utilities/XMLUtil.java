@@ -1,7 +1,9 @@
-package application;
+package application.utilities;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -14,6 +16,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.sun.org.apache.bcel.internal.generic.FCMPG;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -37,6 +40,19 @@ public class XMLUtil {
 
             document = documentBuilder.newDocument();
             rootElement = document.createElement("global");
+            document.appendChild(rootElement);
+        } catch (ParserConfigurationException pce) {
+            pce.printStackTrace();
+        }
+    }
+
+    public XMLUtil(boolean isKML) {
+        try {
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+
+            document = documentBuilder.newDocument();
+            rootElement = document.createElement("kml");
             document.appendChild(rootElement);
         } catch (ParserConfigurationException pce) {
             pce.printStackTrace();
@@ -205,5 +221,65 @@ public class XMLUtil {
         new Thread(task).run();
 
         return returnList;
+    }
+
+    public ObservableList<KML> openKMLCommands(File file) {
+        //ArrayList<KML> KMLList = new ArrayList<>();
+        ObservableList<KML> KMLList = FXCollections.observableArrayList();
+
+        Task task = new Task<Void>() {
+            @Override
+            public Void call() {
+                try {
+                    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                    DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+                    Document document = documentBuilder.parse(file);
+
+                    document.getDocumentElement().normalize();
+
+                    Element element;
+
+                    NodeList nodeList = document.getElementsByTagName("Document");
+
+                    for (int i = 0; i < nodeList.getLength(); i++) { //looping through "Document"
+                        Node node = nodeList.item(i);
+                        NodeList childList = node.getChildNodes();
+                        for(int j=0; j<childList.getLength(); j++) { //looping through "Placemark"
+                            Node childNode = childList.item(j);
+                            if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+                                element = (Element) childNode;
+
+                                String name = (element.getElementsByTagName("name").item(0).getTextContent());
+                               // System.out.println("name: " + name);
+                                String description = (element.getElementsByTagName("description").item(0).getTextContent());
+                               // System.out.println("description: " + description);
+
+                                String[] values = (element.getElementsByTagName("Point").item(0).getTextContent()).split(",");
+                                Double longitude = Double.parseDouble(values[0]);
+                                Double latitude = Double.parseDouble(values[1]);
+                                Double altitude = Double.parseDouble(values[2]);
+
+                                KMLList.add(new KML(name, description, latitude, longitude, altitude));
+                            }
+                        }
+                    }
+                } catch (Exception ee) {
+                    ee.printStackTrace();
+                }
+//
+// catch (SAXException spe) {
+//                    //spe.printStackTrace();
+//                    System.out.println("spe FileName: " + file.getAbsolutePath());
+//                    //openBatchCommands(file);
+//                } catch (ParserConfigurationException|IOException e) {
+//                    e.printStackTrace();
+//                }
+
+                return null;
+            }
+        };
+        new Thread(task).run();
+
+        return KMLList;
     }
 }

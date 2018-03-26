@@ -1,7 +1,7 @@
 package application.automation;
 
 import application.ADBUtil;
-import application.XMLUtil;
+import application.utilities.XMLUtil;
 import application.automation.extras.GetTouchPositionController;
 import application.automation.extras.RecordInputsController;
 import application.utilities.Showable;
@@ -18,6 +18,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.TextFieldListCell;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -130,7 +131,7 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
 
     private static AutomationTabController controller;
 
-    private int index = 0;
+    private int index = 1;
     private int selectedIndex = 0;
 
     private static File editFile;
@@ -153,6 +154,10 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
         initInputCommandsMap();
         filesFinder1.setVisible(false);
         filesFinder2.setVisible(false);
+
+        commandsListView.setEditable(true);
+        commandsListView.setCellFactory(TextFieldListCell.forListView());
+
 
         if(editFile != null) {
             saveButton.setDisable(false);
@@ -211,6 +216,8 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
         }
 
         commandsListView.setOnMouseClicked(event -> {
+            System.out.println("commandsListView clicked");
+
             try {
                 if (!commandsListView.getSelectionModel().getSelectedItem().isEmpty()) {
                     deleteButton.setDisable(false);
@@ -221,10 +228,18 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
                 //npe.printStackTrace();
             }
         });
+
+        commandsListView.setOnEditCommit(t -> {
+            commandsListView.getItems().set(t.getIndex(), t.getNewValue());
+            System.out.println("setOnEditCommit");
+        });
+
+        commandsListView.setOnEditCancel(t -> System.out.println("setOnEditCancel"));
+
     }
 
     @Override
-    public void showScreen(AutomationTabController commandsTabController, File file) throws IOException {
+    public void newWindow(AutomationTabController commandsTabController, File file) throws IOException {
         controller = commandsTabController;
         editFile = file;
 
@@ -360,6 +375,7 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
         selectionComboBox.getItems().clear();
         selectionComboBox.setItems(selections);
         selectionComboBox.getSelectionModel().select(0);
+        selection = ActionSelection.ACTIVITY;
 
         selectionComboBox.setOnAction(event1 -> {
             int index = selectionComboBox.getSelectionModel().getSelectedIndex();
@@ -431,12 +447,31 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
     private void handleEnterButtonClicked(ActionEvent event) {
         if(filesToggleButton.isSelected())
             commandField.setText((isCopyToAndroid ? "push " : "pull ") + filesTextField1.getText() + " " + filesTextField2.getText());
-        else if(applicationsToggleButton.isSelected()) {
+        else if(actionsToggleButton.isSelected()) {
+            String action = " -a " + actionTextField.getText();
+            String data = "";
+            if(!dataTextField.getText().isEmpty()) data = " -d " + dataTextField.getText();
+            String mimeType = "";
+            if(!mimeTypeTextField.getText().isEmpty())  mimeType = " -t " + mimeTypeTextField.getText();
+            String category = "";
+            if(!categoryTextField.getText().isEmpty()) category = " -c " + categoryTextField.getText();
+            String component = "";
+            if(!componentTextField.getText().isEmpty()) component = " -n " + componentTextField.getText();
+            String flags = "";
+            if(!flagsTextField.getText().isEmpty()) flags = " -f " + flagsTextField.getText();
+
             switch (selection) {
                 case ACTIVITY:
-
+                    commandField.setText("shell am start" + action + data + mimeType + category + component + flags);
+                    break;
+                case BROADCAST:
+                    commandField.setText("shell am broadcast" + action + data + mimeType + category + component + flags);
+                    break;
+                case SERVICE:
+                    commandField.setText("shell am startservice" + action + data + mimeType + category + component + flags);
+                    break;
             }
-        }
+        } else System.out.println("oops");
     }
 
     @FXML
@@ -455,8 +490,8 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
     private void handleGetCursorLocationClicked(ActionEvent event) {
         try {
             GetTouchPositionController getTouchPositionController = new GetTouchPositionController();
-            getTouchPositionController.showScreen(this, null);
-            //GetTouchPositionController.showScreen(this);
+            getTouchPositionController.newWindow(this, null);
+            //GetTouchPositionController.newWindow(this);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -466,7 +501,7 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
     private void handleRecordInputsClicked(ActionEvent event) {
         try {
             RecordInputsController recordInputsController = new RecordInputsController();
-            recordInputsController.showScreen(this, null);
+            recordInputsController.newWindow(this, null);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -477,9 +512,7 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
         if(!commandField.getText().isEmpty()) {
             saveButton.setDisable(false);
             commandsListView.getItems().add(indexBox.getValue(), commandField.getText());
-            indexList.add(index++);
-            if(indexList.get(0) == 0 && indexList.get(1) == 0)
-                indexList.remove(0);
+            indexList.add(++index);
             indexBox.setItems(indexList);
             indexBox.setValue(index);
             indexListView.getItems().clear();
@@ -495,12 +528,14 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
         if (commandsListViewIndex > -1) {
             try {
                 commandsListView.getItems().remove(commandsListViewIndex);
+                indexListView.getItems().remove(commandsListViewIndex);
                 indexList.remove(index--);
                 indexBox.setItems(indexList);
                 indexBox.setValue(index);
-                indexListView.getItems().clear();
             } catch (Exception ee) {
             }
+
+            indexListView.getItems().clear();
             for (int i = 0; i < indexBox.getValue(); i++) {
                 indexListView.getItems().add(i);
             }
@@ -729,12 +764,12 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
 
         inputsToggleButton.setSelected(true);
 
-        Utilities.setImage("/resources/right.png", addCommandButton);
-        Utilities.setImage("/resources/up.png", moveUpButton);
-        Utilities.setImage("/resources/down.png", moveDownButton);
-        Utilities.setImage("/resources/delete.png", deleteButton);
-        Utilities.setImage("/resources/open_folder.png", filesFinder1);
-        Utilities.setImage("/resources/open_folder.png", filesFinder2);
-        Utilities.setImage("/resources/enter.png", enterButton);
+        Utilities.setImage("/resources/right.png", "Add command to the list", addCommandButton);
+        Utilities.setImage("/resources/up.png", "Move command up the list", moveUpButton);
+        Utilities.setImage("/resources/down.png","Move command down the list", moveDownButton);
+        Utilities.setImage("/resources/delete.png", "Delete command", deleteButton);
+        Utilities.setImage("/resources/open_folder.png", null, filesFinder1);
+        Utilities.setImage("/resources/open_folder.png", null, filesFinder2);
+        Utilities.setImage("/resources/enter.png", null, enterButton);
     }
 }

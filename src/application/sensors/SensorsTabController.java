@@ -1,7 +1,7 @@
 package application.sensors;
 
 import application.TelnetServer;
-import application.XMLUtil;
+import application.utilities.XMLUtil;
 import application.sensors.model.AccelerometerModel;
 import application.sensors.model.GyroscopeModel;
 import application.sensors.model.MagneticFieldModel;
@@ -14,8 +14,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -26,7 +24,6 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.BindException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -254,9 +251,9 @@ public class SensorsTabController implements Initializable {
         rotateRadioButton.setSelected(true);
         stopRecordingButton.setDisable(true);
 
-        Utilities.setImage("/resources/record_cropped.png", recordButton);
-        Utilities.setImage("/resources/stop.png", stopRecordingButton);
-        Utilities.setImage("/resources/play_cropped.png", playButton);
+        Utilities.setImage("/resources/record_cropped.png", "Record values", recordButton);
+        Utilities.setImage("/resources/stop.png", "Stop recording", stopRecordingButton);
+        Utilities.setImage("/resources/play_cropped.png", null, playButton);
 
         if(!isLoaded) {
             playButton.setVisible(false);
@@ -318,7 +315,7 @@ public class SensorsTabController implements Initializable {
             loggerLabel.setText("File \"" + file.getName().replace(".xml", "") + "\" loaded");
             System.out.println(file.getAbsolutePath());
 
-            Utilities.setImage("/resources/play_cropped.png", playButton);
+            Utilities.setImage("/resources/play_cropped.png", null, playButton);
 
             xmlUtil = new XMLUtil();
             loadedValues = xmlUtil.loadXML(file);
@@ -366,9 +363,9 @@ public class SensorsTabController implements Initializable {
         }
 
         if(isRecording) {
-            Utilities.setImage("/resources/pause.png", recordButton);
+            Utilities.setImage("/resources/pause.png", "Pause recording", recordButton);
         } else {
-            Utilities.setImage("/resources/record_cropped.png", recordButton);
+            Utilities.setImage("/resources/record_cropped.png", "Record values", recordButton);
         }
 
         stopRecordingButton.setDisable(isRecording);
@@ -382,21 +379,21 @@ public class SensorsTabController implements Initializable {
         if (playbackThread.isPaused()) {
             playbackThread.play();
             System.out.println("RESUMING");
-            Utilities.setImage("/resources/pause.png", playButton);
+            Utilities.setImage("/resources/pause.png", null, playButton);
             recordButton.setDisable(true);
             stopRecordingButton.setDisable(true);
         } else {
             if(!wasPaused) {
                 playbackThread.run();
                 System.out.println("STARTING");
-                Utilities.setImage("/resources/pause.png", playButton);
+                Utilities.setImage("/resources/pause.png", null, playButton);
                 wasPaused = true;
                 recordButton.setDisable(true);
                 stopRecordingButton.setDisable(true);
             } else {
                 playbackThread.pause();
                 System.out.println("PAUSING");
-                Utilities.setImage("/resources/play_cropped.png", playButton);
+                Utilities.setImage("/resources/play_cropped.png", null, playButton);
                 recordButton.setDisable(false);
                 stopRecordingButton.setDisable(false);
             }
@@ -1021,7 +1018,7 @@ public class SensorsTabController implements Initializable {
                     playButton.setDisable(false);
                     recordButton.setDisable(false);
 
-                    Utilities.setImage("/resources/play_cropped.png", playButton);
+                    Utilities.setImage("/resources/play_cropped.png", null, playButton);
                 }
             });
 

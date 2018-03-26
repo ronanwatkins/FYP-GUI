@@ -33,7 +33,7 @@ public class RecordInputsController implements Initializable, Showable<CreateBat
     }
 
     @Override
-    public void showScreen(CreateBatchTabController createBatchTabController, File file) throws IOException {
+    public void newWindow(CreateBatchTabController createBatchTabController, File file) throws IOException {
         controller = createBatchTabController;
 
         FXMLLoader fxmlLoader = new FXMLLoader(createBatchTabController.getClass().getResource("/application/automation/extras/RecordInputs.fxml"));

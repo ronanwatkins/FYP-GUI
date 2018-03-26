@@ -37,7 +37,7 @@
         <ToggleButton fx:id="inputsToggleButton" layoutX="29.0" layoutY="18.0" mnemonicParsing="false" onAction="#handleInputsToggleButtonPressed" prefHeight="25.0" prefWidth="54.0" text="Inputs" />
         <ToggleButton fx:id="applicationsToggleButton" layoutX="94.0" layoutY="18.0" mnemonicParsing="false" onAction="#handleApplicationsToggleButtonPressed" prefHeight="25.0" prefWidth="84.0" text="Applications" />
         <ToggleButton fx:id="filesToggleButton" layoutX="190.0" layoutY="18.0" mnemonicParsing="false" onAction="#handleFilesToggleButtonPressed" text="Files" />
-        <ToggleButton fx:id="actionsToggleButton" layoutX="247.0" layoutY="18.0" mnemonicParsing="false" onAction="#handleActionsToggleButtonPressed" text="Actions" />
+        <ToggleButton fx:id="actionsToggleButton" layoutX="247.0" layoutY="18.0" mnemonicParsing="false" onAction="#handleActionsToggleButtonPressed" text="Intents" />
 
         <ComboBox fx:id="selectionComboBox" layoutX="29.0" layoutY="57.0" prefHeight="25.0" prefWidth="192.0" />
 
@@ -60,26 +60,26 @@
         <ComboBox fx:id="actionComboBox" layoutX="299.0" layoutY="92.0" prefWidth="50.0">
             <items>
                 <FXCollections fx:factory="observableArrayList">
-                <String fx:value="ACTION_MAIN" />
-                <String fx:value="ACTION_VIEW" />
-                <String fx:value="ACTION_ATTACH_DATA" />
-                <String fx:value="ACTION_EDIT" />
-                <String fx:value="ACTION_PICK" />
-                <String fx:value="ACTION_CHOOSER" />
-                <String fx:value="ACTION_GET_CONTENT" />
-                <String fx:value="ACTION_DIAL" />
-                <String fx:value="ACTION_CALL" />
-                <String fx:value="ACTION_SEND" />
-                <String fx:value="ACTION_SENDTO" />
-                <String fx:value="ACTION_ANSWER" />
-                <String fx:value="ACTION_INSERT" />
-                <String fx:value="ACTION_DELETE" />
-                <String fx:value="ACTION_RUN" />
-                <String fx:value="ACTION_SYNC" />
-                <String fx:value="ACTION_PICK_ACTIVITY" />
-                <String fx:value="ACTION_SEARCH" />
-                <String fx:value="ACTION_WEB_SEARCH" />
-                <String fx:value="ACTION_FACTORY_TEST" />
+                    <String fx:value="android.intent.action.MAIN" />
+                    <String fx:value="android.intent.action.VIEW" />
+                    <String fx:value="android.intent.action.ATTACH_DATA" />
+                    <String fx:value="android.intent.action.EDIT" />
+                    <String fx:value="android.intent.action.PICK" />
+                    <String fx:value="android.intent.action.CHOOSER" />
+                    <String fx:value="android.intent.action.GET_CONTENT" />
+                    <String fx:value="android.intent.action.DIAL" />
+                    <String fx:value="android.intent.action.CALL" />
+                    <String fx:value="android.intent.action.SEND" />
+                    <String fx:value="android.intent.action.SENDTO" />
+                    <String fx:value="android.intent.action.ANSWER" />
+                    <String fx:value="android.intent.action.INSERT" />
+                    <String fx:value="android.intent.action.DELETE" />
+                    <String fx:value="android.intent.action.RUN" />
+                    <String fx:value="android.intent.action.SYNC" />
+                    <String fx:value="android.intent.action.PICK_ACTIVITY" />
+                    <String fx:value="android.intent.action.SEARCH" />
+                    <String fx:value="android.intent.action.WEB_SEARCH" />
+                    <String fx:value="android.intent.action.FACTORY_TEST" />
                 </FXCollections>
             </items>
         </ComboBox>
@@ -149,23 +149,23 @@
         <ComboBox fx:id="categoryComboBox" layoutX="299.0" layoutY="197.0" prefWidth="50.0">
             <items>
                 <FXCollections fx:factory="observableArrayList">
-                    <String fx:value="CATEGORY_DEFAULT" />
-                    <String fx:value="CATEGORY_BROWSABLE" />
-                    <String fx:value="CATEGORY_TAB" />
-                    <String fx:value="CATEGORY_ALTERNATIVE" />
-                    <String fx:value="CATEGORY_SELECTED_ALTERNATIVE" />
-                    <String fx:value="CATEGORY_LAUNCHER" />
-                    <String fx:value="CATEGORY_INFO" />
-                    <String fx:value="CATEGORY_HOME" />
-                    <String fx:value="CATEGORY_PREFERENCE" />
-                    <String fx:value="CATEGORY_TEST" />
-                    <String fx:value="CATEGORY_CAR_DOCK" />
-                    <String fx:value="CATEGORY_DESK_DOCK" />
-                    <String fx:value="CATEGORY_LE_DESK_DOCK" />
-                    <String fx:value="CATEGORY_HE_DESK_DOCK" />
-                    <String fx:value="CATEGORY_CAR_MODE" />
-                    <String fx:value="CATEGORY_APP_MARKET" />
-                    <String fx:value="CATEGORY_VR_HOME" />
+                    <String fx:value="android.intent.category.DEFAULT" />
+                    <String fx:value="android.intent.category.BROWSABLE" />
+                    <String fx:value="android.intent.category.TAB" />
+                    <String fx:value="android.intent.category.ALTERNATIVE" />
+                    <String fx:value="android.intent.category.SELECTED_ALTERNATIVE" />
+                    <String fx:value="android.intent.category.LAUNCHER" />
+                    <String fx:value="android.intent.category.INFO" />
+                    <String fx:value="android.intent.category.HOME" />
+                    <String fx:value="android.intent.category.PREFERENCE" />
+                    <String fx:value="android.intent.category.TEST" />
+                    <String fx:value="android.intent.category.CAR_DOCK" />
+                    <String fx:value="android.intent.category.DESK_DOCK" />
+                    <String fx:value="android.intent.category.LE_DESK_DOCK" />
+                    <String fx:value="android.intent.category.HE_DESK_DOCK" />
+                    <String fx:value="android.intent.category.CAR_MODE" />
+                    <String fx:value="android.intent.category.APP_MARKET" />
+                    <String fx:value="android.intent.category.VR_HOME" />
                 </FXCollections>
             </items>
         </ComboBox>

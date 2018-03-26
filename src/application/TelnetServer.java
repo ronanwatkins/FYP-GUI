@@ -12,7 +12,7 @@ public class TelnetServer {
 
     private static PrintStream out;
     private static InputStreamReader in;
-    private static int port = 5554;
+    private static int port = 5556;
 
     public static void connect() {
         Task task = new Task<Void>() {

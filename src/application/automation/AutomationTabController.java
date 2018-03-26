@@ -1,7 +1,7 @@
 package application.automation;
 
 import application.ADBUtil;
-import application.XMLUtil;
+import application.utilities.XMLUtil;
 import application.utilities.Utilities;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -119,21 +119,21 @@ public class AutomationTabController implements Initializable {
                         pauseFlag.set(true);
                     }
 
-                    Utilities.setImage("/resources/play.png", runCommandsButton);
+                    Utilities.setImage("/resources/play.png", "Run batch commands", runCommandsButton);
                 } else {
                     synchronized (pauseFlag) {
                         pauseFlag.set(false);
                         pauseFlag.notify();
                     }
 
-                    Utilities.setImage("/resources/pause.png", runCommandsButton);
+                    Utilities.setImage("/resources/pause.png", "Pause batch commands",runCommandsButton);
                     wasPaused.set(true);
                 }
             }
         }
 
         if(!wasPaused.get() && !pauseFlag.get()) {
-            Utilities.setImage("/resources/pause.png", runCommandsButton);
+            Utilities.setImage("/resources/pause.png", "Pause batch commands",runCommandsButton);
             System.out.println("Starting new batch automation");
             runningCommandsListView.getItems().clear();
             stopCommandsButton.setDisable(false);
@@ -206,14 +206,16 @@ public class AutomationTabController implements Initializable {
             };
 
             runCommandsTask.setOnSucceeded(event1 -> {
-                Utilities.setImage("/resources/play.png", runCommandsButton);
+                Utilities.setImage("/resources/play.png","Run batch commands", runCommandsButton);
+                stopCommandsButton.setDisable(true);
                 wasPaused.set(false);
                 pauseFlag.set(false);
             });
 
             runCommandsTask.setOnFailed(event1 -> {
-                Utilities.setImage("/resources/play.png", runCommandsButton);
+                Utilities.setImage("/resources/play.png","Run batch commands", runCommandsButton);
                 System.out.println("runCommandsTask failed, Exception: " + runCommandsTask.getException());
+                stopCommandsButton.setDisable(true);
                 wasPaused.set(false);
                 pauseFlag.set(false);
             });
@@ -230,7 +232,7 @@ public class AutomationTabController implements Initializable {
         runCommandsTask.cancel();
         wasPaused.set(false);
         pauseFlag.set(false);
-        Utilities.setImage("/resources/play.png", runCommandsButton);
+        Utilities.setImage("/resources/play.png","Run batch commands", runCommandsButton);
     }
 
     @FXML
@@ -239,7 +241,7 @@ public class AutomationTabController implements Initializable {
         File editFile = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
 
         try {
-            createBatchTabController.showScreen(this, editFile);
+            createBatchTabController.newWindow(this, editFile);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -248,19 +250,19 @@ public class AutomationTabController implements Initializable {
     @FXML
     private void handleNewButtonClicked(ActionEvent event) {
         try {
-            createBatchTabController.showScreen(this, null);
+            createBatchTabController.newWindow(this, null);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
     }
 
     private void initializeButtons() {
-        Utilities.setImage("/resources/play.png", runCommandsButton);
-        Utilities.setImage("/resources/stop.png", stopCommandsButton);
+        Utilities.setImage("/resources/play.png","Run batch commands", runCommandsButton);
+        Utilities.setImage("/resources/stop.png", "Stop batch commands",stopCommandsButton);
 
-        Utilities.setImage("/resources/new.png", newButton);
-        Utilities.setImage("/resources/edit.png", editButton);
-        Utilities.setImage("/resources/delete.png", deleteCommandsButton);
+        Utilities.setImage("/resources/new.png", "Create new batch",newButton);
+        Utilities.setImage("/resources/edit.png", "Edit selected batch",editButton);
+        Utilities.setImage("/resources/delete.png","Delete selected batch", deleteCommandsButton);
     }
 
     public void refreshCommandsList() {
