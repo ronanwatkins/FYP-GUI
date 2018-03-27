@@ -24,25 +24,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AutomationTabController implements Initializable {
 
-    public static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\automation";
+    private static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\automation";
+    protected final String EXTENSION = ".xml";
 
     @FXML
-    private ListView<String> selectListView;
+    protected ListView<String> filesListView;
     @FXML
     private ListView<String> allCommandsListView;
     @FXML
     private ListView<String> runningCommandsListView;
 
     @FXML
-    private Button editButton;
+    protected Button editButton;
     @FXML
-    private Button newButton;
+    protected Button newButton;
     @FXML
-    private Button deleteCommandsButton;
+    protected Button deleteButton;
     @FXML
-    private Button runCommandsButton;
+    protected Button playButton;
     @FXML
-    public Button stopCommandsButton;
+    protected Button stopButton;
 
     @FXML
     private ComboBox<String> runTypeComboBox;
@@ -52,15 +53,16 @@ public class AutomationTabController implements Initializable {
 
     private CreateBatchTabController createBatchTabController;
 
-    private Task<Void> runCommandsTask;
-    private Thread runCommandsThread;
+    protected Task<Void> runCommandsTask;
+    protected Thread runCommandsThread;
 
-    private ObservableList<String> commandFilesList;
+    protected ObservableList<String> filesList;
+    private ObservableList<String> commandsList;
 
-    private File directory = null;
+    protected File directory = null;
 
-    private AtomicBoolean pauseFlag = new AtomicBoolean(false);
-    private AtomicBoolean wasPaused = new AtomicBoolean(false);
+    protected AtomicBoolean pauseFlag = new AtomicBoolean(false);
+    protected AtomicBoolean wasPaused = new AtomicBoolean(false);
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -68,50 +70,50 @@ public class AutomationTabController implements Initializable {
         createBatchTabController = new CreateBatchTabController();
 
         runTypeComboBox.getSelectionModel().select(0);
-        stopCommandsButton.setDisable(true);
-        deleteCommandsButton.setDisable(true);
+        stopButton.setDisable(true);
+        deleteButton.setDisable(true);
         editButton.setDisable(true);
-        runCommandsButton.setDisable(true);
+        playButton.setDisable(true);
 
-        commandFilesList = FXCollections.observableArrayList();
+        filesList = FXCollections.observableArrayList();
         directory = new File(DIRECTORY);
 
         updateCommandsList();
 
         try {
-            if (!selectListView.getSelectionModel().getSelectedItem().isEmpty())
+            if (!filesListView.getSelectionModel().getSelectedItem().isEmpty())
                 refreshCommandsList();
         } catch (Exception e) {}
 
-        selectListView.setOnMouseClicked(event -> {
+        filesListView.setOnMouseClicked(event -> {
             try {
-                if (!selectListView.getSelectionModel().getSelectedItem().isEmpty()) {
-                    deleteCommandsButton.setDisable(false);
+                if (!filesListView.getSelectionModel().getSelectedItem().isEmpty()) {
+                    deleteButton.setDisable(false);
                     editButton.setDisable(false);
-                    runCommandsButton.setDisable(false);
-                    stopCommandsButton.fire();
+                    playButton.setDisable(false);
+                    stopButton.fire();
 
                     refreshCommandsList();
                 }
-            } catch (NullPointerException npe) {}
+            } catch (NullPointerException ignored) {}
         });
     }
 
     @FXML
-    private void handleDeleteCommandsButtonClicked(ActionEvent event) {
-        String fileName = selectListView.getSelectionModel().getSelectedItem();
-        int fileIndex = selectListView.getSelectionModel().getSelectedIndex();
-        File fileToDelete = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
+    protected void handleDeleteButtonClicked(ActionEvent event) {
+        String fileName = filesListView.getSelectionModel().getSelectedItem();
+        int fileIndex = filesListView.getSelectionModel().getSelectedIndex();
+        File fileToDelete = new File(directory.getAbsolutePath() + "\\" + fileName + EXTENSION);
         if(fileToDelete.delete()) {
             System.out.println("File deleted");
-            commandFilesList.remove(fileIndex);
+            filesList.remove(fileIndex);
 
             refreshCommandsList();
         }
     }
 
     @FXML
-    private void handleRunCommandsButtonClicked(ActionEvent event) {
+    protected void handlePlayButtonClicked(ActionEvent event) {
         if(runCommandsTask != null) {
             if(runCommandsTask.isRunning()) {
                 if (!pauseFlag.get()) {
@@ -119,26 +121,26 @@ public class AutomationTabController implements Initializable {
                         pauseFlag.set(true);
                     }
 
-                    Utilities.setImage("/resources/play.png", "Run batch commands", runCommandsButton);
+                    Utilities.setImage("/resources/play.png", "Run batch commands", playButton);
                 } else {
                     synchronized (pauseFlag) {
                         pauseFlag.set(false);
                         pauseFlag.notify();
                     }
 
-                    Utilities.setImage("/resources/pause.png", "Pause batch commands",runCommandsButton);
+                    Utilities.setImage("/resources/pause.png", "Pause batch commands", playButton);
                     wasPaused.set(true);
                 }
             }
         }
 
         if(!wasPaused.get() && !pauseFlag.get()) {
-            Utilities.setImage("/resources/pause.png", "Pause batch commands",runCommandsButton);
+            Utilities.setImage("/resources/pause.png", "Pause batch commands", playButton);
             System.out.println("Starting new batch automation");
             runningCommandsListView.getItems().clear();
-            stopCommandsButton.setDisable(false);
+            stopButton.setDisable(false);
 
-            ObservableList<String> commandsList = allCommandsListView.getItems();
+            commandsList = allCommandsListView.getItems();
 
             int startIndex;
             if(runTypeComboBox.getSelectionModel().isSelected(1) || runTypeComboBox.getSelectionModel().isSelected(2))
@@ -175,7 +177,7 @@ public class AutomationTabController implements Initializable {
 
                         String result = ADBUtil.consoleCommand(formatCommand(command).split(" "));
                         if(stopOnFailureCheckBox.isSelected() && (isError(result)))
-                            Platform.runLater(() -> stopCommandsButton.fire());
+                            Platform.runLater(() -> stopButton.fire());
 
                         if (result.isEmpty())
                             result = "Command completed successfully";
@@ -206,16 +208,16 @@ public class AutomationTabController implements Initializable {
             };
 
             runCommandsTask.setOnSucceeded(event1 -> {
-                Utilities.setImage("/resources/play.png","Run batch commands", runCommandsButton);
-                stopCommandsButton.setDisable(true);
+                Utilities.setImage("/resources/play.png","Run batch commands", playButton);
+                stopButton.setDisable(true);
                 wasPaused.set(false);
                 pauseFlag.set(false);
             });
 
             runCommandsTask.setOnFailed(event1 -> {
-                Utilities.setImage("/resources/play.png","Run batch commands", runCommandsButton);
+                Utilities.setImage("/resources/play.png","Run batch commands", playButton);
                 System.out.println("runCommandsTask failed, Exception: " + runCommandsTask.getException());
-                stopCommandsButton.setDisable(true);
+                stopButton.setDisable(true);
                 wasPaused.set(false);
                 pauseFlag.set(false);
             });
@@ -226,18 +228,18 @@ public class AutomationTabController implements Initializable {
     }
 
     @FXML
-    private void handleStopCommandsButtonClicked(ActionEvent event) {
-        stopCommandsButton.setDisable(true);
+    protected void handleStopButtonClicked(ActionEvent event) {
+        stopButton.setDisable(true);
         runCommandsThread.interrupt();
         runCommandsTask.cancel();
         wasPaused.set(false);
         pauseFlag.set(false);
-        Utilities.setImage("/resources/play.png","Run batch commands", runCommandsButton);
+        Utilities.setImage("/resources/play.png","Run batch commands", playButton);
     }
 
     @FXML
-    private void handleEditButtonClicked(ActionEvent event) {
-        String fileName = selectListView.getSelectionModel().getSelectedItem();
+    protected void handleEditButtonClicked(ActionEvent event) {
+        String fileName = filesListView.getSelectionModel().getSelectedItem();
         File editFile = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
 
         try {
@@ -248,7 +250,7 @@ public class AutomationTabController implements Initializable {
     }
 
     @FXML
-    private void handleNewButtonClicked(ActionEvent event) {
+    protected void handleNewButtonClicked(ActionEvent event) {
         try {
             createBatchTabController.newWindow(this, null);
         } catch (IOException ioe) {
@@ -256,19 +258,19 @@ public class AutomationTabController implements Initializable {
         }
     }
 
-    private void initializeButtons() {
-        Utilities.setImage("/resources/play.png","Run batch commands", runCommandsButton);
-        Utilities.setImage("/resources/stop.png", "Stop batch commands",stopCommandsButton);
+    protected void initializeButtons() {
+        Utilities.setImage("/resources/play.png","Run batch commands", playButton);
+        Utilities.setImage("/resources/stop.png", "Stop batch commands", stopButton);
 
         Utilities.setImage("/resources/new.png", "Create new batch",newButton);
         Utilities.setImage("/resources/edit.png", "Edit selected batch",editButton);
-        Utilities.setImage("/resources/delete.png","Delete selected batch", deleteCommandsButton);
+        Utilities.setImage("/resources/delete.png","Delete selected batch", deleteButton);
     }
 
     public void refreshCommandsList() {
         XMLUtil xmlUtil = new XMLUtil();
 
-        String commandName = selectListView.getSelectionModel().getSelectedItem();
+        String commandName = filesListView.getSelectionModel().getSelectedItem();
         System.out.println("Command name: " + commandName);
         if(commandName != null) {
             ObservableList<String> batchCommands = xmlUtil.openBatchCommands(new File(DIRECTORY + "\\" + commandName + ".xml"));
@@ -276,23 +278,23 @@ public class AutomationTabController implements Initializable {
         } else {
             allCommandsListView.setItems(null);
             editButton.setDisable(true);
-            deleteCommandsButton.setDisable(true);
-            runCommandsButton.setDisable(true);
+            deleteButton.setDisable(true);
+            playButton.setDisable(true);
         }
     }
 
     public void updateCommandsList() {
         try {
-            selectListView.getItems().clear();
-            commandFilesList.clear();
+            filesListView.getItems().clear();
+            filesList.clear();
             for (File file : Objects.requireNonNull(directory.listFiles())) {
-                commandFilesList.add(file.getName().replace(".xml", ""));
+                filesList.add(file.getName().replace(".xml", ""));
             }
         } catch (NullPointerException npe) {
             //npe.printStackTrace();
         }
 
-        selectListView.setItems(commandFilesList);
+        filesListView.setItems(filesList);
     }
 
     private String formatCommand(String command) {

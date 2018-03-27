@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.location.LocationTabController">
+<AnchorPane fx:id="pane" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.location.LocationTabController">
 
     <children>
         <GoogleMapView fx:id="googleMapView" layoutX="14.0" layoutY="9.0" prefHeight="298.0" prefWidth="437.0" />
@@ -34,28 +34,34 @@
                 <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefHeight="17.0" prefWidth="66.0" text="Longitude:" GridPane.halignment="RIGHT" />
             <TextField fx:id="latitudeField" GridPane.columnIndex="3" />
             <TextField fx:id="longitudeField" GridPane.columnIndex="1" />
-            <Button fx:id="sendButton" mnemonicParsing="false" onAction="#handleSendButtonClicked" prefHeight="25.0" prefWidth="53.0" text="Send" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-            <Button fx:id="addButton" mnemonicParsing="false" onAction="#handleAddButtonClicked" prefHeight="25.0" prefWidth="225.0" text="Add to KML" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+            <Button fx:id="sendButton" mnemonicParsing="false" onAction="#handleSendButtonClicked" prefHeight="25.0" prefWidth="53.0" text="Send" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+            <Button fx:id="addButton" mnemonicParsing="false" onAction="#handleAddButtonClicked" prefHeight="25.0" prefWidth="225.0" text="Add to KML" GridPane.columnSpan="2" GridPane.rowIndex="2" />
+            <TextField fx:id="nameTextField" promptText="Name" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+            <TextField fx:id="descriptionTextField" promptText="Description" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="1" />
             </children>
         </GridPane>
 
         <Button fx:id="playButton" layoutX="478.0" layoutY="116.0" mnemonicParsing="false" onAction="#handlePlayButtonClicked" />
         <Button fx:id="stopButton" layoutX="520.0" layoutY="116.0" mnemonicParsing="false" onAction="#handleStopButtonClicked" />
 
-        <ListView fx:id="KMLFilesListView" layoutX="478.0" layoutY="150.0" onMouseClicked="#handleKMLFilesListViewClicked" prefHeight="156.0" prefWidth="297.0" />
+        <ListView fx:id="filesListView" layoutX="478.0" layoutY="150.0" onMouseClicked="#handleKMLFilesListViewClicked" prefHeight="156.0" prefWidth="297.0" />
 
         <Button fx:id="newButton" layoutX="695.0" layoutY="318.0" mnemonicParsing="false" onAction="#handleNewButtonClicked" />
         <Button fx:id="deleteButton" layoutX="738.0" layoutY="318.0" mnemonicParsing="false" onAction="#handleDeleteButtonClicked" />
 
-      <TableView fx:id="KMLTableView" layoutX="14.0" layoutY="352.0" prefHeight="200.0" prefWidth="523.0">
+      <TableView fx:id="KMLTableView" layoutX="14.0" layoutY="317.0" onMouseClicked="#handleKMLTableViewClicked" prefHeight="235.0" prefWidth="523.0">
         <columns>
-          <TableColumn fx:id="nameColumn" prefWidth="150.0" text="Name" />
-          <TableColumn fx:id="descriptionColumn" prefWidth="150.0" text="Description" />
-          <TableColumn fx:id="latitudeColumn" prefWidth="75.0" text="Latitude" />
-          <TableColumn fx:id="longitudeColumn" prefWidth="75.0" text="Longitude" />
-          <TableColumn fx:id="altitudeColumn" prefWidth="75.0" text="Altitude" />
+            <TableColumn fx:id="nameColumn" prefWidth="150.0" text="Name" />
+            <TableColumn fx:id="descriptionColumn" prefWidth="150.0" text="Description" />
+            <TableColumn fx:id="longitudeColumn" prefWidth="75.0" text="Longitude" />
+            <TableColumn fx:id="latitudeColumn" prefWidth="75.0" text="Latitude" />
+            <TableColumn fx:id="altitudeColumn" prefWidth="75.0" text="Altitude" />
         </columns>
       </TableView>
+
+        <Button fx:id="moveDownButton" layoutX="553.0" layoutY="525.0" mnemonicParsing="false" onAction="#handleMoveDownButtonClicked" />
+        <Button fx:id="moveUpButton" layoutX="606.0" layoutY="525.0" mnemonicParsing="false" onAction="#handleMoveUpButtonClicked" />
+        <Button fx:id="deleteCommandButton" layoutX="656.0" layoutY="525.0" mnemonicParsing="false" onAction="#handleDeleteCommandButtonClicked" />
 
     </children>
 

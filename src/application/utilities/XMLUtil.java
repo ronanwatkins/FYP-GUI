@@ -2,9 +2,11 @@ package application.utilities;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.parsers.DocumentBuilder;
@@ -16,7 +18,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import com.sun.org.apache.bcel.internal.generic.FCMPG;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -26,12 +27,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 public class XMLUtil {
-    private Document document;
-    private Element rootElement;
+    private static Document document;
+    private static Element rootElement;
     private AtomicBoolean isFileSaved = new AtomicBoolean(true);
+    private boolean isKml = false;
 
     public XMLUtil() {
         try {
@@ -47,12 +48,15 @@ public class XMLUtil {
     }
 
     public XMLUtil(boolean isKML) {
+        this.isKml = isKML;
+
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
             document = documentBuilder.newDocument();
             rootElement = document.createElement("kml");
+
             document.appendChild(rootElement);
         } catch (ParserConfigurationException pce) {
             pce.printStackTrace();
@@ -77,10 +81,119 @@ public class XMLUtil {
         }
     }
 
+    public void updateFile(File file, KML kml) {
+        try {
+            List<String> fileContent = new ArrayList<>(Files.readAllLines(file.toPath()));
+            fileContent.set(0, fileContent.get(0).replace("</kml>mark>", "<Placemark>")); //Sometimes a tag would become malformed so I came up with this quick fix
+            Files.write(file.toPath(), fileContent, StandardCharsets.UTF_8);
+
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            Document document = documentBuilder.parse(file);
+
+            Element root = document.getDocumentElement();
+
+            Node firstDocImportedNode = document.importNode(addKMLElement(kml), true);
+            root.appendChild(firstDocImportedNode );
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(document);
+
+            StreamResult result = new StreamResult(file);
+
+            Task task = new Task<Void>() {
+
+                @Override
+                public Void call() throws TransformerException {
+                    transformer.transform(source, result);
+                    return null;
+                }
+            };
+            new Thread(task).start();
+
+            task.setOnSucceeded(event -> {
+                System.out.println("file saved");
+                isFileSaved.set(true);
+            });
+        } catch (Exception ee) {
+            ee.printStackTrace();
+        } finally {
+            isKml = false;
+            saveKMLFile(file);
+        }
+    }
+
+    public Element addKMLElement(KML kml) {
+        Element placemark = document.createElement("Placemark");
+        rootElement.appendChild(placemark);
+
+        Element name = document.createElement("name");
+        name.appendChild(document.createTextNode(kml.getName()));
+        placemark.appendChild(name);
+
+        Element description = document.createElement("description");
+        description.appendChild(document.createTextNode(kml.getDescription()));
+        placemark.appendChild(description);
+
+        Element point = document.createElement("Point");
+
+        Element coordinates = document.createElement("coordinates");
+        coordinates.appendChild(document.createTextNode(kml.getAllValues()));
+        point.appendChild(coordinates);
+
+        placemark.appendChild(point);
+
+        return placemark;
+    }
+
+    public void updateFile(File file, ObservableList<KML> KMLCommands) {
+        XMLUtil xmlUtil = new XMLUtil(true);
+
+        for(KML kml : KMLCommands) {
+            xmlUtil.addKMLElement(kml);
+        }
+
+        isKml = false;
+        saveKMLFile(file);
+    }
+
+    public void saveKMLFile(File file) {
+        try {
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(document);
+
+            StreamResult result = new StreamResult(file);
+
+            Task task = new Task<Void>() {
+
+                @Override
+                public Void call() throws TransformerException {
+                    transformer.transform(source, result);
+                    return null;
+                }
+            };
+            new Thread(task).start();
+
+
+        } catch (TransformerException te) {
+            te.printStackTrace();
+        }
+    }
+
+
+
     public void saveFile(File file) {
         isFileSaved.set(false);
 
         try {
+//            if(isKml) {
+//                Element stage = document.createElement("Document");
+//                rootElement.appendChild(stage);
+//            }
+
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             DOMSource source = new DOMSource(document);
@@ -239,7 +352,8 @@ public class XMLUtil {
 
                     Element element;
 
-                    NodeList nodeList = document.getElementsByTagName("Document");
+                    //NodeList nodeList = document.getElementsByTagName("Document");
+                    NodeList nodeList = document.getElementsByTagName("kml");
 
                     for (int i = 0; i < nodeList.getLength(); i++) { //looping through "Document"
                         Node node = nodeList.item(i);

@@ -19,7 +19,6 @@ public class TelnetServer {
 
             @Override
             public Void call() throws IOException {
-
                 Socket serverSocket = new Socket("localhost", port);
 
                 out = new PrintStream(serverSocket.getOutputStream());
@@ -167,7 +166,7 @@ public class TelnetServer {
     public static void setLocation(String command) {
         if(out != null) {
             out.println("geo fix " + command);
-            System.out.println("geo fix " + command);
         }
+        System.out.println("geo fix " + command);
     }
 }

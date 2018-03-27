@@ -31,11 +31,12 @@ import java.net.URI;
 import java.net.URL;
 import java.util.*;
 
-import static application.automation.AutomationTabController.DIRECTORY;
 
 public class CreateBatchTabController implements Initializable, Showable<AutomationTabController> {
 
     private final String FILES_DIRECTORY = System.getProperty("user.dir") + "\\misc";
+    private final String EXTENSION = ".xml";
+    private static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\automation";
 
     @FXML
     private TextField commandField;
@@ -581,11 +582,7 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
             dialog.setHeaderText("Enter Batch Name");
 
             Optional<String> result = dialog.showAndWait();
-            if (result.isPresent()) {
-                System.out.println(result.get());
-
-                xmlUtil.saveBatchCommands(commandsListView.getItems(), new File(DIRECTORY + "\\" + result.get() + ".xml"));
-            }
+            result.ifPresent(s -> xmlUtil.saveBatchCommands(commandsListView.getItems(), new File(DIRECTORY + "\\" + s + EXTENSION)));
         }
 
         try {
@@ -616,7 +613,6 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
     public TextField getCommandField() {
         return commandField;
     }
-
 
     private ObservableList<String> broadcastValues() {
         ObservableList<String> values = FXCollections.observableArrayList();

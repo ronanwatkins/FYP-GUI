@@ -10,18 +10,25 @@ public class KML {
     private StringProperty description;
     private DoubleProperty latitude;
     private DoubleProperty longitude;
-//    private Point point;
     private DoubleProperty altitude;
 
     public KML(String name, String description, double latitude, double longitude, double altitude) {
         this.name = new SimpleStringProperty(name);
         this.description = new SimpleStringProperty(description);
-//        point = new Point(latitude, longitude);
         this.latitude = new SimpleDoubleProperty(latitude);
         this.longitude = new SimpleDoubleProperty(longitude);
         this.altitude = new SimpleDoubleProperty(altitude);
     }
 
+    public String getCoordinate() {
+        return longitude.get() + " " + latitude.get();
+    }
+
+    public String getAllValues() {
+        return longitude.get() + "," + latitude.get() + "," + altitude.get();
+    }
+
+    //Property Getters
     public StringProperty nameProperty() {
         return name;
     }
@@ -42,23 +49,51 @@ public class KML {
         return longitude;
     }
 
-        @Override
+    //Value Getters
+    public String getName() {
+        return name.get();
+    }
+
+    public String getDescription() {
+        return description.get();
+    }
+
+    public double getLatitude() {
+        return latitude.get();
+    }
+
+    public double getLongitude() {
+        return longitude.get();
+    }
+
+    public double getAltitude() {
+        return altitude.get();
+    }
+
+    //Setters
+    public void setName(String name) {
+        this.name.set(name);
+    }
+
+    public void setDescription(String description) {
+        this.description.set(description);
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude.set(latitude);
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude.set(longitude);
+    }
+
+    public void setAltitude(double altitude) {
+        this.altitude.set(altitude);
+    }
+
+    //ToString
+    @Override
     public String toString() {
         return name.get() + " " + description.get() + " " + latitude.get() + " " + longitude.get() + " " + altitude.get();
     }
-
-//    private class Point {
-//        private double latitude;
-//        private double longitude;
-//
-//        public Point(double latitude, double longitude) {
-//            this.latitude = latitude;
-//            this.longitude = longitude;
-//        }
-//
-//        @Override
-//        public String toString() {
-//            return latitude  + ", " + longitude;
-//        }
-//    }
 }
