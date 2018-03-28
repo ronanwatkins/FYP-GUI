@@ -4,15 +4,18 @@ import application.TelnetServer;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 
 import java.net.URL;
 import java.util.ResourceBundle;
 
 public class PhoneTabController implements Initializable {
+
+    @FXML
+    private Slider batterySlider;
+
+    @FXML
+    private Label batteryLabel;
 
     @FXML
     private TextField phoneNumberField;
@@ -37,6 +40,12 @@ public class PhoneTabController implements Initializable {
     private ComboBox voiceStatus;
     @FXML
     private ComboBox dataStatus;
+    @FXML
+    private ComboBox batteryHealth;
+    @FXML
+    private ComboBox batteryStatus;
+    @FXML
+    private ComboBox charging;
 
     private String phoneNumber;
 
@@ -46,6 +55,40 @@ public class PhoneTabController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        batterySlider.setValue(100);
+        batteryHealth.getSelectionModel().select(2);
+        batteryStatus.getSelectionModel().select(3);
+        charging.getSelectionModel().select(0);
+
+        batterySlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
+        {
+            int batteryValue = newvalue.intValue();
+            batteryLabel.setText(batteryValue+"");
+            TelnetServer.powerCapacity(batteryValue+"");
+        });
+
+        batteryHealth.setOnAction(event -> {
+            String health = batteryHealth.getValue().toString().toLowerCase();
+            TelnetServer.batteryHealth(health);
+        });
+
+        batteryStatus.setOnAction(event -> {
+            String status = batteryStatus.getValue().toString().toLowerCase().trim().replace(" ", "-");
+            TelnetServer.batteryStatus(status);
+        });
+
+        charging.setOnAction(event -> {
+            String status = charging.getValue().toString().toLowerCase().trim();
+            switch (status) {
+                case "charging":
+                    TelnetServer.setCharging("on");
+                    break;
+                case "not charging":
+                    TelnetServer.setCharging("off");
+                    break;
+            }
+        });
+
         networkType.getSelectionModel().select(2);
         signalStrength.getSelectionModel().select(4);
         voiceStatus.getSelectionModel().select(0);

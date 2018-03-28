@@ -6,7 +6,7 @@
 
 <BorderPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.FXMLMainController">
     <top>
-        <TabPane prefHeight="600.0" prefWidth="800.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+        <TabPane fx:id="tabPane" prefHeight="600.0" prefWidth="800.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
             <tabs>
                 <Tab text="Sensors">
                     <content>
@@ -16,11 +16,6 @@
                 <Tab text="Location">
                     <content>
                         <fx:include fx:id="LocationTabPage" source="location/LocationTab.fxml" />
-                    </content>
-                </Tab>
-                <Tab text="Power">
-                    <content>
-                        <fx:include fx:id="PowerTabPage" source="power/PowerTab.fxml" />
                     </content>
                 </Tab>
                 <Tab text="Phone">
@@ -36,6 +31,16 @@
                 <Tab text="Automation">
                     <content>
                         <fx:include fx:id="AutomationTabPage" source="automation/AutomationTab.fxml" />
+                    </content>
+                </Tab>
+                <Tab text="Applications">
+                    <content>
+                        <fx:include fx:id="ApplicationTabPage" source="applications/ApplicationTab.fxml" />
+                    </content>
+                </Tab>
+                <Tab text="LogCat">
+                    <content>
+                        <fx:include fx:id="LogCatTabPage" source="logcat/LogCatTab.fxml" />
                     </content>
                 </Tab>
             </tabs>

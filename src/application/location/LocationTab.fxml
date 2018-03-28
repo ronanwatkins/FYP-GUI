@@ -12,10 +12,13 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
 <AnchorPane fx:id="pane" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.location.LocationTabController">
 
     <children>
-        <GoogleMapView fx:id="googleMapView" layoutX="14.0" layoutY="9.0" prefHeight="298.0" prefWidth="437.0" />
+        <GoogleMapView fx:id="googleMapView" layoutX="14.0" layoutY="9.0" prefHeight="262.0" prefWidth="437.0" />
 
         <GridPane layoutX="478.0" layoutY="21.0" prefHeight="95.0" prefWidth="253.0">
             <columnConstraints>
@@ -41,10 +44,19 @@
             </children>
         </GridPane>
 
-        <Button fx:id="playButton" layoutX="478.0" layoutY="116.0" mnemonicParsing="false" onAction="#handlePlayButtonClicked" />
-        <Button fx:id="stopButton" layoutX="520.0" layoutY="116.0" mnemonicParsing="false" onAction="#handleStopButtonClicked" />
+        <ComboBox fx:id="runTypeComboBox" layoutX="14.0" layoutY="280.0" prefHeight="28.0" prefWidth="150.0">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Run All Commands" />
+                    <String fx:value="Run From Selected" />
+                    <String fx:value="Run Selected" />
+                </FXCollections>
+            </items>
+        </ComboBox>
+        <Button fx:id="playButton" layoutX="180.0" layoutY="280.0" mnemonicParsing="false" onAction="#handlePlayButtonClicked" />
+        <Button fx:id="stopButton" layoutX="230.0" layoutY="280.0" mnemonicParsing="false" onAction="#handleStopButtonClicked" />
 
-        <ListView fx:id="filesListView" layoutX="478.0" layoutY="150.0" onMouseClicked="#handleKMLFilesListViewClicked" prefHeight="156.0" prefWidth="297.0" />
+        <ListView fx:id="filesListView" layoutX="478.0" layoutY="124.0" onMouseClicked="#handleKMLFilesListViewClicked" prefHeight="182.0" prefWidth="297.0" />
 
         <Button fx:id="newButton" layoutX="695.0" layoutY="318.0" mnemonicParsing="false" onAction="#handleNewButtonClicked" />
         <Button fx:id="deleteButton" layoutX="738.0" layoutY="318.0" mnemonicParsing="false" onAction="#handleDeleteButtonClicked" />

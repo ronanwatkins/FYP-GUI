@@ -94,7 +94,7 @@ public class ADBUtil {
                     Task task = new Task() {
                         @Override
                         protected Object call() throws Exception {
-                           // checkDevices();
+                            checkDevices();
                             return null;
                         }
                     };
@@ -334,8 +334,7 @@ public class ADBUtil {
 
     public static void checkDevices() {
         while(true) {
-            String[] result = consoleCommand(new String[] {"devices"}, false).split("\n");
-            //System.out.println(result.length);
+            String[] result = consoleCommand(new String[] {"devices"}).split("\n");
 
             if(result.length == 2 && isFirstRun.get()) {
                 deviceName = result[1].split("\t")[0].trim();
@@ -386,8 +385,13 @@ public class ADBUtil {
                 if(controller != null) {
                     Platform.runLater(() -> controller.initDevices(result));
                 }
-
                 deviceCount = result.length;
+            }
+
+            if(isFirstRun.get()) {
+                int port = Integer.parseInt(deviceName.split("-")[1]);
+                TelnetServer.connect(port);
+                System.out.println("Connected to telnet port: " + port);
             }
 
             try {
@@ -401,7 +405,7 @@ public class ADBUtil {
     }
 
     public static ArrayList<String> listApplications() {
-        String[] applications = consoleCommand(new String[] {"shell", "pm", "list" ,"packages"}, false).replace("package:", "").trim().split("\n");
+        String[] applications = consoleCommand(new String[] {"shell", "pm", "list" ,"packages"}).replace("package:", "").trim().split("\n");
 
         List<String> apps = Arrays.asList(applications);
 
@@ -420,6 +424,10 @@ public class ADBUtil {
 
     public static String getDeviceName() {
         return deviceName;
+    }
+
+    public static String getAdbPath() {
+        return adbPath;
     }
 
     public static String consoleCommand(String[] parameters, boolean runInBackground) {
@@ -492,6 +500,10 @@ public class ADBUtil {
 
         System.out.println(Thread.currentThread().getId() + " result: " + result);
         return result.toString();
+    }
+
+    public static String consoleCommand(String command) {
+        return consoleCommand(command.split(" "));
     }
 
     public static String consoleCommand(String[] parameters) {

@@ -33,7 +33,7 @@ public class Main extends Application {
             stage.setScene(scene);
             stage.show();
 
-            TelnetServer.connect();
+//            TelnetServer.connect();
             ADBUtil.initADB();
 
             if (!createDirectories())
@@ -74,6 +74,10 @@ public class Main extends Application {
             result = directory.mkdir();
 
         directory = new File(path + "\\location");
+        if(!directory.exists())
+            result = directory.mkdir();
+
+        directory = new File(path + "\\applications");
         if(!directory.exists())
             result = directory.mkdir();
 

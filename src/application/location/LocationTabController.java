@@ -18,7 +18,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -98,18 +97,7 @@ public class LocationTabController extends AutomationTabController implements In
         longitudeField.setText(formatter.format(longitude));
         googleMapView.addMapInializedListener(this::configureMap);
 
-        KMLTableView.setEditable(true);
-        KMLTableView.setContextMenu(getContextMenu());
         nameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
-        nameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        nameColumn.setOnEditCommit(t -> {
-           // nameColumn.getItems().set(t.getIndex(), t.getNewValue());
-        //    nameColumn.get
-            System.out.println("setOnEditCommit");
-        });
-
-      //  commandsListView.setOnEditCancel(t -> System.out.println("setOnEditCancel"));
-
         descriptionColumn.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
         latitudeColumn.setCellValueFactory(cellData -> cellData.getValue().latitudeProperty().asObject());
         longitudeColumn.setCellValueFactory(cellData -> cellData.getValue().longitudeProperty().asObject());
@@ -129,29 +117,13 @@ public class LocationTabController extends AutomationTabController implements In
             moveUpButton.setDisable(false);
             deleteCommandButton.setDisable(false);
 
-            MouseButton mouseButton = event.getButton();
-            if(mouseButton.toString().equalsIgnoreCase("primary") && event.getClickCount() == 2) {
-                System.out.println("double");
+            if(event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
                 KML kml =  KMLTableView.getSelectionModel().getSelectedItem();
                 map.panTo(new LatLong(kml.getLatitude(), kml.getLongitude()));
                 map.setZoom((int) kml.getAltitude());
-            } else if (mouseButton.toString().equalsIgnoreCase("secondary")) {
-                getContextMenu().show(pane, event.getScreenX(), event.getScreenY());
+                TelnetServer.setLocation(kml.getCoordinate());
             }
         }
-    }
-
-    private ContextMenu getContextMenu() {
-        ContextMenu contextMenu = new ContextMenu();
-        MenuItem edit = new MenuItem("Edit");
-        contextMenu.getItems().addAll(edit);
-        edit.setOnAction(event ->  {
-            System.out.println("Edit...");
-
-            //KMLTableView.
-        });
-
-        return contextMenu;
     }
 
     @Override
@@ -267,11 +239,23 @@ public class LocationTabController extends AutomationTabController implements In
 
             ObservableList<KML> KMLCommands = KMLTableView.getItems();
 
+            int startIndex;
+            if(runTypeComboBox.getSelectionModel().isSelected(1) || runTypeComboBox.getSelectionModel().isSelected(2))
+                startIndex = KMLTableView.getSelectionModel().getSelectedIndex();
+            else
+                startIndex = 0;
+
+            int endIndex;
+            if(runTypeComboBox.getSelectionModel().isSelected(2))
+                endIndex = startIndex+1;
+            else
+                endIndex = KMLTableView.getItems().size();
+
             runCommandsTask = new Task<Void>() {
                 @Override
                 protected Void call() {
-                    int index = 0;
-                    for (KML kml : KMLCommands) {
+                    int index = startIndex;
+                    for (KML kml : KMLCommands.subList(startIndex, endIndex)) {
 
                         if (pauseFlag.get()) {
                             synchronized (pauseFlag) {
@@ -293,6 +277,12 @@ public class LocationTabController extends AutomationTabController implements In
                         final int newIndex = index++;
 
                         Platform.runLater(() -> {
+                            KMLTableView.getSelectionModel().select(newIndex);
+
+                            if (KMLTableView.getSelectionModel().getSelectedIndex() > 5) {
+                                KMLTableView.scrollTo(KMLTableView.getSelectionModel().getSelectedIndex());
+                            }
+
                             map.panTo(new LatLong(kml.getLatitude(), kml.getLongitude()));
                             map.setZoom((int) kml.getAltitude());
                             KMLTableView.getSelectionModel().select(newIndex);
@@ -414,6 +404,7 @@ public class LocationTabController extends AutomationTabController implements In
 
     @Override
     protected void initializeButtons() {
+        runTypeComboBox.getSelectionModel().select(0);
         playButton.setDisable(true);
         stopButton.setDisable(true);
         addButton.setDisable(true);

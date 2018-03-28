@@ -46,7 +46,7 @@ public class AutomationTabController implements Initializable {
     protected Button stopButton;
 
     @FXML
-    private ComboBox<String> runTypeComboBox;
+    protected ComboBox<String> runTypeComboBox;
 
     @FXML
     private CheckBox stopOnFailureCheckBox;

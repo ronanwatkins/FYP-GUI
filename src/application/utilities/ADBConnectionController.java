@@ -1,6 +1,7 @@
 package application.utilities;
 
 import application.ADBUtil;
+import application.TelnetServer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -74,6 +75,12 @@ public class ADBConnectionController implements Initializable {
     private void handleConnectButtonClicked() {
         String device = devicesListView.getSelectionModel().getSelectedItem();
         ADBUtil.setDeviceName(device);
+
+        if(device.contains("emulator")) {
+            int port = Integer.parseInt(device.split("-")[1]);
+            TelnetServer.connect(port);
+            System.out.println("Connected to telnet port: " + port);
+        }
 
         resultLabel.setTextFill(Color.GREEN);
         resultLabel.setText("Connected to " + device);

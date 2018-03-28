@@ -31,7 +31,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.*;
 
-
 public class CreateBatchTabController implements Initializable, Showable<AutomationTabController> {
 
     private final String FILES_DIRECTORY = System.getProperty("user.dir") + "\\misc";
