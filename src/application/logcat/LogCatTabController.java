@@ -65,7 +65,6 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     @FXML
     private void handleStartButtonClicked(ActionEvent event) {
-
         if(startButton.getText().equalsIgnoreCase("start")) {
             getLogCatTask = new Task<Void>() {
                 @Override

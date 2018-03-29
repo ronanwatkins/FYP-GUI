@@ -6,12 +6,12 @@ import application.utilities.ADB;
 import application.utilities.Utilities;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 import java.io.File;
@@ -21,11 +21,27 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
+import static application.utilities.ADB.*;
+
 public class ApplicationTabController implements Initializable {
 
     public static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\applications";
 
     private final String EXTENSION = ".apk";
+
+    @FXML
+    private TableView<Application> applicationTableView;
+
+    @FXML
+    private TableColumn<Application, String> applicationNameColumn;
+    @FXML
+    private TableColumn<Application, String> APKNameColumn;
+    @FXML
+    private TableColumn<Application, String> APKPathColumn;
+    @FXML
+    private TableColumn<Application, String> versionCodeColumn;
+    @FXML
+    private TableColumn<Application, Integer> userIdColumn;
 
     @FXML
     private TextArea resultTextArea;
@@ -55,8 +71,18 @@ public class ApplicationTabController implements Initializable {
         directory = new File(DIRECTORY);
         resultTextArea.setEditable(false);
 
+        initializeTableView();
         initializeButtons();
         updatePCListView();
+    }
+
+
+    private void initializeTableView() {
+        applicationNameColumn.setCellValueFactory(cellData -> cellData.getValue().packageNameProperty());
+        APKNameColumn.setCellValueFactory(cellData -> cellData.getValue().APKNameProperty());
+        APKPathColumn.setCellValueFactory(cellData -> cellData.getValue().APKPathProperty());
+        versionCodeColumn.setCellValueFactory(cellData -> cellData.getValue().versionCodeProperty());
+        userIdColumn.setCellValueFactory(cellData -> cellData.getValue().userIdProperty().asObject());
     }
 
     private void updatePCListView() {
@@ -86,7 +112,7 @@ public class ApplicationTabController implements Initializable {
     private void handleInstallButtonClicked(ActionEvent event) {
         String appName = appsOnPCListView.getSelectionModel().getSelectedItem();
         System.out.println(directory.getAbsolutePath() + appName);
-        resultTextArea.setText(ADB.installApp(directory.getAbsolutePath() + "\\" + appName));
+        resultTextArea.setText(installApp(directory.getAbsolutePath() + "\\" + appName));
 
         updateDeviceListView();
     }
@@ -108,26 +134,38 @@ public class ApplicationTabController implements Initializable {
     @FXML
     private void handleOpenButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
-        resultTextArea.setText(ADB.openApp(appName));
+        resultTextArea.setText(openApp(appName));
     }
 
     @FXML
     private void handleUninstallButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
-        resultTextArea.setText(ADB.uninstallApp(appName));
+        resultTextArea.setText(uninstallApp(appName));
     }
 
     @FXML
     private void handleCopyButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
-        resultTextArea.setText(ADB.getAPK(appName, directory.getAbsolutePath()));
-        updatePCListView();
+
+        Task<String> task = new Task<String>() {
+            @Override
+            protected String call() throws Exception {
+                return getAPKFile(appName, directory.getAbsolutePath());
+            }
+        };
+
+        task.setOnSucceeded(event1 -> {
+            resultTextArea.setText(task.getValue());
+            updatePCListView();
+        });
+
+        new Thread(task).start();
     }
 
     @FXML
     private void handleCloseButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
-        resultTextArea.setText(ADB.closeApp(appName));
+        resultTextArea.setText(closeApp(appName));
     }
 
     @FXML
@@ -144,11 +182,24 @@ public class ApplicationTabController implements Initializable {
     private void handleRefreshButtonClicked(ActionEvent event) {
         updateDeviceListView();
         updatePCListView();
+
+//        applicationTableView.getItems().clear();
+//        applicationTableView.set
+//        appsOnDeviceList
     }
 
     private void initializeButtons() {
         Utilities.setImage("/resources/delete.png", "Delete file", deleteButton);
         Utilities.setImage("/resources/pop_out.png", null, showLogCatButton);
         Utilities.setImage("/resources/refresh.png", null, refreshButton);
+    }
+
+    @FXML
+    private void handleAppsListViewClicked(MouseEvent mouseEvent) {
+        String applicationName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
+
+        applicationTableView.getItems().clear();
+        applicationTableView.getItems().add(new Application(applicationName));
+        //new Application(applicationName);
     }
 }
