@@ -540,15 +540,12 @@ public class ADBUtil {
                 }
             }
 
-            process.waitFor(10, TimeUnit.SECONDS);
+//            process.waitFor(10, TimeUnit.SECONDS);
+            process.waitFor();
             bufferedReader.close();
-        } catch (NullPointerException npe) {
-            npe.printStackTrace();
         }
-        catch (IOException ioe) {
-            ioe.printStackTrace();
-        } catch (InterruptedException ie) {
-            ie.printStackTrace();
+        catch (IOException|InterruptedException|NullPointerException ee) {
+            ee.printStackTrace();
         }
 
         return result.toString();

@@ -26,7 +26,8 @@ public class ADB {
     }
 
     public static String closeApp(String app) {
-        return ADBUtil.consoleCommand("shell am force-stop " + app);
+        String result = ADBUtil.consoleCommand("shell am force-stop " + app);
+        return result.isEmpty() ? "Application closed" : result;
     }
 
     public static String getAPKFile(String app, String destination) {
@@ -89,6 +90,8 @@ public class ADB {
         return new ArrayList<>(Arrays.asList(values));
     }
 
+
+
     public static ArrayList<StringProperty> listApplications() {
         ArrayList<StringProperty> values = new ArrayList<>();
         for(String application : ADBUtil.listApplications())
@@ -98,7 +101,33 @@ public class ADB {
     }
 
     public static ArrayList<Intent> getIntents(String app) {
-        String temp = ADBUtil.consoleCommand("shell \"dumpsys package " + app + " | egrep ' filter|Action:|Category:|Type:'\"");
+        String[] temp = ADBUtil.consoleCommand("shell \"dumpsys package " + app + " | egrep ' filter|Action:|Category:|Type:' | sed '/[a-zA-Z0-9] com/i \\nDIVISIONHERE' | sed 's/^[ \\t]*//;s/[ \\t]*$//'\"").split("DIVISIONHERE");
+
+        for(String s : temp) {
+            if(s.isEmpty())
+                continue;
+
+            ArrayList<StringProperty> actions = new ArrayList<>();
+            ArrayList<StringProperty> categories = new ArrayList<>();
+            ArrayList<StringProperty> types = new ArrayList<>();
+            String[] temp2 = s.trim().split("\n");
+
+            StringProperty component = new SimpleStringProperty(temp2[0].split(" ")[1]);
+
+            for(String temp3 : temp2) {
+                if(temp3.startsWith("Action: ")) {
+                    actions.add(new SimpleStringProperty(temp3.replace("Action: ", "").replace("\"", "")));
+                }
+                else if(temp3.startsWith("Category: ")) {
+                    categories.add(new SimpleStringProperty(temp3.replace("Category: ", "").replace("\"", "")));
+                }
+                else if(temp3.startsWith("Type: ")) {
+                    types.add(new SimpleStringProperty(temp3.replace("Type: ", "").replace("\"", "")));
+                }
+            }
+            Intent intent = new Intent(component, actions, categories, types);
+            System.out.println(intent.toString());
+        }
 
         return null;
     }

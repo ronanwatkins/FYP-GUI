@@ -1,7 +1,6 @@
 package application.utilities;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -18,6 +17,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import application.location.KML;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -26,7 +26,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 public class XMLUtil {
     private static Document document;
@@ -81,12 +80,23 @@ public class XMLUtil {
         }
     }
 
-    public void updateFile(File file, KML kml) {
+    private String printFile(File file) {
+        String content = "";
         try {
             List<String> fileContent = new ArrayList<>(Files.readAllLines(file.toPath()));
-            fileContent.set(0, fileContent.get(0).replace("</kml>mark>", "<Placemark>")); //Sometimes a tag would become malformed so I came up with this quick fix
+            //fileContent.set(0, fileContent.get(0).replace("</kml>mark>", "<Placemark>")); //Sometimes a tag would become malformed so I came up with this quick fix
+            content = fileContent.get(0);
             Files.write(file.toPath(), fileContent, StandardCharsets.UTF_8);
+        }catch (Exception ee) {
+            ee.printStackTrace();
+        } finally {
+            return content;
+        }
+    }
 
+    public void updateFile(File file, KML kml) {
+        System.out.println("updateFile before >> " + printFile(file));
+        try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = documentBuilder.parse(file);
@@ -101,25 +111,12 @@ public class XMLUtil {
             DOMSource source = new DOMSource(document);
 
             StreamResult result = new StreamResult(file);
-
-            Task task = new Task<Void>() {
-
-                @Override
-                public Void call() throws TransformerException {
-                    transformer.transform(source, result);
-                    return null;
-                }
-            };
-            new Thread(task).start();
-
-            task.setOnSucceeded(event -> {
-                System.out.println("file saved");
-                isFileSaved.set(true);
-            });
+            transformer.transform(source, result);
         } catch (Exception ee) {
             ee.printStackTrace();
         } finally {
             isKml = false;
+            System.out.println("updateFile after >> " + printFile(file));
             saveKMLFile(file);
         }
     }
@@ -151,6 +148,7 @@ public class XMLUtil {
         XMLUtil xmlUtil = new XMLUtil(true);
 
         for(KML kml : KMLCommands) {
+            System.out.println("updateFile>> " + kml);
             xmlUtil.addKMLElement(kml);
         }
 
@@ -159,41 +157,24 @@ public class XMLUtil {
     }
 
     public void saveKMLFile(File file) {
+        System.out.println("saveKMLFile before >> " + printFile(file));
         try {
-
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             DOMSource source = new DOMSource(document);
 
             StreamResult result = new StreamResult(file);
-
-            Task task = new Task<Void>() {
-
-                @Override
-                public Void call() throws TransformerException {
-                    transformer.transform(source, result);
-                    return null;
-                }
-            };
-            new Thread(task).start();
-
-
+            transformer.transform(source, result);
         } catch (TransformerException te) {
             te.printStackTrace();
         }
+        System.out.println("saveKMLFile after >> " + printFile(file));
     }
-
-
 
     public void saveFile(File file) {
         isFileSaved.set(false);
 
         try {
-//            if(isKml) {
-//                Element stage = document.createElement("Document");
-//                rootElement.appendChild(stage);
-//            }
-
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
             DOMSource source = new DOMSource(document);
@@ -232,10 +213,8 @@ public class XMLUtil {
         HashMap<Integer, HashMap<String, Double>> returnMap = new HashMap<>();
 
         Task task = new Task<Void>() {
-
             @Override
             public Void call() {
-
                 try {
                     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
                     DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -320,12 +299,8 @@ public class XMLUtil {
                         element = (Element) nodeList.item(i);
                         returnList.add(element.getTextContent());
                     }
-                } catch (SAXException spe) {
-                    //spe.printStackTrace();
-                    System.out.println("spe FileName: " + file.getAbsolutePath());
-                    //openBatchCommands(file);
-                } catch (ParserConfigurationException|IOException e) {
-                    e.printStackTrace();
+                } catch (Exception ee) {
+                    ee.printStackTrace();
                 }
 
                 return null;
@@ -337,7 +312,6 @@ public class XMLUtil {
     }
 
     public ObservableList<KML> openKMLCommands(File file) {
-        //ArrayList<KML> KMLList = new ArrayList<>();
         ObservableList<KML> KMLList = FXCollections.observableArrayList();
 
         Task task = new Task<Void>() {
@@ -352,7 +326,6 @@ public class XMLUtil {
 
                     Element element;
 
-                    //NodeList nodeList = document.getElementsByTagName("Document");
                     NodeList nodeList = document.getElementsByTagName("kml");
 
                     for (int i = 0; i < nodeList.getLength(); i++) { //looping through "Document"
@@ -364,9 +337,7 @@ public class XMLUtil {
                                 element = (Element) childNode;
 
                                 String name = (element.getElementsByTagName("name").item(0).getTextContent());
-                               // System.out.println("name: " + name);
                                 String description = (element.getElementsByTagName("description").item(0).getTextContent());
-                               // System.out.println("description: " + description);
 
                                 String[] values = (element.getElementsByTagName("Point").item(0).getTextContent()).split(",");
                                 Double longitude = Double.parseDouble(values[0]);
@@ -380,14 +351,6 @@ public class XMLUtil {
                 } catch (Exception ee) {
                     ee.printStackTrace();
                 }
-//
-// catch (SAXException spe) {
-//                    //spe.printStackTrace();
-//                    System.out.println("spe FileName: " + file.getAbsolutePath());
-//                    //openBatchCommands(file);
-//                } catch (ParserConfigurationException|IOException e) {
-//                    e.printStackTrace();
-//                }
 
                 return null;
             }

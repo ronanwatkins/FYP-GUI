@@ -4,33 +4,36 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import java.util.ArrayList;
 
 import static application.utilities.ADB.*;
 
-public class Application {
+public class AndroidApplication {
     private StringProperty packageName;
     private StringProperty APKName;
     private StringProperty APKPath;
     private VersionCode versionCode;
     private IntegerProperty userId;
     private StringProperty dataDir;
-    private ArrayList<StringProperty> flags;
-    private ArrayList<StringProperty> permissions;
-    private ArrayList<Intent> intents;
+    private ObservableList<StringProperty> flags;
+    private ObservableList<StringProperty> permissions;
+    private ObservableList<Intent> intents;
     private boolean isRunning;
     private boolean isSystem;
 
-    public Application(String packageName) {
+    public AndroidApplication(String packageName) {
         this.packageName = new SimpleStringProperty(packageName);
         APKName = new SimpleStringProperty(getAPKName(packageName));
         APKPath = new SimpleStringProperty(getAPKPath(packageName));
         versionCode = new VersionCode();
         userId = new SimpleIntegerProperty(getUserId(packageName));
         dataDir = new SimpleStringProperty(getDataDir(packageName));
-        flags = getFlags(packageName);
-        permissions = getPermissions(packageName);
+        flags = FXCollections.observableArrayList(getFlags(packageName));
+        permissions = FXCollections.observableArrayList(getPermissions(packageName));
+        intents = FXCollections.observableArrayList(getIntents(packageName));
     }
 
     public StringProperty packageNameProperty() {
@@ -53,6 +56,20 @@ public class Application {
         return userId;
     }
 
+    public StringProperty dataDirProperty() {
+        return dataDir;
+    }
+
+    public ObservableList<StringProperty> flagsProperty() {
+        return flags;
+    }
+
+    public ObservableList<StringProperty> permissionsProperty() {
+        return permissions;
+    }
+
+    public ObservableList<Intent> intents() { return intents; }
+
     public class VersionCode {
         private String versionName;
         private int code;
@@ -69,8 +86,8 @@ public class Application {
 
         @Override
         public String toString() {
-            return "VersionName: " + versionName  +
-                    "\nVersion code: " + code +
+            return "Ver Name: " + versionName  +
+                    "\nVer code: " + code +
                     "\nminSdk: " + minSdk +
                     "\ntargetSdk: " + targetSdk;
         }

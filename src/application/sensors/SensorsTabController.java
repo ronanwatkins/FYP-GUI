@@ -174,7 +174,7 @@ public class SensorsTabController implements Initializable {
     private final double MAGNETIC_EAST = 5939.5;
     private final double MAGNETIC_VERTICAL = 43180.5;
 
-    private static final DecimalFormat TWO_DECIMAL_FORMAT = new DecimalFormat("#0.00");
+    private final DecimalFormat TWO_DECIMAL_FORMAT = new DecimalFormat("#0.00");
 
     private AccelerometerModel accelerometerModel;
     private GyroscopeModel gyroscopeModel;
@@ -442,23 +442,14 @@ public class SensorsTabController implements Initializable {
 
     private void handleSliderEvents() {
         lightSlider.valueProperty().addListener((observable, oldvalue, newvalue) -> sendSensorValues(LIGHT, newvalue.doubleValue()));
-
         temperatureSlider.valueProperty().addListener((observable, oldvalue, newvalue) -> sendSensorValues(TEMPERATURE, newvalue.doubleValue()));
-
         pressureSlider.valueProperty().addListener((observable, oldvalue, newvalue) -> sendSensorValues(PRESSURE, newvalue.doubleValue()));
-
         proximitySlider.valueProperty().addListener((observable, oldvalue, newvalue) -> sendSensorValues(PROXIMITY, newvalue.doubleValue()));
-
         humiditySlider.valueProperty().addListener((observable, oldvalue, newvalue) -> sendSensorValues(HUMIDITY, newvalue.doubleValue()));
-
         yawSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
             yawValue = newvalue.intValue();
-
-            //if(isConnected && listenBox.isSelected())
-              //  sensorValues.put(YAW, (double) (-1*(yawValue)));
-            //else
-                sensorValues.put(YAW, (double) yawValue);
+            sensorValues.put(YAW, (double) yawValue);
 
             updateSliderValues();
         });
@@ -584,7 +575,6 @@ public class SensorsTabController implements Initializable {
             mousePosX = mouseEvent.getSceneX();
             mousePosY = mouseEvent.getSceneY();
 
-//            mouseMoveX = accelerometerModel.getMoveX();
             mouseMoveX = 10;
             mouseMoveZ = accelerometerModel.getMoveZ();
 
@@ -691,7 +681,6 @@ public class SensorsTabController implements Initializable {
     }
 
     private void sendSensorValues(String sensor, double X, double Y, double Z) {
-
         TelnetServer.setSensor(sensor + " " + TWO_DECIMAL_FORMAT.format(X)
                 + ":"
                 + TWO_DECIMAL_FORMAT.format(Y)
@@ -724,7 +713,6 @@ public class SensorsTabController implements Initializable {
     }
 
     private int adjustValue(double angle) {
-
         int result = 0;
 
         if (angle > 270 || (angle < 90 && angle > 0)) {
@@ -886,7 +874,6 @@ public class SensorsTabController implements Initializable {
     }
 
     private class playbackThread extends Thread {
-
         private final AtomicBoolean pauseFlag = new AtomicBoolean(false);
         private final AtomicBoolean stopFlag = new AtomicBoolean(false);
 

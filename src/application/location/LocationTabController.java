@@ -2,7 +2,6 @@ package application.location;
 
 import application.TelnetServer;
 import application.automation.AutomationTabController;
-import application.utilities.KML;
 import application.utilities.XMLUtil;
 import application.utilities.Utilities;
 import com.lynden.gmapsfx.GoogleMapView;
@@ -132,6 +131,7 @@ public class LocationTabController extends AutomationTabController implements In
 
         String commandName = filesListView.getSelectionModel().getSelectedItem();
         if(commandName != null) {
+            KMLTableView.setPlaceholder(new Label("Add waypoints to the list"));
             KMLFile = new File(DIRECTORY + "\\" + commandName + EXTENSION);
             commandsList = xmlUtil.openKMLCommands(KMLFile);
             KMLTableView.getItems().clear();
@@ -180,7 +180,7 @@ public class LocationTabController extends AutomationTabController implements In
         KMLTableView.getItems().add(KMLTableView.getItems().size(), kml);
 
         XMLUtil xmlUtil = new XMLUtil(true);
-        xmlUtil.updateFile(KMLFile, kml);
+        xmlUtil.updateFile(KMLFile, KMLTableView.getItems());
 
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(new LatLong(kml.getLatitude(), kml.getLongitude() ))
@@ -200,8 +200,7 @@ public class LocationTabController extends AutomationTabController implements In
             try {
                 KMLTableView.getItems().remove(commandsListViewIndex);
                 updateMarkers();
-            } catch (Exception ee) {
-            }
+            } catch (NullPointerException ignored) {}
 
             ObservableList<KML> KMLCommands = KMLTableView.getItems();
             XMLUtil xmlUtil = new XMLUtil(true);

@@ -83,7 +83,7 @@ public class AutomationTabController implements Initializable {
         try {
             if (!filesListView.getSelectionModel().getSelectedItem().isEmpty())
                 refreshCommandsList();
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
 
         filesListView.setOnMouseClicked(event -> {
             try {
@@ -141,6 +141,8 @@ public class AutomationTabController implements Initializable {
             stopButton.setDisable(false);
 
             commandsList = allCommandsListView.getItems();
+            for(String command :commandsList)
+                System.out.println("commands to run: " + command);
 
             int startIndex;
             if(runTypeComboBox.getSelectionModel().isSelected(1) || runTypeComboBox.getSelectionModel().isSelected(2))
@@ -158,7 +160,9 @@ public class AutomationTabController implements Initializable {
                 @Override
                 protected Void call() {
                     int index = startIndex;
+                    System.out.println("start: " + startIndex + ", end: " + endIndex);
                     for (String command : commandsList.subList(startIndex, endIndex)) {
+                        System.out.println("Running command: " + command);
 
                         if (pauseFlag.get()) {
                             synchronized (pauseFlag) {
@@ -175,7 +179,7 @@ public class AutomationTabController implements Initializable {
                             }
                         }
 
-                        String result = ADBUtil.consoleCommand(formatCommand(command).split(" "));
+                        String result = ADBUtil.consoleCommand(formatCommand(command));
                         if(stopOnFailureCheckBox.isSelected() && (isError(result)))
                             Platform.runLater(() -> stopButton.fire());
 

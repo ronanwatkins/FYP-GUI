@@ -1,4 +1,4 @@
-package application.utilities;
+package application.location;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
