@@ -2,6 +2,7 @@
 
 <?import java.lang.String?>
 <?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
@@ -9,113 +10,137 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.phone.PhoneTabController">
-   <children>
-      <Label layoutX="33.0" layoutY="34.0" text="From" />
-      <TextField fx:id="phoneNumberField" layoutX="33.0" layoutY="60.0" prefHeight="25.0" prefWidth="189.0" />
-      <Button fx:id="holdCallButton" layoutX="89.0" layoutY="98.0" mnemonicParsing="false" onAction="#handleHoldCallButtonClicked" text="Hold" />
-      <Button fx:id="makeCallButton" layoutX="33.0" layoutY="98.0" mnemonicParsing="false" onAction="#handleMakeCallButtonClicked" text="Call" />
-      <Button fx:id="endCallButton" layoutX="156.0" layoutY="98.0" mnemonicParsing="false" onAction="#handleEndCallButtonClicked" text="End Call" />
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.phone.PhoneTabController">
+    <GridPane hgap="40.0" prefHeight="370.0" prefWidth="604.0" AnchorPane.bottomAnchor="130.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="96.0" AnchorPane.topAnchor="0.0">
+        <padding>
+            <Insets bottom="20" left="20" right="20" top="20" />
+        </padding>
 
-      <Label layoutX="33.0" layoutY="144.0" text="Message" />
-      <TextArea fx:id="messageArea" layoutX="33.0" layoutY="172.0" prefHeight="128.0" prefWidth="189.0" />
-       <Button fx:id="sendSMSButton" layoutX="33.0" layoutY="318.0" mnemonicParsing="false" onAction="#handleSendSMSButtonClicked" text="SendSMS" />
+        <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="200.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="150.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="132.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="132.0" />
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints />
+        </rowConstraints>
 
-      <Label layoutX="300.0" layoutY="34.0" text="Network Type" />
-      <ComboBox fx:id="networkType" layoutX="300.0" layoutY="60.0" prefWidth="150.0">
-          <items>
-              <FXCollections fx:factory="observableArrayList">
-                  <String fx:value="EDGE" />
-                  <String fx:value="GSM" />
-                  <String fx:value="GPRS" />
-                  <String fx:value="Full" />
-                  <String fx:value="HSCSD" />
-                  <String fx:value="HSDPA" />
-                  <String fx:value="UMTS" />
-              </FXCollections>
-          </items>
-      </ComboBox>
+        <Label text="From" />
+        <TextField fx:id="phoneNumberField" prefHeight="25.0" GridPane.rowIndex="1" />
+        <Button fx:id="makeCallButton" onAction="#handleMakeCallButtonClicked" text="Call" GridPane.halignment="LEFT" GridPane.rowIndex="2" />
+        <Button fx:id="holdCallButton" onAction="#handleHoldCallButtonClicked" text="Hold" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+        <Button fx:id="endCallButton" onAction="#handleEndCallButtonClicked" text="End Call" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
 
-      <Label layoutX="300.0" layoutY="123.0" text="Signal Strength" />
-      <ComboBox fx:id="signalStrength" layoutX="300.0" layoutY="149.0" prefWidth="150.0">
-          <items>
-              <FXCollections fx:factory="observableArrayList">
-                  <String fx:value="None" />
-                  <String fx:value="Poor" />
-                  <String fx:value="Moderate" />
-                  <String fx:value="Good" />
-                  <String fx:value="Great" />
-              </FXCollections>
-          </items>
-      </ComboBox>
+        <Label text="Message" GridPane.rowIndex="3" />
+        <TextArea fx:id="messageArea" prefHeight="6.0" GridPane.rowIndex="4" GridPane.rowSpan="2" />
+        <Button fx:id="sendSMSButton" onAction="#handleSendSMSButtonClicked" text="SendSMS" GridPane.rowIndex="6" />
 
-      <Label layoutX="300.0" layoutY="206.0" text="Voice Status" />
-      <ComboBox fx:id="voiceStatus" layoutX="300.0" layoutY="236.0" prefWidth="150.0">
-          <items>
-              <FXCollections fx:factory="observableArrayList">
-                  <String fx:value="Home" />
-                  <String fx:value="Roaming" />
-                  <String fx:value="Searching" />
-                  <String fx:value="Denied" />
-                  <String fx:value="Unregistered" />
-              </FXCollections>
-          </items>
-      </ComboBox>
+        <Label text="Network Type" GridPane.columnIndex="1" />
+        <ComboBox fx:id="networkType" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="EDGE" />
+                    <String fx:value="GSM" />
+                    <String fx:value="GPRS" />
+                    <String fx:value="Full" />
+                    <String fx:value="HSCSD" />
+                    <String fx:value="HSDPA" />
+                    <String fx:value="UMTS" />
+                </FXCollections>
+            </items>
+        </ComboBox>
 
-      <Label layoutX="300.0" layoutY="292.0" text="Data Status" />
-      <ComboBox fx:id="dataStatus" layoutX="300.0" layoutY="318.0" prefWidth="150.0">
-          <items>
-              <FXCollections fx:factory="observableArrayList">
-                  <String fx:value="Home" />
-                  <String fx:value="Roaming" />
-                  <String fx:value="Searching" />
-                  <String fx:value="Denied" />
-                  <String fx:value="Unregistered" />
-              </FXCollections>
-          </items>
-      </ComboBox>
+        <Label text="Signal Strength" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+        <ComboBox fx:id="signalStrength" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="None" />
+                    <String fx:value="Poor" />
+                    <String fx:value="Moderate" />
+                    <String fx:value="Good" />
+                    <String fx:value="Great" />
+                </FXCollections>
+            </items>
+        </ComboBox>
 
-       <Label layoutX="518.0" layoutY="34.0" text="Battery Level (%):" />
-       <Slider fx:id="batterySlider" layoutX="518.0" layoutY="66.0" />
-       <Label fx:id="batteryLabel" layoutX="640.0" layoutY="34.0" text="100" />
+        <Label text="Voice Status" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+        <ComboBox fx:id="voiceStatus" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Home" />
+                    <String fx:value="Roaming" />
+                    <String fx:value="Searching" />
+                    <String fx:value="Denied" />
+                    <String fx:value="Unregistered" />
+                </FXCollections>
+            </items>
+        </ComboBox>
 
-       <Label layoutX="518.0" layoutY="123.0" text="Battery Health" />
-       <ComboBox fx:id="batteryHealth" layoutX="518.0" layoutY="149.0" prefWidth="150.0">
-           <items>
-               <FXCollections fx:factory="observableArrayList">
-                   <String fx:value="Dead" />
-                   <String fx:value="Failure" />
-                   <String fx:value="Good" />
-                   <String fx:value="Unknown" />
-                   <String fx:value="Overheat" />
-                   <String fx:value="Overvoltage" />
-               </FXCollections>
-           </items>
-       </ComboBox>
+        <Label text="Data Status" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+        <ComboBox fx:id="dataStatus" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="7">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Home" />
+                    <String fx:value="Roaming" />
+                    <String fx:value="Searching" />
+                    <String fx:value="Denied" />
+                    <String fx:value="Unregistered" />
+                </FXCollections>
+            </items>
+        </ComboBox>
 
-       <Label layoutX="518.0" layoutY="292.0" text="Battery Status" />
-       <ComboBox fx:id="batteryStatus" layoutX="518.0" layoutY="318.0" prefWidth="150.0">
-           <items>
-               <FXCollections fx:factory="observableArrayList">
-                   <String fx:value="Unknown" />
-                   <String fx:value="Not charging" />
-                   <String fx:value="Discharging" />
-                   <String fx:value="Charging" />
-                   <String fx:value="Full" />
-               </FXCollections>
-           </items>
-       </ComboBox>
+        <Label text="Battery Level (%):" GridPane.columnIndex="2" />
+        <Label fx:id="batteryLabel" text="100" GridPane.columnIndex="2" GridPane.halignment="RIGHT" />
+        <Slider fx:id="batterySlider"  GridPane.columnIndex="2" GridPane.rowIndex="1" />
 
-       <Label layoutX="518.0" layoutY="206.0" text="Charging" />
-       <ComboBox fx:id="charging" layoutX="518.0" layoutY="236.0" prefWidth="150.0">
-           <items>
-               <FXCollections fx:factory="observableArrayList">
-                   <String fx:value="Charging" />
-                   <String fx:value="Not charging" />
-               </FXCollections>
-           </items>
-       </ComboBox>
+        <Label text="Battery Health" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+        <ComboBox fx:id="batteryHealth" prefWidth="150.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Dead" />
+                    <String fx:value="Failure" />
+                    <String fx:value="Good" />
+                    <String fx:value="Unknown" />
+                    <String fx:value="Overheat" />
+                    <String fx:value="Overvoltage" />
+                </FXCollections>
+            </items>
+        </ComboBox>
 
-   </children>
+        <Label text="Battery Status" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+        <ComboBox fx:id="batteryStatus" prefWidth="150.0" GridPane.columnIndex="2" GridPane.rowIndex="5">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Unknown" />
+                    <String fx:value="Not charging" />
+                    <String fx:value="Discharging" />
+                    <String fx:value="Charging" />
+                    <String fx:value="Full" />
+                </FXCollections>
+            </items>
+        </ComboBox>
+
+        <Label text="Charging" GridPane.columnIndex="2" GridPane.rowIndex="6" />
+        <ComboBox fx:id="charging" prefWidth="150.0" GridPane.columnIndex="2" GridPane.rowIndex="7">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Charging" />
+                    <String fx:value="Not charging" />
+                </FXCollections>
+            </items>
+        </ComboBox>
+    </GridPane>
 </AnchorPane>

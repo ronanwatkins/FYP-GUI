@@ -8,28 +8,38 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.logcat.LogCatTabController">
-   <children>
-       <ListView fx:id="logCatListView" layoutX="20.0" layoutY="57.0" prefHeight="482.0" prefWidth="764.0" />
-       <TextField fx:id="searchField" layoutX="20.0" layoutY="14.0" prefHeight="28.0" prefWidth="311.0" promptText="Search. Prefix with pid:, app:, tag: or text to limit scope." />
-      <ComboBox fx:id="logLevelComboBox" layoutX="410.0" layoutY="14.0" prefHeight="28.0" prefWidth="91.0">
-           <items>
-               <FXCollections fx:factory="observableArrayList">
-                   <String fx:value="verbose" />
-                   <String fx:value="debug" />
-                   <String fx:value="info" />
-                   <String fx:value="warn" />
-                   <String fx:value="assert" />
-                   <String fx:value="error" />
-               </FXCollections>
-           </items>
-       </ComboBox>
-      <Button fx:id="saveButton" layoutX="513.0" layoutY="14.0" mnemonicParsing="false" />
-      <Button fx:id="clearButton" onAction="#handleClearButtonClicked" layoutX="554.0" layoutY="14.0" mnemonicParsing="false" />
-      <ComboBox fx:id="filtersComboBox" layoutX="599.0" layoutY="14.0" prefHeight="28.0" prefWidth="91.0" />
-      <Button fx:id="addFilterButton" layoutX="702.0" layoutY="14.0" mnemonicParsing="false" />
-      <Button fx:id="deleteFilterButton" layoutX="746.0" layoutY="14.0" mnemonicParsing="false" />
-      <Button fx:id="startButton" layoutX="348.0" layoutY="16.0" mnemonicParsing="false" onAction="#handleStartButtonClicked" text="Start" />
-       
-   </children>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.HBox?>
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.logcat.LogCatTabController">
+    <VBox spacing="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+        AnchorPane.topAnchor="0.0">
+        <padding>
+            <Insets right="20" top="20" bottom="20" left="20"/>
+        </padding>
+
+        <HBox spacing="20">
+            <TextField fx:id="searchField" promptText="Search. Prefix with pid:, app:, tag: or text to limit scope." prefWidth="320" />
+            <Button fx:id="startButton" onAction="#handleStartButtonClicked" text="Start" minWidth="50"/>
+            <ComboBox fx:id="logLevelComboBox">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="verbose"/>
+                        <String fx:value="debug"/>
+                        <String fx:value="info"/>
+                        <String fx:value="warn"/>
+                        <String fx:value="assert"/>
+                        <String fx:value="error"/>
+                    </FXCollections>
+                </items>
+            </ComboBox>
+            <Button fx:id="saveButton" />
+            <Button fx:id="clearButton" onAction="#handleClearButtonClicked"/>
+            <ComboBox fx:id="filtersComboBox" prefWidth="100"/>
+            <Button fx:id="addFilterButton" />
+            <Button fx:id="deleteFilterButton" />
+        </HBox>
+
+        <ListView fx:id="logCatListView" prefWidth="900" prefHeight="550"/>
+    </VBox>
 </AnchorPane>

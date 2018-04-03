@@ -3,9 +3,7 @@ package application.applications;
 import application.ADBUtil;
 import application.logcat.LogCatTabController;
 import application.utilities.Utilities;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.Property;
-import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,7 +12,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
@@ -51,17 +48,17 @@ public class ApplicationTabController implements Initializable {
     @FXML
     private TreeTableView<String> intentsTableView;
 
-    @FXML
-    private TreeTableColumn<Intent, String> componentColumn;
+//    @FXML
+//    private TreeTableColumn<String, Intent> componentColumn;
 
-    @FXML
-    private TreeItem<String> componentItem;
-    @FXML
-    private TreeItem<String> actionItem;
-    @FXML
-    private TreeItem<String> categoryItem;
-    @FXML
-    private TreeItem<String> mimeTypeItem;
+//    @FXML
+//    private TreeItem<String> componentItem;
+//    @FXML
+//    private TreeItem<String> actionItem;
+//    @FXML
+//    private TreeItem<String> categoryItem;
+//    @FXML
+//    private TreeItem<String> mimeTypeItem;
 
     @FXML
     private TextArea resultTextArea;
@@ -94,7 +91,7 @@ public class ApplicationTabController implements Initializable {
     private ObservableList<String> appsOnPCList;
     private ObservableList<String> appsOnDeviceList;
 
-    private AndroidApplication application;
+    private AndroidApplication androidApplication;
 
     private File directory;
 
@@ -109,6 +106,8 @@ public class ApplicationTabController implements Initializable {
     }
 
     private void initializeTableView() {
+       // applicationTableView.setRowResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
         APKNameColumn.setCellValueFactory(cellData -> cellData.getValue().APKNameProperty());
         APKPathColumn.setCellValueFactory(cellData -> cellData.getValue().APKPathProperty());
         APKPathColumn.setCellFactory(tc -> textWrappingCell());
@@ -128,23 +127,54 @@ public class ApplicationTabController implements Initializable {
         return cell;
     }
 
+//    private ObservableValue<String> cunt() {
+//        return new ReadOnlyObjectWrapper(p.getValue().getValue().getComponent());
+//    }
+
     private void initializeTableTreeView() {
+        //Creating tree items
+        final TreeItem<String> childNode1 = new TreeItem<>("Child Node 1");
+        final TreeItem<String> childNode2 = new TreeItem<>("Child Node 2");
+        final TreeItem<String> childNode3 = new TreeItem<>("Child Node 3");
 
-        ObservableList<String> components = FXCollections.observableArrayList();
-        for(Intent intent : application.intents())
-            components.add(intent.componentProperty().get());
+        //Creating the root element
+        final TreeItem<String> root = new TreeItem<>("Root node");
+        root.setExpanded(true);
 
-        componentColumn.setCellValueFactory(param -> {
-            param.getValue().getValue().componentProperty();
-            return null;
-        });
+        //Adding tree items to the root
+        root.getChildren().setAll(childNode1, childNode2, childNode3);
 
-        componentColumn.getColumns().clear();
+        TreeTableColumn<Intent,String> column = new TreeTableColumn<>("Column");
+        column.setPrefWidth(150);
 
-        componentItem.getChildren().add(actionItem);
-        componentItem.getChildren().add(categoryItem);
-        componentItem.getChildren().add(mimeTypeItem);
-        intentsTableView.setRoot(componentItem);
+        //Defining cell content
+        column.setCellValueFactory((TreeTableColumn.CellDataFeatures<Intent, String> p) ->
+                new ReadOnlyStringWrapper(p.getValue().getValue().getComponent()));
+
+
+        intentsTableView.setRoot(root);
+        intentsTableView.getColumns().add(column);
+        intentsTableView.setPrefWidth(152);
+        intentsTableView.setShowRoot(true);
+
+        ObservableList <String> components = FXCollections.observableArrayList();
+        components.add("one");
+        components.add("two");
+        components.add("three");
+//        for(Intent intent : application.intents())
+  //          components.add(intent.componentProperty().get());
+
+        //componentColumn.setCellValueFactory(param -> {
+      //      param.getValue().getValue().componentProperty();
+     //       return null;
+    //    });
+
+        //componentColumn.getColumns().clear();
+
+//        componentItem.getChildren().add(actionItem);
+//        componentItem.getChildren().add(categoryItem);
+//        componentItem.getChildren().add(mimeTypeItem);
+//        intentsTableView.setRoot(componentItem);
    }
 
     private void updatePCListView() {
@@ -196,8 +226,8 @@ public class ApplicationTabController implements Initializable {
             }
         };
         task.setOnSucceeded(event -> {
-            application = task.getValue();
-            applicationTableView.getItems().add(application);
+            androidApplication = task.getValue();
+            applicationTableView.getItems().add(androidApplication);
 
             //componentItem.getChildren().
         });

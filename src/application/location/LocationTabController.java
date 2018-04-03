@@ -96,6 +96,7 @@ public class LocationTabController extends AutomationTabController implements In
         longitudeField.setText(formatter.format(longitude));
         googleMapView.addMapInializedListener(this::configureMap);
 
+        KMLTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         nameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
         descriptionColumn.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
         latitudeColumn.setCellValueFactory(cellData -> cellData.getValue().latitudeProperty().asObject());
@@ -159,9 +160,7 @@ public class LocationTabController extends AutomationTabController implements In
             for (File file : Objects.requireNonNull(directory.listFiles())) {
                 filesList.add(file.getName().replace(EXTENSION, ""));
             }
-        } catch (NullPointerException npe) {
-            //npe.printStackTrace();
-        }
+        } catch (NullPointerException ignored) {}
 
         filesListView.setItems(filesList);
     }
@@ -363,21 +362,24 @@ public class LocationTabController extends AutomationTabController implements In
     }
 
     private void updateMarkers() {
-        if(markers != null) map.removeMarkers(markers);
-        markers = new ArrayList<>(commandsList.size());
+        if(commandsList != null) {
+            if (markers != null)
+                map.removeMarkers(markers);
+            markers = new ArrayList<>(commandsList.size());
 
-        for(KML kml : commandsList) {
-            MarkerOptions markerOptions = new MarkerOptions();
+            for (KML kml : commandsList) {
+                MarkerOptions markerOptions = new MarkerOptions();
 
-            markerOptions.position(new LatLong(kml.getLatitude(), kml.getLongitude() ))
-                    .visible(Boolean.TRUE)
-                    .title(kml.getName())
-                    .label(kml.getDescription());
+                markerOptions.position(new LatLong(kml.getLatitude(), kml.getLongitude()))
+                        .visible(Boolean.TRUE)
+                        .title(kml.getName())
+                        .label(kml.getDescription());
 
-            Marker marker = new Marker(markerOptions);
-            markers.add(marker);
+                Marker marker = new Marker(markerOptions);
+                markers.add(marker);
+            }
+            map.addMarkers(markers);
         }
-        map.addMarkers(markers);
     }
 
     private void adjustList(int input) {

@@ -35,6 +35,11 @@ public class Intent {
         return mimeTypes;
     }
 
+    //Getters
+    public String getComponent() {
+        return component.get();
+    }
+
     @Override
     public String toString() {
         StringBuilder action = new StringBuilder();

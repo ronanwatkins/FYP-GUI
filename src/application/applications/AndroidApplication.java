@@ -33,7 +33,7 @@ public class AndroidApplication {
         dataDir = new SimpleStringProperty(getDataDir(packageName));
         flags = FXCollections.observableArrayList(getFlags(packageName));
         permissions = FXCollections.observableArrayList(getPermissions(packageName));
-        intents = FXCollections.observableArrayList(getIntents(packageName));
+        //intents = FXCollections.observableArrayList(getIntents(packageName));
     }
 
     public StringProperty packageNameProperty() {

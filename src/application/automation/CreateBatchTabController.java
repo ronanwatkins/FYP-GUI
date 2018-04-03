@@ -248,6 +248,7 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
 
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setResizable(false);
         String title = file == null ? "Create Batch Commands" : "Editing \"" + file.getName().replace(".xml", "") + "\"";
         stage.setTitle(title);
         stage.setScene(new Scene(root));

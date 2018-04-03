@@ -6,11 +6,22 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.console.ConsoleTabController">
-   <children>
-      <TextField fx:id="commandField" layoutX="33.0" layoutY="33.0" prefHeight="25.0" prefWidth="425.0" />
-      <TextArea fx:id="resultArea" layoutX="33.0" layoutY="80.0" prefHeight="465.0" prefWidth="730.0" />
-      <Button fx:id="enterButton" layoutX="493.0" layoutY="33.0" mnemonicParsing="false" text="Enter" />
-      <Hyperlink fx:id="helpLink" layoutX="587.0" layoutY="34.0" text="?" underline="true" />
-   </children>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.HBox?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.console.ConsoleTabController">
+   <VBox spacing="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <padding>
+         <Insets right="20" top="20" bottom="20" left="20"/>
+      </padding>
+
+      <HBox spacing="20">
+         <TextField fx:id="commandField" prefWidth="400" />
+         <Button fx:id="enterButton"  text="Enter" minWidth="50" />
+         <Hyperlink fx:id="helpLink" text="?"/>
+      </HBox>
+
+      <TextArea fx:id="resultArea"  prefWidth="10000" prefHeight="10000" />
+   </VBox>
 </AnchorPane>

@@ -2,7 +2,6 @@
 
 <?import java.lang.String?>
 <?import javafx.collections.FXCollections?>
-<?import javafx.scene.Group?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
@@ -10,106 +9,267 @@
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.shape.Box?>
 
-<Group xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.sensors.SensorsTabController">
-   <children>
-      <AnchorPane fx:id="anchorPane" layoutX="11.0" layoutY="8.0" prefHeight="600.0" prefWidth="800.0">
-         <children>
-            <Label layoutX="45.0" layoutY="38.0" text="Light (lux):" />
-            <Slider fx:id="lightSlider" layoutX="45.0" layoutY="65.0" max="40000.0" />
-            <Label layoutX="45.0" layoutY="86.0" text="0" />
-            <Label fx:id="lightLabel" layoutX="152.0" layoutY="38.0" text="0" />
-            <Label layoutX="152.0" layoutY="86.0" text="40000" />
-      
-            <Label layoutX="45.0" layoutY="144.0" text="Temperature (°C):" />
-            <Slider fx:id="temperatureSlider" layoutX="43.0" layoutY="171.0" min="-273.0" />
-            <Label layoutX="45.0" layoutY="192.0" text="-273" />
-            <Label fx:id="temperatureLabel" layoutX="152.0" layoutY="144.0" text="0" />
-            <Label layoutX="152.0" layoutY="192.0" text="100" />
+<?import javafx.geometry.Insets?>
 
-            <Label layoutX="45.0" layoutY="252.0" text="Humidity (%):" />
-            <Slider fx:id="humiditySlider" layoutX="43.0" layoutY="279.0" />
-            <Label layoutX="45.0" layoutY="300.0" text="0" />
-            <Label fx:id="humidityLabel" layoutX="152.0" layoutY="252.0" text="0" />
-            <Label layoutX="152.0" layoutY="300.0" text="100" />
+<AnchorPane fx:id="anchorPane" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.sensors.SensorsTabController">
+   <GridPane hgap="60" maxHeight="Infinity" maxWidth="Infinity" vgap="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" >
+     <padding>
+        <Insets right="20" top="20" bottom="20" left="20"/>
+     </padding>
 
-            <Label layoutX="45.0" layoutY="360.0" text="Pressure (hPa):" />
-            <Slider fx:id="pressureSlider" layoutX="43.0" layoutY="387.0" max="1100.0" />
-            <Label layoutX="45.0" layoutY="408.0" text="0" />
-            <Label fx:id="pressureLabel" layoutX="152.0" layoutY="360.0" text="0" />
-            <Label layoutX="152.0" layoutY="408.0" text="1100" />
-      
-            <Label layoutX="45.0" layoutY="466.0" text="Proximity (cm):" />
-            <Slider fx:id="proximitySlider" layoutX="42.0" layoutY="493.0" />
-            <Label layoutX="45.0" layoutY="514.0" text="0" />
-            <Label fx:id="proximityLabel" layoutX="152.0" layoutY="466.0" text="0" />
-            <Label layoutX="152.0" layoutY="514.0" text="100" />
+      <columnConstraints>
+         <ColumnConstraints hgrow="ALWAYS" prefWidth="150.0" />
+         <ColumnConstraints hgrow="ALWAYS" prefWidth="250.0" />
+         <ColumnConstraints hgrow="ALWAYS" prefWidth="350.0" />
+      </columnConstraints>
+      <rowConstraints>
+         <RowConstraints prefHeight="100.0" vgrow="ALWAYS" />
+         <RowConstraints prefHeight="100.0" vgrow="ALWAYS" />
+         <RowConstraints prefHeight="100.0" vgrow="ALWAYS" />
+         <RowConstraints prefHeight="100.0" vgrow="ALWAYS" />
+         <RowConstraints prefHeight="100.0" vgrow="ALWAYS" />
+         <RowConstraints />
+      </rowConstraints>
 
-            <Slider fx:id="yawSlider" layoutX="230.0" layoutY="66.0" max="180.0" min="-180.0" />
-            <Label layoutX="230.0" layoutY="38.0" text="Yaw (z):" />
-            <Label fx:id="yawLabel" layoutX="340.0" layoutY="38.0" text="0" />
+      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="0">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+         </rowConstraints>
 
-            <Slider fx:id="pitchSlider" layoutX="230.0" layoutY="171.0" max="180.0" min="-180.0" />
-            <Label layoutX="230.0" layoutY="144.0" text="Pitch (x):" />
-            <Label fx:id="pitchLabel" layoutX="340.0" layoutY="144.0" text="0" />
+         <Label text="Light (lux):" />
+         <Slider fx:id="lightSlider" max="40000.0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+         <Label layoutX="152.0" text="40000" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+         <Label layoutX="45.0" text="0" GridPane.rowIndex="2" />
+         <Label fx:id="lightLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
+      </GridPane>
 
-            <Slider fx:id="rollSlider" layoutX="230.0" layoutY="279.0" max="180.0" min="-180.0" />
-            <Label layoutX="230.0" layoutY="252.0" text="Roll (y):" />
-            <Label fx:id="rollLabel" layoutX="340.0" layoutY="252.0" text="0" />
+      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="1">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+         </rowConstraints>
 
-            <AnchorPane fx:id="phonePane" layoutX="490.0" layoutY="50.0" prefHeight="250.0" prefWidth="250.0" />
-            <Box fx:id="phone" depth="20.0" height="100.0" layoutX="615.0" layoutY="177.0" width="50.0" />
+         <Label text="Temperature (°C):" GridPane.columnSpan="2" />
+         <Slider fx:id="temperatureSlider" min="-273.0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+         <Label text="-273" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+         <Label text="100" GridPane.rowIndex="2" />
+         <Label fx:id="temperatureLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
+      </GridPane>
 
-            <RadioButton fx:id="rotateRadioButton" layoutX="530.0" layoutY="310.0" mnemonicParsing="false" text="Rotate" />
-            <RadioButton fx:id="moveRadioButton" layoutX="600.0" layoutY="310.0" mnemonicParsing="false" text="Move" />
+      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="2">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+         </rowConstraints>
 
-            <Label layoutX="230.0" layoutY="330.0" text="Magnetic Field    (μT):" />
-            <Label fx:id="magneticFieldLabel" layoutX="350.0" layoutY="330.0" />
+         <Label text="Humidity (%):" />
+         <Slider fx:id="humiditySlider" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+         <Label text="0" GridPane.rowIndex="2" />
+         <Label text="100" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+         <Label fx:id="humidityLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
+      </GridPane>
 
-            <Label layoutX="230.0" layoutY="360.0" text="Gyroscope          (°/s):" />
-            <Label fx:id="gyroscopeLabel" layoutX="350.0" layoutY="360.0" />
+      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="3">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+         </rowConstraints>
 
-            <Label layoutX="230.0" layoutY="390.0" text="Accelerometer (m/s²):" />
-            <Label fx:id="accelerometerLabel" layoutX="350.0" layoutY="390.0" />
+         <Label text="Pressure (hPa):" GridPane.columnSpan="2" />
+         <Slider fx:id="pressureSlider" max="1100.0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+         <Label text="0" GridPane.rowIndex="2" />
+         <Label text="1100" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+         <Label fx:id="pressureLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
+      </GridPane>
 
-            <Label layoutX="230.0" layoutY="420.0" text="Orientation            (°):" />
-            <Label fx:id="orientationLabel" layoutX="350.0" layoutY="420.0" />
+      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="4">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+         </rowConstraints>
 
-            <Label layoutX="230.0" layoutY="450.0" text="Battery                 (%):" />
-            <Label fx:id="batteryLabel" layoutX="350.0" layoutY="450.0" text="100" />
+         <Label text="Proximity (cm):" GridPane.columnSpan="2" />
+         <Slider fx:id="proximitySlider" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+         <Label text="0" GridPane.rowIndex="2" />
+         <Label text="100" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+         <Label fx:id="proximityLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
+      </GridPane>
 
-            <Label layoutX="230.0" layoutY="480.0" text="Location                 (°):" />
-            <Label fx:id="locationLabel" layoutX="350.0" layoutY="480.0" text="Latitude: 53.27846&#10;Longitude: -9.00983" />
+      <GridPane maxHeight="Infinity"  maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="0">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+         </rowConstraints>
 
-             <AnchorPane fx:id="buttonsPane" layoutX="490.0" layoutY="363.0" prefHeight="200.0" prefWidth="250.0" />
+         <Slider fx:id="yawSlider" max="180.0" min="-180.0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+         <Label text="Yaw (z):" />
+         <Label fx:id="yawLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
+      </GridPane>
 
-            <Button fx:id="recordButton" layoutX="490.0" layoutY="360.0" mnemonicParsing="false" onAction="#handleRecordButtonClicked" />
-            <Button fx:id="stopRecordingButton" layoutX="540.0" layoutY="360.0" mnemonicParsing="false" onAction="#handleStopRecordingButtonPressed" />
-            <Button fx:id="loadButton" layoutX="600.0" layoutY="360.0" mnemonicParsing="false" onAction="#handleLoadButtonClicked" text="Load" />
+      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+         </rowConstraints>
 
-            <Button fx:id="playButton" layoutX="490.0" layoutY="400.0" mnemonicParsing="false" onAction="#handlePlayButtonClicked" />
-             <CheckBox fx:id="loopBox" layoutX="540.0" layoutY="404.0" mnemonicParsing="false" text="Loop" />
-            <Label fx:id="playbackTitleLabel" layoutX="490.0" layoutY="435.0" text="Playback Speed" />
-            <Slider fx:id="playbackSlider" layoutX="485.0" layoutY="460.0" max="100" min="0" />
-            <Label fx:id="playbackLabel" layoutX="640.0" layoutY="457.0" text="1" /> <Label fx:id="playbackValueLabel" layoutX="660.0" layoutY="457.0" text="x" />
+         <Slider fx:id="pitchSlider" max="180.0" min="-180.0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+         <Label text="Pitch (x):" />
+         <Label fx:id="pitchLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
+      </GridPane>
 
-             <Button fx:id="connectButton" layoutX="490.0" layoutY="490.0" mnemonicParsing="false" onAction="#handleConnectButtonClicked" text="Connect" />
-             <CheckBox fx:id="listenBox" layoutX="580.0" layoutY="510.0" mnemonicParsing="false" text="Listen" />
+      <GridPane maxHeight="Infinity" maxWidth="Infinity" prefWidth="243.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+         </rowConstraints>
 
-            <ComboBox fx:id="axisComboBox" layoutX="490.0" layoutY="10.0" prefWidth="150.0">
-               <items>
-                  <FXCollections fx:factory="observableArrayList">
-                     <String fx:value="Pitch and Yaw" />
-                     <String fx:value="Pitch and Roll" />
-                     <String fx:value="Pitch, Yaw and Roll" />
-                  </FXCollections>
-               </items>
-            </ComboBox>
+         <Slider fx:id="rollSlider" max="180.0" min="-180.0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+         <Label text="Roll (y):" />
+         <Label fx:id="rollLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
+      </GridPane>
 
-            <Label fx:id="loggerLabel" layoutX="490.0" layoutY="540.0" />
+      <GridPane maxHeight="Infinity" maxWidth="Infinity" prefHeight="100.0" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.rowSpan="2">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="101.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="497.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="30.0" vgrow="ALWAYS" />
+         </rowConstraints>
 
-         </children>
-      </AnchorPane>
-   </children>
-</Group>
+         <Label text="Magnetic Field    (μT):" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="0" />
+         <Label fx:id="magneticFieldLabel" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="0" />
+
+         <Label text="Gyroscope          (°/s):" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+         <Label fx:id="gyroscopeLabel" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+
+         <Label text="Accelerometer (m/s²):" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2" />
+         <Label fx:id="accelerometerLabel" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
+
+         <Label text="Orientation            (°):" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="3" />
+         <Label fx:id="orientationLabel" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="3" />
+
+         <Label text="Battery                 (%):" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="4" />
+         <Label fx:id="batteryLabel" text="100" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4" />
+
+         <Label text="Location                 (°):" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="5" />
+         <Label fx:id="locationLabel" text="Latitude: 53.27846&#10;Longitude: -9.00983" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" />
+      </GridPane>
+
+      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="0" GridPane.rowSpan="3">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="104.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="96.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="96.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints prefHeight="37.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="212.0" vgrow="ALWAYS" />
+            <RowConstraints prefHeight="91.0" vgrow="ALWAYS" />
+         </rowConstraints>
+
+         <ComboBox fx:id="axisComboBox" prefWidth="150.0" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.valignment="TOP">
+            <items>
+               <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="Pitch and Yaw" />
+                  <String fx:value="Pitch and Roll" />
+                  <String fx:value="Pitch, Yaw and Roll" />
+               </FXCollections>
+            </items>
+         </ComboBox>
+
+         <AnchorPane fx:id="phonePane" prefHeight="200.0" prefWidth="150.0" GridPane.columnIndex="0" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.rowSpan="1" GridPane.valignment="BOTTOM">
+            <Box fx:id="phone" depth="20.0" height="100.0" width="50.0" AnchorPane.bottomAnchor="50" AnchorPane.leftAnchor="150" AnchorPane.topAnchor="50" />
+         </AnchorPane>
+
+         <RadioButton fx:id="rotateRadioButton" text="Rotate" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+         <RadioButton fx:id="moveRadioButton" text="Move" GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+      </GridPane>
+
+      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="3" GridPane.rowSpan="3">
+         <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="190.0" />
+            <ColumnConstraints hgrow="ALWAYS" prefWidth="123.0" />
+            <ColumnConstraints hgrow="ALWAYS" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+            <RowConstraints vgrow="ALWAYS" />
+         </rowConstraints>
+
+         <Button fx:id="recordButton" onAction="#handleRecordButtonClicked" GridPane.halignment="LEFT" />
+         <Button fx:id="stopRecordingButton" onAction="#handleStopRecordingButtonPressed" GridPane.halignment="CENTER" />
+
+         <Button fx:id="loadButton" onAction="#handleLoadButtonClicked" text="Load" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
+         <Button fx:id="playButton" onAction="#handlePlayButtonClicked" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+         <CheckBox fx:id="loopBox" text="Loop" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="1" />
+
+         <Label fx:id="playbackTitleLabel" text="Playback Speed" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+         <Slider fx:id="playbackSlider" prefWidth="100" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+         <Label fx:id="playbackLabel" text="x 1" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="3" />
+
+         <Button fx:id="connectButton" onAction="#handleConnectButtonClicked" text="Connect" GridPane.rowIndex="4" />
+         <CheckBox fx:id="listenBox" text="Listen" GridPane.columnIndex="0" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
+
+         <Label fx:id="loggerLabel" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="5" />
+      </GridPane>
+   </GridPane>
+</AnchorPane>

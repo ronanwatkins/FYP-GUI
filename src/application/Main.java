@@ -20,11 +20,12 @@ public class Main extends Application {
 
         try {
             root = FXMLLoader.load(getClass().getResource("FXMLMain.fxml"));
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(root, 950, 600);
 
             stage.getIcons().add(new Image("/resources/Android.png"));
             stage.setTitle("Android Sensor Emulator");
             stage.getProperties().put("hostServices", this.getHostServices());
+           // stage.setResizable(false);
             stage.setOnCloseRequest(e -> {
                 ADBUtil.disconnect();
                 Platform.exit();

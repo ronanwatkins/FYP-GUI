@@ -101,8 +101,6 @@ public class SensorsTabController implements Initializable {
     @FXML
     private Label playbackLabel;
     @FXML
-    private Label playbackValueLabel;
-    @FXML
     private Label loggerLabel;
     @FXML
     public Label batteryLabel;
@@ -129,8 +127,6 @@ public class SensorsTabController implements Initializable {
 
     @FXML
     private AnchorPane phonePane;
-    @FXML
-    private AnchorPane buttonsPane;
 
     @FXML
     private Box phone;
@@ -261,7 +257,6 @@ public class SensorsTabController implements Initializable {
             playbackLabel.setVisible(false);
             playbackSlider.setVisible(false);
             playbackTitleLabel.setVisible(false);
-            playbackValueLabel.setVisible(false);
         }
     }
 
@@ -336,7 +331,6 @@ public class SensorsTabController implements Initializable {
             playbackLabel.setVisible(true);
             playbackSlider.setVisible(true);
             playbackTitleLabel.setVisible(true);
-            playbackValueLabel.setVisible(true);
         } else {
             loggerLabel.setTextFill(Color.RED);
             loggerLabel.setText("File not loaded");
@@ -480,12 +474,10 @@ public class SensorsTabController implements Initializable {
 
         rollSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
-            if(!isPhoneDragged) {
+            if(!isPhoneDragged)
                 rollBeforeValue = rollValue = newvalue.intValue() * -1;
-            }
-            else {
+            else
                 rollBeforeValue = rollValue = newvalue.intValue();
-            }
 
             sensorValues.put(ROLL, (double) rollBeforeValue);
 
@@ -514,7 +506,7 @@ public class SensorsTabController implements Initializable {
                 int result = RECORDING_PERIOD / (int)value;
 
                 playbackSpeed.set(result);
-                playbackLabel.setText((int) value + "");
+                playbackLabel.setText("x " + (int) value + "");
             } else {
                 value += 50;
                 value /= 50;
@@ -527,7 +519,7 @@ public class SensorsTabController implements Initializable {
                 int result = (int) (newValue*(RECORDING_PERIOD*10));
 
                 playbackSpeed.set(result);
-                playbackLabel.setText(String.format("%.1f", value));
+                playbackLabel.setText("x " + String.format("%.1f", value));
             }
         });
     }
@@ -542,8 +534,13 @@ public class SensorsTabController implements Initializable {
         phone.setManaged(false);
 
         HBox phonePaneHBox = new HBox();
-        phone.setLayoutX(125);
-        phone.setLayoutY(125);
+
+        System.out.println("widht: " + phonePane.getWidth());
+        System.out.println("height: " + phonePane.getHeight());
+
+
+        phone.setLayoutX(175);
+        phone.setLayoutY(100);
         phonePaneHBox.getChildren().add(phone);
 
         phonePane.getChildren().addAll(phonePaneHBox);
