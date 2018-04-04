@@ -2,8 +2,8 @@ package application.location;
 
 import application.TelnetServer;
 import application.automation.AutomationTabController;
+import application.utilities.ApplicationUtils;
 import application.utilities.XMLUtil;
-import application.utilities.Utilities;
 import com.lynden.gmapsfx.GoogleMapView;
 import com.lynden.gmapsfx.javascript.event.GMapMouseEvent;
 import com.lynden.gmapsfx.javascript.event.UIEventType;
@@ -26,7 +26,7 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 
-public class LocationTabController extends AutomationTabController implements Initializable {
+public class LocationTabController extends AutomationTabController implements Initializable, ApplicationUtils {
 
     public static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\location";
 
@@ -217,21 +217,21 @@ public class LocationTabController extends AutomationTabController implements In
                         pauseFlag.set(true);
                     }
 
-                    Utilities.setImage("/resources/play.png", "Run batch commands", playButton);
+                    setImage("/resources/play.png", "Run batch commands", playButton);
                 } else {
                     synchronized (pauseFlag) {
                         pauseFlag.set(false);
                         pauseFlag.notify();
                     }
 
-                    Utilities.setImage("/resources/pause.png", "Pause batch commands",playButton);
+                    setImage("/resources/pause.png", "Pause batch commands",playButton);
                     wasPaused.set(true);
                 }
             }
         }
 
         if(!wasPaused.get() && !pauseFlag.get()) {
-            Utilities.setImage("/resources/pause.png", "Pause batch commands", playButton);
+            setImage("/resources/pause.png", "Pause batch commands", playButton);
             System.out.println("Starting new batch automation");
             this.stopButton.setDisable(false);
 
@@ -296,14 +296,14 @@ public class LocationTabController extends AutomationTabController implements In
             };
 
             runCommandsTask.setOnSucceeded(event1 -> {
-                Utilities.setImage("/resources/play.png","Run batch commands", playButton);
+                setImage("/resources/play.png","Run batch commands", playButton);
                 this.stopButton.setDisable(true);
                 wasPaused.set(false);
                 pauseFlag.set(false);
             });
 
             runCommandsTask.setOnFailed(event1 -> {
-                Utilities.setImage("/resources/play.png","Run batch commands", playButton);
+                setImage("/resources/play.png","Run batch commands", playButton);
                 System.out.println("runCommandsTask failed, Exception: " + runCommandsTask.getException());
                 this.stopButton.setDisable(true);
                 wasPaused.set(false);
@@ -404,7 +404,7 @@ public class LocationTabController extends AutomationTabController implements In
     }
 
     @Override
-    protected void initializeButtons() {
+    public void initializeButtons() {
         runTypeComboBox.getSelectionModel().select(0);
         playButton.setDisable(true);
         stopButton.setDisable(true);
@@ -414,14 +414,14 @@ public class LocationTabController extends AutomationTabController implements In
         deleteCommandButton.setDisable(true);
         deleteButton.setDisable(true);
 
-        Utilities.setImage("/resources/up.png", "Move command up the list", moveUpButton);
-        Utilities.setImage("/resources/down.png","Move command down the list", moveDownButton);
-        Utilities.setImage("/resources/delete.png", "Delete command", deleteCommandButton);
+        setImage("/resources/up.png", "Move command up the list", moveUpButton);
+        setImage("/resources/down.png","Move command down the list", moveDownButton);
+        setImage("/resources/delete.png", "Delete command", deleteCommandButton);
 
-        Utilities.setImage("/resources/play.png", null, playButton);
-        Utilities.setImage("/resources/stop.png", null, stopButton);
-        Utilities.setImage("/resources/new.png", "Create new KML file", newButton);
-        Utilities.setImage("/resources/delete.png", "Delete KML file", deleteButton);
+        setImage("/resources/play.png", null, playButton);
+        setImage("/resources/stop.png", null, stopButton);
+        setImage("/resources/new.png", "Create new KML file", newButton);
+        setImage("/resources/delete.png", "Delete KML file", deleteButton);
     }
 
     private void configureMap() {

@@ -3,10 +3,12 @@ package application.applications;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
-public class Intent {
+public class Intent implements Comparable<Intent> {
     private StringProperty component;
     private ObservableList<StringProperty> actions;
     private ObservableList<StringProperty> categories;
@@ -41,6 +43,21 @@ public class Intent {
     }
 
     @Override
+    public int hashCode() {
+       // System.out.println("hashCode");
+        return Objects.hash(this.component, this.actions, this.categories, this.mimeTypes);
+       // Objects.
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        //System.out.println("equals");
+        return obj instanceof Intent && toString().equals(obj.toString());
+    }
+
+
+
+    @Override
     public String toString() {
         StringBuilder action = new StringBuilder();
         for(StringProperty s : actions) {
@@ -58,5 +75,10 @@ public class Intent {
                 + "Actions: " + action + "\n"
                 + "Categories: " + category + "\n"
                 + "Types: " + type + "\n";
+    }
+
+    @Override
+    public int compareTo(@NotNull Intent o) {
+        return this.component.get().compareTo(o.component.get());
     }
 }

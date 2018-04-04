@@ -1,13 +1,13 @@
 package application.sensors;
 
 import application.TelnetServer;
+import application.utilities.ApplicationUtils;
 import application.utilities.XMLUtil;
 import application.sensors.model.AccelerometerModel;
 import application.sensors.model.GyroscopeModel;
 import application.sensors.model.MagneticFieldModel;
 import application.sensors.server.HTTPServer;
 import application.utilities.ThreeDimensionalVector;
-import application.utilities.Utilities;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -30,8 +30,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SensorsTabController implements Initializable {
-
+public class SensorsTabController implements Initializable, ApplicationUtils {
     //region fields
     private final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\sensors";
 
@@ -243,13 +242,14 @@ public class SensorsTabController implements Initializable {
         //endregion
     }
 
-    private void initializeButtons() {
+    @Override
+    public void initializeButtons() {
         rotateRadioButton.setSelected(true);
         stopRecordingButton.setDisable(true);
 
-        Utilities.setImage("/resources/record_cropped.png", "Record values", recordButton);
-        Utilities.setImage("/resources/stop.png", "Stop recording", stopRecordingButton);
-        Utilities.setImage("/resources/play_cropped.png", null, playButton);
+        setImage("/resources/record_cropped.png", "Record values", recordButton);
+        setImage("/resources/stop.png", "Stop recording", stopRecordingButton);
+        setImage("/resources/play_cropped.png", null, playButton);
 
         if(!isLoaded) {
             playButton.setVisible(false);
@@ -310,7 +310,7 @@ public class SensorsTabController implements Initializable {
             loggerLabel.setText("File \"" + file.getName().replace(".xml", "") + "\" loaded");
             System.out.println(file.getAbsolutePath());
 
-            Utilities.setImage("/resources/play_cropped.png", null, playButton);
+            setImage("/resources/play_cropped.png", null, playButton);
 
             xmlUtil = new XMLUtil();
             loadedValues = xmlUtil.loadXML(file);
@@ -357,9 +357,9 @@ public class SensorsTabController implements Initializable {
         }
 
         if(isRecording) {
-            Utilities.setImage("/resources/pause.png", "Pause recording", recordButton);
+            setImage("/resources/pause.png", "Pause recording", recordButton);
         } else {
-            Utilities.setImage("/resources/record_cropped.png", "Record values", recordButton);
+            setImage("/resources/record_cropped.png", "Record values", recordButton);
         }
 
         stopRecordingButton.setDisable(isRecording);
@@ -373,21 +373,21 @@ public class SensorsTabController implements Initializable {
         if (playbackThread.isPaused()) {
             playbackThread.play();
             System.out.println("RESUMING");
-            Utilities.setImage("/resources/pause.png", null, playButton);
+            setImage("/resources/pause.png", null, playButton);
             recordButton.setDisable(true);
             stopRecordingButton.setDisable(true);
         } else {
             if(!wasPaused) {
                 playbackThread.run();
                 System.out.println("STARTING");
-                Utilities.setImage("/resources/pause.png", null, playButton);
+                setImage("/resources/pause.png", null, playButton);
                 wasPaused = true;
                 recordButton.setDisable(true);
                 stopRecordingButton.setDisable(true);
             } else {
                 playbackThread.pause();
                 System.out.println("PAUSING");
-                Utilities.setImage("/resources/play_cropped.png", null, playButton);
+                setImage("/resources/play_cropped.png", null, playButton);
                 recordButton.setDisable(false);
                 stopRecordingButton.setDisable(false);
             }
@@ -534,10 +534,6 @@ public class SensorsTabController implements Initializable {
         phone.setManaged(false);
 
         HBox phonePaneHBox = new HBox();
-
-        System.out.println("widht: " + phonePane.getWidth());
-        System.out.println("height: " + phonePane.getHeight());
-
 
         phone.setLayoutX(175);
         phone.setLayoutY(100);
@@ -1002,7 +998,7 @@ public class SensorsTabController implements Initializable {
                     playButton.setDisable(false);
                     recordButton.setDisable(false);
 
-                    Utilities.setImage("/resources/play_cropped.png", null, playButton);
+                    setImage("/resources/play_cropped.png", null, playButton);
                 }
             });
 

@@ -19,9 +19,10 @@
         </padding>
 
         <HBox spacing="20">
-            <TextField fx:id="searchField" promptText="Search. Prefix with pid:, app:, tag: or text to limit scope." prefWidth="320" />
+            <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" promptText="Search. Prefix with pid:, app:, tag: or text to limit scope." prefWidth="320" />
             <Button fx:id="startButton" onAction="#handleStartButtonClicked" text="Start" minWidth="50"/>
-            <ComboBox fx:id="logLevelComboBox">
+            <Button fx:id="clearButton" onAction="#handleClearButtonClicked" text="Clear"/>
+            <ComboBox fx:id="logLevelComboBox" onAction="#handleLogLevelComboBoxPressed" promptText="Log Level">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="verbose"/>
@@ -30,11 +31,11 @@
                         <String fx:value="warn"/>
                         <String fx:value="assert"/>
                         <String fx:value="error"/>
+                        <String fx:value="none"/>
                     </FXCollections>
                 </items>
             </ComboBox>
-            <Button fx:id="saveButton" />
-            <Button fx:id="clearButton" onAction="#handleClearButtonClicked"/>
+            <Button fx:id="saveButton" onAction="#handleSaveButtonClicked"/>
             <ComboBox fx:id="filtersComboBox" prefWidth="100"/>
             <Button fx:id="addFilterButton" />
             <Button fx:id="deleteFilterButton" />

@@ -82,6 +82,10 @@ public class Main extends Application {
         if(!directory.exists())
             result = directory.mkdir();
 
+        directory = new File(path + "\\logcat");
+        if(!directory.exists())
+            result = directory.mkdir();
+
         return result;
     }
 

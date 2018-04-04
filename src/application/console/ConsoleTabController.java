@@ -1,24 +1,17 @@
 package application.console;
 
 import application.ADBUtil;
-import javafx.application.HostServices;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+
+import application.utilities.ApplicationUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
 
-import java.net.URI;
 import java.net.URL;
 import java.util.ResourceBundle;
-
-import java.awt.Desktop;
 
 public class ConsoleTabController implements Initializable {
 
@@ -40,10 +33,6 @@ public class ConsoleTabController implements Initializable {
         resultArea.setWrapText(true);
         resultArea.setEditable(false);
         enterButton.setDisable(true);
-
-        //HostServices hostServices = (HostServices)this..getProperties().get("hostServices");
-
-
 
         enterButton.setOnAction(event -> {
             String[] parameters = commandField.getText().split(" ");
@@ -70,19 +59,8 @@ public class ConsoleTabController implements Initializable {
         });
 
         helpLink.setOnAction(event -> {
-            //hostServices.showDocument("https://developer.android.com/studio/command-line/adb.html#issuingcommands");
-
-            try {
-                URI uri = new URI("https://developer.android.com/studio/command-line/adb.html#issuingcommands");
-                if (Desktop.isDesktopSupported()) {
-                    Desktop desktop = Desktop.getDesktop();
-                    if (desktop.isSupported(Desktop.Action.BROWSE)) {
-                        desktop.browse(uri);
-                    }
-                }
-            } catch (Exception ee) {
-                ee.printStackTrace();
-            }
+            ApplicationUtils applicationUtils = () -> {};
+            applicationUtils.browse("https://developer.android.com/studio/command-line/adb.html#issuingcommands");
         });
     }
 }

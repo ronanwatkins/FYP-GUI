@@ -2,38 +2,36 @@ package application.applications;
 
 import application.ADBUtil;
 import application.logcat.LogCatTabController;
-import application.utilities.Utilities;
-import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import application.utilities.ApplicationUtils;
+import javafx.beans.property.*;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
-import javafx.util.Callback;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import static application.utilities.ADB.*;
 
-public class ApplicationTabController implements Initializable {
-
+public class ApplicationTabController implements Initializable, ApplicationUtils {
     private static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\applications";
-
     private final String EXTENSION = ".apk";
+
+    @FXML
+    private TextField searchField;
 
     @FXML
     private TableView<AndroidApplication> applicationTableView;
@@ -50,19 +48,25 @@ public class ApplicationTabController implements Initializable {
     private TableColumn<AndroidApplication, String> dataDirColumn;
 
     @FXML
-    private TreeTableView<Intent> intentsTableView;
+    private TableView<Intent> intentsTableView;
 
 //    @FXML
-//    private TreeTableColumn<String, Intent> componentColumn;
+//    private TableColumn<Intent, ObservableList<String>> actionsColumn;
+
+    @FXML
+    private TableColumn<ObservableList<StringProperty>, String> actionsColumn;
+    @FXML
+    private TableColumn categoriesColumn;
+    @FXML
+    private TableColumn mimeTypesColumn;
 
 //    @FXML
-//    private TreeItem<String> componentItem;
+//    private TableColumn<Intent, ObservableList<StringProperty>> actionsColumn;
+//
 //    @FXML
-//    private TreeItem<String> actionItem;
+//    private TableColumn<ObservableList<StringProperty>, String> categoriesColumn;
 //    @FXML
-//    private TreeItem<String> categoryItem;
-//    @FXML
-//    private TreeItem<String> mimeTypeItem;
+//    private TableColumn<ObservableList<StringProperty>, String> mimeTypesColumn;
 
     @FXML
     private TextArea resultTextArea;
@@ -91,11 +95,13 @@ public class ApplicationTabController implements Initializable {
     private ListView<String> appsOnPCListView;
     @FXML
     private ListView<String> appsOnDeviceListView;
+    @FXML
+    private ListView<String> componentsListView;
 
     private ObservableList<String> appsOnPCList;
     private ObservableList<String> appsOnDeviceList;
 
-//    private AndroidApplication androidApplication;
+    private AndroidApplication androidApplication;
 
     private File directory;
 
@@ -103,13 +109,13 @@ public class ApplicationTabController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         directory = new File(DIRECTORY);
 
-        initializeTableView();
-        initializeTableTreeView();
+        initializeApplicationTableView();
+        initializeIntentTableView();
         initializeButtons();
         updatePCListView();
     }
 
-    private void initializeTableView() {
+    private void initializeApplicationTableView() {
        // applicationTableView.setRowResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         APKNameColumn.setCellValueFactory(cellData -> cellData.getValue().APKNameProperty());
@@ -131,103 +137,116 @@ public class ApplicationTabController implements Initializable {
         return cell;
     }
 
-//    private ObservableValue<String> cunt() {
-//        return new ReadOnlyObjectWrapper(p.getValue().getValue().getComponent());
-//    }
-
-    private void initializeTableTreeView() {
-        //Creating tree items
-//        ArrayList<StringProperty> actions = new ArrayList<>();
-//        ArrayList<StringProperty> categories = new ArrayList<>();
-//        ArrayList<StringProperty> mimeTypes = new ArrayList<>();
+    private void initializeIntentTableView() {
+       // actionsColumn.setCellValueFactory(
+        //        (TableColumn.CellDataFeatures<Intent, String>  p) ->
+          //              new SimpleStringProperty(":)"));
+//        actionsColumn.setCellValueFactory(new PropertyValueFactory<>("actions"));
+//        actionsColumn.setCellValueFactory(p -> {
 //
-//        Intent childNode1Value = new Intent(new SimpleStringProperty("Child Node 1"), actions, categories, mimeTypes);
-//        Intent childNode2Value = new Intent(new SimpleStringProperty("Child Node 2"), actions, categories, mimeTypes);
-//        Intent childNode3Value = new Intent(new SimpleStringProperty("Child Node 3"), actions, categories, mimeTypes);
+//            System.out.println("yaboyya:  " + p.getValue());
 //
-//        final TreeItem<Intent> childNode1 = new TreeItem<>(childNode1Value);
-//        final TreeItem<Intent> childNode2 = new TreeItem<>(childNode2Value);
-//        final TreeItem<Intent> childNode3 = new TreeItem<>(childNode3Value);
+//            final ObservableList row = p.getValue().actionProperty();
 //
-//        //Creating the root element
-//        Intent intent = new Intent(new SimpleStringProperty("Root node"), actions, categories, mimeTypes);
-//        final TreeItem<Intent> root = new TreeItem<>(intent);
-//        root.setExpanded(true);
+//            List<Observable> dependencies = new ArrayList<>();
+//            for (Object value : row) {
+//                if (value instanceof Observable) {
+//                    dependencies.add((Observable)value);
+//                }
+//            }
+//            dependencies.add(row);
 //
-//        //Adding tree items to the root
-//        root.getChildren().setAll(childNode1, childNode2 ,childNode3);
+//            return null;
+//            return Bindings.createStringBinding(() -> {
+//                StringBuilder sb = new StringBuilder();
+//                for (int i = 0; i < row.size(); i++) {
+//                    //Check for Property objects and append the value
+//                    if (row.get(i) instanceof Property) {
+//                        sb.append(((Property)row.get(i)).getValue());
+//                    }
+//                    else {
+//                        sb.append(row.get(i));
+//                    }
 //
-//        TreeTableColumn<Intent,String> column = new TreeTableColumn<>("Intents");
-//        column.setPrefWidth(150);
+//                    if (i+1 < row.size()) {
+//                        sb.append(", ");
+//                    }
+//                }
+//                return sb.toString();
+//            }, dependencies.toArray(new Observable[dependencies.size()]));
+//        });
+//        categoriesColumn.setCellValueFactory(p -> {
+//            final ObservableList row = p.getValue();
 //
-//        //Defining cell content
-//        column.setCellValueFactory(
-//                (TreeTableColumn.CellDataFeatures<Intent, String> param) ->
-//                        new ReadOnlyStringWrapper(param.getValue().getValue().getComponent())
-//        );
+//            List<Observable> dependencies = new ArrayList<>();
+//            for (Object value : row) {
+//                if (value instanceof Observable) {
+//                    dependencies.add((Observable)value);
+//                }
+//            }
+//            dependencies.add(row);
 //
-////        TreeTableView<Intent> treeTableView = new TreeTableView<Intent>(root);
-////        treeTableView.getColumns().setAll(column);
-////        pane.getChildren().add(treeTableView);
+//            return Bindings.createStringBinding(() -> {
+//                StringBuilder sb = new StringBuilder();
+//                for (int i = 0; i < row.size(); i++) {
+//                    //Check for Property objects and append the value
+//                    if (row.get(i) instanceof Property) {
+//                        sb.append(((Property)row.get(i)).getValue());
+//                    }
+//                    else {
+//                        sb.append(row.get(i));
+//                    }
 //
+//                    if (i+1 < row.size()) {
+//                        sb.append(", ");
+//                    }
+//                }
+//                return sb.toString();
+//            }, dependencies.toArray(new Observable[dependencies.size()]));
+//        });
+//        mimeTypesColumn.setCellValueFactory(p -> {
+//            final ObservableList row = p.getValue();
 //
+//            List<Observable> dependencies = new ArrayList<>();
+//            for (Object value : row) {
+//                if (value instanceof Observable) {
+//                    dependencies.add((Observable)value);
+//                }
+//            }
+//            dependencies.add(row);
 //
-//        intentsTableView.setRoot(root);
-//        intentsTableView.getColumns().setAll(column);
-////       // intentsTableView.getColumns().add(column);
-////        intentsTableView.setPrefWidth(152);
-////        intentsTableView.setShowRoot(true);
+//            return Bindings.createStringBinding(() -> {
+//                StringBuilder sb = new StringBuilder();
+//                for (int i = 0; i < row.size(); i++) {
+//                    //Check for Property objects and append the value
+//                    if (row.get(i) instanceof Property) {
+//                        sb.append(((Property)row.get(i)).getValue());
+//                    }
+//                    else {
+//                        sb.append(row.get(i));
+//                    }
 //
-//        ObservableList <String> components = FXCollections.observableArrayList();
-//        components.add("one");
-//        components.add("two");
-//        components.add("three");
-//        for(Intent intent : application.intents())
-  //          components.add(intent.componentProperty().get());
+//                    if (i+1 < row.size()) {
+//                        sb.append(", ");
+//                    }
+//                }
+//                return sb.toString();
+//            }, dependencies.toArray(new Observable[dependencies.size()]));
+//        });
+    }
 
-        //componentColumn.setCellValueFactory(param -> {
-      //      param.getValue().getValue().componentProperty();
-     //       return null;
-    //    });
+    private void updateComponentsListView(AndroidApplication androidApplication) {
+        componentsListView.getItems().clear();
 
-        //componentColumn.getColumns().clear();
+        ObservableList<Intent> intents = androidApplication.intents();
 
-//        componentItem.getChildren().add(actionItem);
-//        componentItem.getChildren().add(categoryItem);
-//        componentItem.getChildren().add(mimeTypeItem);
-//        intentsTableView.setRoot(componentItem);
-   }
-
-   private void updateIntentsTable(AndroidApplication androidApplication) {
-       //Creating tree items
-       ArrayList<StringProperty> actions = new ArrayList<>();
-       ArrayList<StringProperty> categories = new ArrayList<>();
-       ArrayList<StringProperty> mimeTypes = new ArrayList<>();
-
-       TreeTableColumn<Intent,String> column = new TreeTableColumn<>("Intents");
-       column.setPrefWidth(150);
-
-       //Defining cell content
-       column.setCellValueFactory(
-               (TreeTableColumn.CellDataFeatures<Intent, String> param) ->
-                       new ReadOnlyStringWrapper(param.getValue().getValue().getComponent())
-       );
-
-       //Creating the root element
-       Intent intent = new Intent(new SimpleStringProperty("Components"), actions, categories, mimeTypes);
-       final TreeItem<Intent> root = new TreeItem<>(intent);
-       root.setExpanded(true);
-
-       ObservableList<Intent> intents = androidApplication.intents();
-
-       for(Intent in : intents) {
-           root.getChildren().add(new TreeItem<>(in));
-       }
-
-       intentsTableView.setRoot(root);
-       intentsTableView.getColumns().setAll(column);
-
-   }
+        for (Intent intent : intents) {
+            String componentName = intent.getComponent();
+            if(componentName.contains("/"))
+                componentName = "..." + componentName.substring(componentName.indexOf("/"));
+            componentsListView.getItems().add(componentName);
+        }
+    }
 
     private void updatePCListView() {
         appsOnPCList = FXCollections.observableArrayList();
@@ -239,7 +258,6 @@ public class ApplicationTabController implements Initializable {
 
         appsOnPCListView.setItems(appsOnPCList);
     }
-
 
     private void updateDeviceListView() {
         appsOnDeviceList = FXCollections.observableArrayList();
@@ -254,10 +272,8 @@ public class ApplicationTabController implements Initializable {
             };
             task.setOnSucceeded(event1 -> {
                 appsOnDeviceList = task.getValue();
-                appsOnDeviceListView.setItems(appsOnDeviceList);
-
-                
-
+                Collections.sort(appsOnDeviceList);
+                appsOnDeviceListView.setItems(filter(searchField.getText(), appsOnDeviceList));
             });
 
             new Thread(task).start();
@@ -265,7 +281,50 @@ public class ApplicationTabController implements Initializable {
     }
 
     @FXML
+    private void handleComponentsListViewClicked(MouseEvent mouseEvent) {
+        ObservableList<Intent> intents = androidApplication.intents();
+
+        Intent intent = null;
+        String component = componentsListView.getSelectionModel().getSelectedItem().replace("...",  appsOnDeviceListView.getSelectionModel().getSelectedItem());
+
+        for(Intent in : intents) {
+            System.out.println(component + " " + in.getComponent() + " " + in.getComponent().equals(component));
+            if(in.getComponent().equals(component))
+                intent = in;
+        }
+
+        System.out.println(intent);
+
+        intentsTableView.getItems().clear();
+
+        ObservableList<Intent> temp = FXCollections.observableArrayList(intent);
+        //intentsTableView.setItems(temp);
+
+        actionsColumn.getColumns().add(getColumn(1));
+
+
+       // intentsTableView.getItems().add(intent);
+    }
+
+    private TableColumn<ObservableList<StringProperty>, String> getColumn(int columnIndex) {
+        TableColumn<ObservableList<StringProperty>, String> column = new TableColumn<>();
+        column.setCellValueFactory(cellDataFeatures -> {
+            ObservableList<StringProperty> values = cellDataFeatures.getValue();
+            // Pad to current value if necessary:
+            for (int index = values.size(); index <= columnIndex; index++) {
+                values.add(index, new SimpleStringProperty("cunt fart"));
+            }
+            return cellDataFeatures.getValue().get(columnIndex);
+        });
+        column.setCellFactory(TextFieldTableCell.forTableColumn());
+
+        return column;
+    }
+
+
+    @FXML
     private void handleAppsListViewClicked(MouseEvent mouseEvent) {
+        System.out.println("handleAppsListViewClicked");
         enableButtons();
         applicationTableView.setPlaceholder(new Label("Loading Application details..."));
         String applicationName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
@@ -278,11 +337,11 @@ public class ApplicationTabController implements Initializable {
             }
         };
         task.setOnSucceeded(event -> {
-            AndroidApplication androidApplication = task.getValue();
+            androidApplication = task.getValue();
             applicationTableView.getItems().add(androidApplication);
 
-            updateIntentsTable(androidApplication);
-            //componentItem.getChildren().
+            updateComponentsListView(androidApplication);
+            //updateIntentsTable(androidApplication);
         });
 
         new Thread(task).start();
@@ -371,6 +430,15 @@ public class ApplicationTabController implements Initializable {
         } catch (NullPointerException ignored) {}
     }
 
+    @FXML
+    private void handleSearchFieldAction(KeyEvent event) {
+        appsOnDeviceListView.setItems(filter(searchField.getText(), appsOnDeviceList));
+    }
+
+    public String getApplicationName() {
+        return appsOnDeviceListView.getSelectionModel().getSelectedItem();
+    }
+
     private void enableButtons() {
         openButton.setDisable(false);
         closeButton.setDisable(false);
@@ -378,15 +446,17 @@ public class ApplicationTabController implements Initializable {
         copyButton.setDisable(false);
     }
 
-    private void initializeButtons() {
+    @Override
+    public void initializeButtons() {
         deleteButton.setDisable(true);
         installButton.setDisable(true);
         openButton.setDisable(true);
         closeButton.setDisable(true);
         uninstallButton.setDisable(true);
         copyButton.setDisable(true);
-        Utilities.setImage("/resources/delete.png", "Delete file", deleteButton);
-        Utilities.setImage("/resources/pop_out.png", null, showLogCatButton);
-        Utilities.setImage("/resources/refresh.png", null, refreshButton);
+
+        setImage("/resources/delete.png", "Delete file", deleteButton);
+        setImage("/resources/pop_out.png", null, showLogCatButton);
+        setImage("/resources/refresh.png", null, refreshButton);
     }
 }

@@ -4,12 +4,10 @@ import application.ADBUtil;
 import application.applications.Intent;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import sun.reflect.generics.tree.Tree;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ADB {
 
@@ -90,8 +88,6 @@ public class ADB {
         return new ArrayList<>(Arrays.asList(values));
     }
 
-
-
     public static ArrayList<StringProperty> listApplications() {
         ArrayList<StringProperty> values = new ArrayList<>();
         for(String application : ADBUtil.listApplications())
@@ -100,9 +96,10 @@ public class ADB {
         return values;
     }
 
-    public static ArrayList<Intent> getIntents(String app) {
+    public static Set<Intent> getIntents(String app) {
         String[] temp = ADBUtil.consoleCommand("shell \"dumpsys package " + app + " | egrep ' filter|Action:|Category:|Type:' | sed '/[a-zA-Z0-9] com/i \\nDIVISIONHERE' | sed 's/^[ \\t]*//;s/[ \\t]*$//'\"").split("DIVISIONHERE");
 
+        Set<Intent> set = new TreeSet<>();
         for(String s : temp) {
             if(s.isEmpty())
                 continue;
@@ -125,11 +122,10 @@ public class ADB {
                     types.add(new SimpleStringProperty(temp3.replace("Type: ", "").replace("\"", "")));
                 }
             }
-            Intent intent = new Intent(component, actions, categories, types);
-            System.out.println(intent.toString());
+
+            set.add(new Intent(component, actions, categories, types));
         }
 
-        return null;
+        return set;
     }
-
 }

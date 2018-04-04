@@ -152,8 +152,6 @@ public class ADBUtil {
     }
 
     private static void getResolution() {
-        System.out.println("in getResolution");
-
         String[] response = consoleCommand(new String[] {"-s", deviceName, "shell", "wm", "size"}, false).split(" ");
         String[] size = response[2].split("x");
         resolutionX = Double.parseDouble(size[0]);
@@ -338,7 +336,6 @@ public class ADBUtil {
 
             if(result.length == 2 && isFirstRun.get()) {
                 deviceName = result[1].split("\t")[0].trim();
-                System.out.println("Device name: " + deviceName);
                 Task task = new Task<Void>() {
                     @Override
                     protected Void call() throws Exception {
@@ -391,7 +388,6 @@ public class ADBUtil {
             if(isFirstRun.get()) {
                 int port = Integer.parseInt(deviceName.split("-")[1]);
                 TelnetServer.connect(port);
-                System.out.println("Connected to telnet port: " + port);
             }
 
             try {
@@ -455,7 +451,7 @@ public class ADBUtil {
                 String line;
                 while ((line = bufferedReader.readLine()) != null) {
                     if(!line.isEmpty()) {
-                        System.out.println(Thread.currentThread().getId() + " InputStream >> " + line);
+                        //System.out.println(Thread.currentThread().getId() + " InputStream >> " + line);
                         result.append(line).append("\n");
                     }
                 }
@@ -463,7 +459,7 @@ public class ADBUtil {
                 bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                 while ((line = bufferedReader.readLine()) != null) {
                     if(!line.isEmpty()) {
-                        System.out.println(Thread.currentThread().getId() + " ErrorStream >> " + line);
+                        //System.out.println(Thread.currentThread().getId() + " ErrorStream >> " + line);
                         result.append(line).append("\n");
                     }
                 }
@@ -472,7 +468,6 @@ public class ADBUtil {
                 process.waitFor();
                 //process.waitFor(2, TimeUnit.SECONDS);
 
-                System.out.println("going to return now");
                 return result.toString();
             }
         };
@@ -483,13 +478,8 @@ public class ADBUtil {
         else
             thread.run();
 
-        System.out.println("is it runnning? " + task);
-        System.out.println("is it runnning? " + task.isRunning());
-
         task.setOnSucceeded(event -> {
-            //return result.toString();
-            //return;
-            //return task.getValue();
+
             System.out.println("succeeded");
         });
         System.out.println("Im finished");
@@ -498,7 +488,6 @@ public class ADBUtil {
             System.out.println(task.getException());
         });
 
-        System.out.println(Thread.currentThread().getId() + " result: " + result);
         return result.toString();
     }
 

@@ -1,11 +1,11 @@
 package application.automation;
 
 import application.ADBUtil;
+import application.utilities.ApplicationUtils;
 import application.utilities.XMLUtil;
 import application.automation.extras.GetTouchPositionController;
 import application.automation.extras.RecordInputsController;
 import application.utilities.Showable;
-import application.utilities.Utilities;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -24,14 +24,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
 import java.util.*;
 
-public class CreateBatchTabController implements Initializable, Showable<AutomationTabController> {
+public class CreateBatchTabController implements Initializable, Showable<AutomationTabController>, ApplicationUtils {
 
     private final String FILES_DIRECTORY = System.getProperty("user.dir") + "\\misc";
     private final String EXTENSION = ".xml";
@@ -406,20 +404,6 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
         componentComboBox.setOnAction(event1 -> componentTextField.setText(componentComboBox.getValue()));
     }
 
-    private void browse(String URL) {
-        try {
-            URI uri = new URI(URL);
-            if (Desktop.isDesktopSupported()) {
-                Desktop desktop = Desktop.getDesktop();
-                if (desktop.isSupported(Desktop.Action.BROWSE)) {
-                    desktop.browse(uri);
-                }
-            }
-        } catch (Exception ee) {
-            ee.printStackTrace();
-        }
-    }
-
     @FXML
     private void handleFilesFinder1Clicked(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -605,7 +589,7 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
         result.ifPresent(s -> commandField.setText("shell input text " + s));
     }
 
-    //Utilities
+    //ApplicationUtils
     public void setCommandText(String text) {
         commandField.setText(text);
     }
@@ -710,18 +694,13 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
     }
 
     public void initApplicationCommandsMap() {
-        System.out.println("initApplicationCommandsMap>> ");
         applicationCommandsMap = new HashMap<>();
 
-        System.out.println("going to listApplications");
         ArrayList<String> applications = ADBUtil.listApplications();
-        System.out.println("finished listApplications");
         for(String application : applications) {
-            System.out.println("application: " + application);
             applicationCommandsMap.put(application, application);
             componentComboBox.getItems().add(application);
         }
-        System.out.println("Done");
     }
 
     private void initInputCommandsMap() {
@@ -751,7 +730,8 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
         inputCommandsMap.put("Search", "KEYCODE_SEARCH");
     }
 
-    private void initializeButtons() {
+    @Override
+    public void initializeButtons() {
         ToggleGroup toggleGroup = new ToggleGroup();
         inputsToggleButton.setToggleGroup(toggleGroup);
         applicationsToggleButton.setToggleGroup(toggleGroup);
@@ -760,12 +740,12 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
 
         inputsToggleButton.setSelected(true);
 
-        Utilities.setImage("/resources/right.png", "Add command to the list", addCommandButton);
-        Utilities.setImage("/resources/up.png", "Move command up the list", moveUpButton);
-        Utilities.setImage("/resources/down.png","Move command down the list", moveDownButton);
-        Utilities.setImage("/resources/delete.png", "Delete command", deleteButton);
-        Utilities.setImage("/resources/open_folder.png", null, filesFinder1);
-        Utilities.setImage("/resources/open_folder.png", null, filesFinder2);
-        Utilities.setImage("/resources/enter.png", null, enterButton);
+        setImage("/resources/right.png", "Add command to the list", addCommandButton);
+        setImage("/resources/up.png", "Move command up the list", moveUpButton);
+        setImage("/resources/down.png","Move command down the list", moveDownButton);
+        setImage("/resources/delete.png", "Delete command", deleteButton);
+        setImage("/resources/open_folder.png", null, filesFinder1);
+        setImage("/resources/open_folder.png", null, filesFinder2);
+        setImage("/resources/enter.png", null, enterButton);
     }
 }
