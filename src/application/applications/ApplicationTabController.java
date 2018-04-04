@@ -4,6 +4,9 @@ import application.ADBUtil;
 import application.logcat.LogCatTabController;
 import application.utilities.Utilities;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -20,6 +23,7 @@ import javafx.util.Callback;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -46,7 +50,7 @@ public class ApplicationTabController implements Initializable {
     private TableColumn<AndroidApplication, String> dataDirColumn;
 
     @FXML
-    private TreeTableView<String> intentsTableView;
+    private TreeTableView<Intent> intentsTableView;
 
 //    @FXML
 //    private TreeTableColumn<String, Intent> componentColumn;
@@ -91,7 +95,7 @@ public class ApplicationTabController implements Initializable {
     private ObservableList<String> appsOnPCList;
     private ObservableList<String> appsOnDeviceList;
 
-    private AndroidApplication androidApplication;
+//    private AndroidApplication androidApplication;
 
     private File directory;
 
@@ -133,34 +137,51 @@ public class ApplicationTabController implements Initializable {
 
     private void initializeTableTreeView() {
         //Creating tree items
-        final TreeItem<String> childNode1 = new TreeItem<>("Child Node 1");
-        final TreeItem<String> childNode2 = new TreeItem<>("Child Node 2");
-        final TreeItem<String> childNode3 = new TreeItem<>("Child Node 3");
-
-        //Creating the root element
-        final TreeItem<String> root = new TreeItem<>("Root node");
-        root.setExpanded(true);
-
-        //Adding tree items to the root
-        root.getChildren().setAll(childNode1, childNode2, childNode3);
-
-        TreeTableColumn<Intent,String> column = new TreeTableColumn<>("Column");
-        column.setPrefWidth(150);
-
-        //Defining cell content
-        column.setCellValueFactory((TreeTableColumn.CellDataFeatures<Intent, String> p) ->
-                new ReadOnlyStringWrapper(p.getValue().getValue().getComponent()));
-
-
-        intentsTableView.setRoot(root);
-        intentsTableView.getColumns().add(column);
-        intentsTableView.setPrefWidth(152);
-        intentsTableView.setShowRoot(true);
-
-        ObservableList <String> components = FXCollections.observableArrayList();
-        components.add("one");
-        components.add("two");
-        components.add("three");
+//        ArrayList<StringProperty> actions = new ArrayList<>();
+//        ArrayList<StringProperty> categories = new ArrayList<>();
+//        ArrayList<StringProperty> mimeTypes = new ArrayList<>();
+//
+//        Intent childNode1Value = new Intent(new SimpleStringProperty("Child Node 1"), actions, categories, mimeTypes);
+//        Intent childNode2Value = new Intent(new SimpleStringProperty("Child Node 2"), actions, categories, mimeTypes);
+//        Intent childNode3Value = new Intent(new SimpleStringProperty("Child Node 3"), actions, categories, mimeTypes);
+//
+//        final TreeItem<Intent> childNode1 = new TreeItem<>(childNode1Value);
+//        final TreeItem<Intent> childNode2 = new TreeItem<>(childNode2Value);
+//        final TreeItem<Intent> childNode3 = new TreeItem<>(childNode3Value);
+//
+//        //Creating the root element
+//        Intent intent = new Intent(new SimpleStringProperty("Root node"), actions, categories, mimeTypes);
+//        final TreeItem<Intent> root = new TreeItem<>(intent);
+//        root.setExpanded(true);
+//
+//        //Adding tree items to the root
+//        root.getChildren().setAll(childNode1, childNode2 ,childNode3);
+//
+//        TreeTableColumn<Intent,String> column = new TreeTableColumn<>("Intents");
+//        column.setPrefWidth(150);
+//
+//        //Defining cell content
+//        column.setCellValueFactory(
+//                (TreeTableColumn.CellDataFeatures<Intent, String> param) ->
+//                        new ReadOnlyStringWrapper(param.getValue().getValue().getComponent())
+//        );
+//
+////        TreeTableView<Intent> treeTableView = new TreeTableView<Intent>(root);
+////        treeTableView.getColumns().setAll(column);
+////        pane.getChildren().add(treeTableView);
+//
+//
+//
+//        intentsTableView.setRoot(root);
+//        intentsTableView.getColumns().setAll(column);
+////       // intentsTableView.getColumns().add(column);
+////        intentsTableView.setPrefWidth(152);
+////        intentsTableView.setShowRoot(true);
+//
+//        ObservableList <String> components = FXCollections.observableArrayList();
+//        components.add("one");
+//        components.add("two");
+//        components.add("three");
 //        for(Intent intent : application.intents())
   //          components.add(intent.componentProperty().get());
 
@@ -175,6 +196,37 @@ public class ApplicationTabController implements Initializable {
 //        componentItem.getChildren().add(categoryItem);
 //        componentItem.getChildren().add(mimeTypeItem);
 //        intentsTableView.setRoot(componentItem);
+   }
+
+   private void updateIntentsTable(AndroidApplication androidApplication) {
+       //Creating tree items
+       ArrayList<StringProperty> actions = new ArrayList<>();
+       ArrayList<StringProperty> categories = new ArrayList<>();
+       ArrayList<StringProperty> mimeTypes = new ArrayList<>();
+
+       TreeTableColumn<Intent,String> column = new TreeTableColumn<>("Intents");
+       column.setPrefWidth(150);
+
+       //Defining cell content
+       column.setCellValueFactory(
+               (TreeTableColumn.CellDataFeatures<Intent, String> param) ->
+                       new ReadOnlyStringWrapper(param.getValue().getValue().getComponent())
+       );
+
+       //Creating the root element
+       Intent intent = new Intent(new SimpleStringProperty("Components"), actions, categories, mimeTypes);
+       final TreeItem<Intent> root = new TreeItem<>(intent);
+       root.setExpanded(true);
+
+       ObservableList<Intent> intents = androidApplication.intents();
+
+       for(Intent in : intents) {
+           root.getChildren().add(new TreeItem<>(in));
+       }
+
+       intentsTableView.setRoot(root);
+       intentsTableView.getColumns().setAll(column);
+
    }
 
     private void updatePCListView() {
@@ -226,9 +278,10 @@ public class ApplicationTabController implements Initializable {
             }
         };
         task.setOnSucceeded(event -> {
-            androidApplication = task.getValue();
+            AndroidApplication androidApplication = task.getValue();
             applicationTableView.getItems().add(androidApplication);
 
+            updateIntentsTable(androidApplication);
             //componentItem.getChildren().
         });
 

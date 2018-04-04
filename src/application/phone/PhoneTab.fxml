@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.phone.PhoneTabController">
-    <GridPane hgap="40.0" prefHeight="370.0" prefWidth="604.0" AnchorPane.bottomAnchor="130.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="96.0" AnchorPane.topAnchor="0.0">
+    <GridPane hgap="60.0" prefHeight="333.0" prefWidth="604.0" vgap="-20" AnchorPane.bottomAnchor="167.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="96.0" AnchorPane.topAnchor="0.0">
         <padding>
             <Insets bottom="20" left="20" right="20" top="20" />
         </padding>
@@ -104,7 +104,7 @@
 
         <Label text="Battery Level (%):" GridPane.columnIndex="2" />
         <Label fx:id="batteryLabel" text="100" GridPane.columnIndex="2" GridPane.halignment="RIGHT" />
-        <Slider fx:id="batterySlider"  GridPane.columnIndex="2" GridPane.rowIndex="1" />
+        <Slider fx:id="batterySlider" GridPane.columnIndex="2" GridPane.rowIndex="1" />
 
         <Label text="Battery Health" GridPane.columnIndex="2" GridPane.rowIndex="2" />
         <ComboBox fx:id="batteryHealth" prefWidth="150.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
