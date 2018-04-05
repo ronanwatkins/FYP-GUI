@@ -18,6 +18,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import application.location.KML;
+import application.logcat.CreateFilterController;
+import application.logcat.Filter;
+import application.logcat.LogCatTabController;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -28,8 +31,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class XMLUtil {
-    private static Document document;
-    private static Element rootElement;
+    private final String APPLICATION_NAME = "applicationName";
+    private final String PID_TAG = "PID";
+    private final String LOG_MESSAGE = "logMessage";
+    private final String LOG_TAG = "logTag";
+    private final String LOG_LEVEL = "logLevel";
+
+    private Document document;
+    private Element rootElement;
     private AtomicBoolean isFileSaved = new AtomicBoolean(true);
     private boolean isKml = false;
 
@@ -262,6 +271,31 @@ public class XMLUtil {
         return returnMap;
     }
 
+    public void saveFilter(Filter filter) {
+        Element element = document.createElement(APPLICATION_NAME);
+        element.appendChild(document.createTextNode(filter.getApplicationName()));
+        rootElement.appendChild(element);
+
+        element = document.createElement(PID_TAG);
+        element.appendChild(document.createTextNode(""+filter.getPID()));
+        rootElement.appendChild(element);
+
+        element = document.createElement(LOG_MESSAGE);
+        element.appendChild(document.createTextNode(filter.getLogMessage()));
+        rootElement.appendChild(element);
+
+        element = document.createElement(LOG_TAG);
+        element.appendChild(document.createTextNode(filter.getLogTag()));
+        rootElement.appendChild(element);
+
+        element = document.createElement(LOG_LEVEL);
+        element.appendChild(document.createTextNode(filter.getLogLevel()));
+        rootElement.appendChild(element);
+
+        File file = new File( LogCatTabController.FILTER_DIRECTORY + filter.getFilterName() + ".xml");
+        saveFile(file);
+    }
+
     public void saveBatchCommands(ObservableList<String> batchCommands, File file) {
         Element command;
 
@@ -274,16 +308,59 @@ public class XMLUtil {
         saveFile(file);
     }
 
-    public ObservableList<String> openBatchCommands(File file) {
-        while (!isFileSaved.get()) {
-            System.out.println("Waiting for file to be saved");
-        }
+    public Filter openFilter(String name) {
+        File file = new File( LogCatTabController.FILTER_DIRECTORY + name + ".xml");
+        Filter filter = null;
 
+        try {
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            Document document = documentBuilder.parse(file);
+
+            document.getDocumentElement().normalize();
+
+            Element element;
+
+            NodeList nodeList = document.getElementsByTagName("global");
+
+            for (int i = 0; i < nodeList.getLength(); i++) { //looping through "global"
+                Node node = nodeList.item(i);
+
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    element = (Element) node;
+
+                    String applicationName = (element.getElementsByTagName(APPLICATION_NAME).item(0).getTextContent());
+                    String PID = element.getElementsByTagName(PID_TAG).item(0).getTextContent();
+                    String logMessage = (element.getElementsByTagName(LOG_MESSAGE).item(0).getTextContent());
+                    String logTag = (element.getElementsByTagName(LOG_TAG).item(0).getTextContent());
+                    String logLevel = (element.getElementsByTagName(LOG_LEVEL).item(0).getTextContent());
+
+                    HashMap<String, Integer> map = new HashMap<>();
+                    map.put("verbose", 0);
+                    map.put("debug", 1);
+                    map.put("info", 2);
+                    map.put("warn", 3);
+                    map.put("assert",4);
+                    map.put("error", 5);
+                    map.put("none", 6);
+
+                    filter = new Filter(name, applicationName, PID, logMessage, logTag, map.get(logLevel.toLowerCase()));
+                    //filter = new Filter("", "", "", "", "", 1);
+                }
+            }
+        } catch (Exception ee) {
+            ee.printStackTrace();
+        }
+        return filter;
+
+    }
+
+    public ObservableList<String> openBatchCommands(File file) {
         ObservableList<String> returnList = FXCollections.observableArrayList();
 
-        Task task = new Task<Void>() {
+        Task<ObservableList<String>> task = new Task<ObservableList<String>>() {
             @Override
-            public Void call() {
+            public ObservableList<String> call() {
                 try {
                     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
                     DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();

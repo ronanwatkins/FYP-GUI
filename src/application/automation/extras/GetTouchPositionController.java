@@ -1,7 +1,7 @@
 package application.automation.extras;
 
 import application.ADBUtil;
-import application.automation.CreateBatchTabController;
+import application.automation.CreateBatchController;
 import application.utilities.Showable;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class GetTouchPositionController implements Initializable, Showable<CreateBatchTabController> {
+public class GetTouchPositionController implements Initializable, Showable<CreateBatchController> {
 
     @FXML
     private TextField xField;
@@ -54,7 +54,7 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
     @FXML
     private Button OKButton;
 
-    private static CreateBatchTabController controller;
+    private static CreateBatchController controller;
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -77,10 +77,10 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
     }
 
     @Override
-    public void newWindow(CreateBatchTabController createBatchTabController, File file) throws IOException {
-        controller = createBatchTabController;
+    public void newWindow(CreateBatchController createBatchController, File file) throws IOException {
+        controller = createBatchController;
 
-        FXMLLoader fxmlLoader = new FXMLLoader(createBatchTabController.getClass().getResource("/application/automation/extras/GetTouchPosition.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(createBatchController.getClass().getResource("/application/automation/extras/GetTouchPosition.fxml"));
         Parent root = fxmlLoader.load();
 
         Stage stage = new Stage();

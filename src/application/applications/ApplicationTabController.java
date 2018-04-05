@@ -440,6 +440,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     private void enableButtons() {
+        showLogCatButton.setDisable(false);
         openButton.setDisable(false);
         closeButton.setDisable(false);
         uninstallButton.setDisable(false);
@@ -448,6 +449,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     @Override
     public void initializeButtons() {
+        showLogCatButton.setDisable(true);
         deleteButton.setDisable(true);
         installButton.setDisable(true);
         openButton.setDisable(true);

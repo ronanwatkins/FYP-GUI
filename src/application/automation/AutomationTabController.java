@@ -51,7 +51,7 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
     @FXML
     private CheckBox stopOnFailureCheckBox;
 
-    private CreateBatchTabController createBatchTabController;
+    private CreateBatchController createBatchController;
 
     protected Task<Void> runCommandsTask;
     protected Thread runCommandsThread;
@@ -67,7 +67,7 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
-        createBatchTabController = new CreateBatchTabController();
+        createBatchController = new CreateBatchController();
 
         runTypeComboBox.getSelectionModel().select(0);
         stopButton.setDisable(true);
@@ -103,7 +103,7 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
     protected void handleDeleteButtonClicked(ActionEvent event) {
         String fileName = filesListView.getSelectionModel().getSelectedItem();
         int fileIndex = filesListView.getSelectionModel().getSelectedIndex();
-        File fileToDelete = new File(directory.getAbsolutePath() + "\\" + fileName + EXTENSION);
+        File fileToDelete = new File(DIRECTORY + "\\" + fileName + EXTENSION);
         if(fileToDelete.delete()) {
             System.out.println("File deleted");
             filesList.remove(fileIndex);
@@ -247,7 +247,7 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
         File editFile = new File(directory.getAbsolutePath() + "\\" + fileName + ".xml");
 
         try {
-            createBatchTabController.newWindow(this, editFile);
+            createBatchController.newWindow(this, editFile);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -256,7 +256,7 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
     @FXML
     protected void handleNewButtonClicked(ActionEvent event) {
         try {
-            createBatchTabController.newWindow(this, null);
+            createBatchController.newWindow(this, null);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }

@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
-public class CreateBatchTabController implements Initializable, Showable<AutomationTabController>, ApplicationUtils {
+public class CreateBatchController implements Initializable, Showable<AutomationTabController>, ApplicationUtils {
 
     private final String FILES_DIRECTORY = System.getProperty("user.dir") + "\\misc";
     private final String EXTENSION = ".xml";
@@ -145,6 +145,8 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        System.out.println();
+
         showFilesSection(false);
         showActionsSection(false);
         initApplicationCommandsMap();
@@ -241,7 +243,7 @@ public class CreateBatchTabController implements Initializable, Showable<Automat
         controller = commandsTabController;
         editFile = file;
 
-        FXMLLoader fxmlLoader = new FXMLLoader(commandsTabController.getClass().getResource("/application/automation/CreateBatchTabView.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(commandsTabController.getClass().getResource("/application/automation/CreateBatchView.fxml"));
         Parent root = fxmlLoader.load();
 
         Stage stage = new Stage();

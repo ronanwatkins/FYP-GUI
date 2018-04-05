@@ -1,0 +1,23 @@
+.list-cell:Verbose {
+    -fx-text-fill: green;
+}
+
+.list-cell:Debug {
+    -fx-text-fill: blue;
+}
+
+.list-cell:Info {
+    -fx-text-fill: brown;
+}
+
+.list-cell:Warn {
+    -fx-text-fill: orange;
+}
+
+.list-cell:Assert {
+    -fx-text-fill: black;
+}
+
+.list-cell:Error {
+    -fx-text-fill: red;
+}

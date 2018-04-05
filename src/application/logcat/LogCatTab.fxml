@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.HBox?>
-<AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.logcat.LogCatTabController">
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.logcat.LogCatTabController" stylesheets="/application/logcat/stylesheet.css">
     <VBox spacing="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
         AnchorPane.topAnchor="0.0">
         <padding>
@@ -19,7 +19,7 @@
         </padding>
 
         <HBox spacing="20">
-            <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" promptText="Search. Prefix with pid:, app:, tag: or text to limit scope." prefWidth="320" />
+            <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" promptText="Search" prefWidth="320" />
             <Button fx:id="startButton" onAction="#handleStartButtonClicked" text="Start" minWidth="50"/>
             <Button fx:id="clearButton" onAction="#handleClearButtonClicked" text="Clear"/>
             <ComboBox fx:id="logLevelComboBox" onAction="#handleLogLevelComboBoxPressed" promptText="Log Level">
@@ -36,11 +36,13 @@
                 </items>
             </ComboBox>
             <Button fx:id="saveButton" onAction="#handleSaveButtonClicked"/>
-            <ComboBox fx:id="filtersComboBox" prefWidth="100"/>
-            <Button fx:id="addFilterButton" />
-            <Button fx:id="deleteFilterButton" />
+            <ComboBox fx:id="filtersComboBox" onAction="#handleFiltersComboBoxPressed" prefWidth="100"/>
+            <Button fx:id="addFilterButton" onAction="#handleAddFilterButtonClicked"/>
+            <Button fx:id="deleteFilterButton" onAction="#handleDeleteFilterButtonClicked"/>
+            <Button fx:id="editFilterButton" onAction="#handleEditFilterButtonClicked"/>
         </HBox>
 
         <ListView fx:id="logCatListView" prefWidth="900" prefHeight="550"/>
+        <TextField fx:id="resultField" editable="false" prefWidth="320" />
     </VBox>
 </AnchorPane>
