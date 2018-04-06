@@ -354,9 +354,20 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     @FXML
     private void handleInstallButtonClicked(ActionEvent event) {
         String appName = appsOnPCListView.getSelectionModel().getSelectedItem();
-        resultTextArea.setText(installApp(directory.getAbsolutePath() + "\\" + appName));
 
-        updateDeviceListView();
+        resultTextArea.setText("Attempting to install " + appName + "...");
+        Task<String> task = new Task<String>() {
+            @Override
+            protected String call()  {
+                return installApp(directory.getAbsolutePath() + "\\" + appName);
+            }
+        };
+        task.setOnSucceeded(event1 -> {
+            resultTextArea.setText(task.getValue());
+            updateDeviceListView();
+        });
+
+        new Thread(task).start();
     }
 
     @FXML
