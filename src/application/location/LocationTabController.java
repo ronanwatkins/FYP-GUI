@@ -344,10 +344,17 @@ public class LocationTabController extends AutomationTabController implements In
         int fileIndex = filesListView.getSelectionModel().getSelectedIndex();
         File fileToDelete = new File(directory.getAbsolutePath() + "\\" + fileName + EXTENSION);
         if(fileToDelete.delete()) {
-            System.out.println("File deleted");
             filesList.remove(fileIndex);
 
             refreshCommandsList();
+
+            if(filesListView.getItems().isEmpty()) {
+                KMLTableView.getItems().clear();
+                deleteButton.setDisable(true);
+                addButton.setDisable(true);
+            }
+
+            updateMarkers();
         }
     }
 

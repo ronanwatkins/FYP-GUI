@@ -50,12 +50,25 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
+
+        if(!resources.toString().isEmpty()) {
+            Filter filter = Filter.getFilter(resources.toString());
+            filterNameField.setText(filter.getFilterName());
+            applicationNameField.setText(filter.getApplicationName());
+            PIDField.setText(filter.getPID());
+            logMessageField.setText(filter.getLogMessage());
+            logTagField.setText(filter.getLogTag());
+
+            saveButton.setDisable(false);
+        }
     }
 
     @Override
     public void newWindow(LogCatTabController logCatTabController, File file) throws IOException {
         controller = logCatTabController;
         FXMLLoader fxmlLoader = new FXMLLoader(logCatTabController.getClass().getResource("/application/logcat/CreateFilter.fxml"));
+        Bundle bundle = new Bundle(logCatTabController.getFileToEditName());
+        fxmlLoader.setResources(bundle);
 
         Parent root = fxmlLoader.load();
 

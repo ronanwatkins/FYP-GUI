@@ -282,6 +282,9 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     @FXML
     private void handleComponentsListViewClicked(MouseEvent mouseEvent) {
+        if(componentsListView.getSelectionModel().getSelectedItem() == null)
+            return;
+
         ObservableList<Intent> intents = androidApplication.intents();
 
         Intent intent = null;
@@ -329,6 +332,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         applicationTableView.setPlaceholder(new Label("Loading Application details..."));
         String applicationName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
         applicationTableView.getItems().clear();
+        componentsListView.getItems().clear();
 
         Task<AndroidApplication> task = new Task<AndroidApplication>() {
             @Override

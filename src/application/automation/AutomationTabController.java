@@ -105,9 +105,7 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
         int fileIndex = filesListView.getSelectionModel().getSelectedIndex();
         File fileToDelete = new File(DIRECTORY + "\\" + fileName + EXTENSION);
         if(fileToDelete.delete()) {
-            System.out.println("File deleted");
             filesList.remove(fileIndex);
-
             refreshCommandsList();
         }
     }

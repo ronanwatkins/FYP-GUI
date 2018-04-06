@@ -59,6 +59,8 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     @FXML
     private Button editFilterButton;
 
+    private String fileToEdit;
+
     private volatile ObservableList<String> logList;
 
     private volatile boolean stopFlag = false;
@@ -82,7 +84,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
             searchField.setText(resources.toString());
             startButton.fire();
 
-            resources.
+            //resources.
         }
 
         filter = new Filter(searchField.getText(), logLevel,  new Filter());
@@ -131,9 +133,11 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         filtersComboBox.getItems().clear();
         filtersComboBox.getItems().add("No filter");
 
-        for(File file : Objects.requireNonNull(directory.listFiles())) {
-            filtersComboBox.getItems().add(file.getName().replace(".xml", ""));
-        }
+        try {
+            for (File file : Objects.requireNonNull(directory.listFiles())) {
+                filtersComboBox.getItems().add(file.getName().replace(".xml", ""));
+            }
+        } catch (NullPointerException ignored) {}
     }
 
     @FXML
@@ -258,6 +262,8 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     @FXML
     private void handleAddFilterButtonClicked(ActionEvent event) {
+        fileToEdit = "";
+
         CreateFilterController createFilterController = new CreateFilterController();
         try {
             createFilterController.newWindow(this, null);
@@ -311,11 +317,17 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     @FXML
     private void handleEditFilterButtonClicked(ActionEvent event) {
+        fileToEdit = filtersComboBox.getSelectionModel().getSelectedItem();
+
         CreateFilterController createFilterController = new CreateFilterController();
         try {
             createFilterController.newWindow(this, null);
         } catch (IOException ioe) {
             resultField.setText(ioe.getMessage());
         }
+    }
+
+    public String getFileToEditName() {
+        return fileToEdit;
     }
 }

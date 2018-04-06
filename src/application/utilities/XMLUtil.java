@@ -63,9 +63,15 @@ public class XMLUtil {
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
             document = documentBuilder.newDocument();
-            rootElement = document.createElement("kml");
 
-            document.appendChild(rootElement);
+            Element root = document.createElement("kml");
+
+            rootElement = document.createElement("Document");
+            rootElement.setTextContent(" ");
+
+            root.appendChild(rootElement);
+
+            document.appendChild(root);
         } catch (ParserConfigurationException pce) {
             pce.printStackTrace();
         }
@@ -403,7 +409,10 @@ public class XMLUtil {
 
                     Element element;
 
-                    NodeList nodeList = document.getElementsByTagName("kml");
+//                    NodeList nodeList = document.getElementsByTagName("kml");
+                    NodeList nodeList = document.getElementsByTagName("Document");
+
+
 
                     for (int i = 0; i < nodeList.getLength(); i++) { //looping through "Document"
                         Node node = nodeList.item(i);
