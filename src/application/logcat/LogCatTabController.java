@@ -196,6 +196,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         fxmlLoader.setResources(bundle);
 
         Parent root = fxmlLoader.load();
+        root.getStylesheets().add("/application/global.css");
 
         Stage stage = new Stage();
         stage.initModality(Modality.NONE);

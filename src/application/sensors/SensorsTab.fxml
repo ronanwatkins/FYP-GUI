@@ -240,7 +240,7 @@
          <RadioButton fx:id="moveRadioButton" text="Move" GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
       </GridPane>
 
-      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="3" GridPane.rowSpan="3">
+      <GridPane gridLinesVisible="false" maxHeight="Infinity" maxWidth="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="3" GridPane.rowSpan="3">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="190.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="123.0" />

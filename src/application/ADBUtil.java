@@ -352,6 +352,7 @@ public class ADBUtil {
                     try {
                         FXMLLoader fxmlLoader = new FXMLLoader(ADBConnectionController.class.getClass().getResource("/application/utilities/ADBConnection.fxml"));
                         Parent root = fxmlLoader.load();
+                        root.getStylesheets().add("/application/global.css");
 
                         controller = fxmlLoader.getController();
                         controller.initDevices(result);

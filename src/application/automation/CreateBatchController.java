@@ -245,8 +245,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
 
         FXMLLoader fxmlLoader = new FXMLLoader(commandsTabController.getClass().getResource("/application/automation/CreateBatchView.fxml"));
         Parent root = fxmlLoader.load();
+        root.getStylesheets().add("/application/global.css");
 
         Stage stage = new Stage();
+
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setResizable(false);
         String title = file == null ? "Create Batch Commands" : "Editing \"" + file.getName().replace(".xml", "") + "\"";

@@ -38,6 +38,7 @@ public class RecordInputsController implements Initializable, Showable<CreateBat
 
         FXMLLoader fxmlLoader = new FXMLLoader(createBatchController.getClass().getResource("/application/automation/extras/RecordInputs.fxml"));
         Parent root = fxmlLoader.load();
+        root.getStylesheets().add("/application/global.css");
 
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);

@@ -21,6 +21,7 @@ public class Main extends Application {
         try {
             root = FXMLLoader.load(getClass().getResource("FXMLMain.fxml"));
             Scene scene = new Scene(root, 950, 600);
+            scene.getStylesheets().add("/application/global.css");
 
             stage.getIcons().add(new Image("/resources/Android.png"));
             stage.setTitle("Android Sensor Emulator");
