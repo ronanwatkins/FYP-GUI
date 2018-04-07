@@ -12,19 +12,15 @@ public class Filter {
     private String searchText;
     private LogLevel logLevel2;
 
-    public Filter(String searchText, LogLevel logLevel2, Filter filter) {
-        this(filter);
-        this.searchText = searchText;
-        this.logLevel2 = logLevel2;
-    }
-
-    public Filter() {
+    public Filter(String searchText, LogLevel logLevel2) {
         this.filterName = "";
         this.applicationName = "";
         this.PID = "";
         this.logMessage = "";
         this.logTag = "";
         this.logLevel = LogLevel.NONE;
+        this.searchText = searchText;
+        this.logLevel2 = logLevel2;
     }
 
     public Filter(Filter filter) {

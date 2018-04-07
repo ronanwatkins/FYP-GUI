@@ -73,6 +73,8 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     private Filter filter;
 
+    private volatile boolean canAddLine = true;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
@@ -83,11 +85,9 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         if(resources != null) {
             searchField.setText(resources.toString());
             startButton.fire();
-
-            //resources.
         }
 
-        filter = new Filter(searchField.getText(), logLevel,  new Filter());
+        filter = new Filter(searchField.getText(), logLevel);
 
         final HashMap<String, PseudoClass> pseudoClassHashMap = new HashMap<>();
         pseudoClassHashMap.put("V", PseudoClass.getPseudoClass("Verbose"));
@@ -97,34 +97,33 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         pseudoClassHashMap.put("A", PseudoClass.getPseudoClass("Assert"));
         pseudoClassHashMap.put("E", PseudoClass.getPseudoClass("Error"));
 
-//        logCatListView.setCellFactory(lv -> new ListCell<String>() {
-//            @Override
-//            protected void updateItem(String string, boolean empty) {
-//                if(string == null)
-//                    return;
-//
-//                string = string.replace("  ", " ");
-//                if(level == null || level.startsWith("N")) {
-//                    if (string.contains(searchField.getText())) {
-//                        super.updateItem(string, empty);
-//                        setText(string);
-//                    } else setText(null);
-//                } else {
-//                    if (!string.startsWith("-") && string.split(" ")[4].equals(level) && string.contains(searchField.getText())) {
-//                        super.updateItem(string, empty);
-//                        setText(string);
-//                    }else setText(null);
-//                }
-//
-//                for(PseudoClass pseudoClass : pseudoClassHashMap.values())
-//                    pseudoClassStateChanged(pseudoClass, false);
-//
-//                if(!string.startsWith("-")) {
-//                    String level = string.split(" ")[4];
-//                    pseudoClassStateChanged(pseudoClassHashMap.get(level), true);
-//                }
-//            }
-//        });
+        logCatListView.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String string, boolean empty) {
+                if(string == null)
+                    return;
+
+                if(canAddLine) {
+                    System.out.println("can add");
+                    super.updateItem(string, empty);
+                    setText(string);
+                } else {
+                    System.out.println("no can do");
+                    super.updateItem("", empty);
+                    setText("");
+                }
+
+
+
+                for(PseudoClass pseudoClass : pseudoClassHashMap.values())
+                    pseudoClassStateChanged(pseudoClass, false);
+
+                if(!string.startsWith("-")) {
+                    String level = string.split(" ")[4];
+                    pseudoClassStateChanged(pseudoClassHashMap.get(level), true);
+                }
+            }
+        });
     }
 
     private void initializeComboBox() {
@@ -157,7 +156,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
                         if(stopFlag)
                             break;
 
-                        if(isOK(filter, line)) {
+                        if(canAddLine = isOK(filter, line)) {
                             logList.add(line);
                             final String newLine = line;
                             Platform.runLater(() -> logCatListView.getItems().add(newLine));
@@ -305,7 +304,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
                 filter.setSearchText(searchField.getText());
                 filter.setLogLevel2(logLevel);
             } else {
-                filter = new Filter(searchField.getText(), logLevel,  new Filter());
+                filter = new Filter(searchField.getText(), logLevel);
             }
 
             deleteFilterButton.setDisable(!(selectedFilterIndex > 0));

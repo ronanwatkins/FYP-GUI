@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import static application.logcat.LogCatTabController.FILTER_DIRECTORY;
+
 public class CreateFilterController implements Initializable, Showable<LogCatTabController>, ApplicationUtils {
 
     @FXML
@@ -44,20 +46,25 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
     private ComboBox<String> logLevelComboBox;
 
     private boolean setPIDFieldDisable = false;
+    private boolean isEditMode = false;
 
     private static LogCatTabController controller;
+    private Filter filter;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
 
         if(!resources.toString().isEmpty()) {
-            Filter filter = Filter.getFilter(resources.toString());
+            isEditMode = true;
+
+            filter = Filter.getFilter(resources.toString());
             filterNameField.setText(filter.getFilterName());
             applicationNameField.setText(filter.getApplicationName());
             PIDField.setText(filter.getPID());
             logMessageField.setText(filter.getLogMessage());
             logTagField.setText(filter.getLogTag());
+            logLevelComboBox.getSelectionModel().select(filter.getLogLevelOrdinal());
 
             saveButton.setDisable(false);
         }
@@ -89,6 +96,13 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
     private void handleSaveButtonClicked(ActionEvent event) {
         int selectedLevel = logLevelComboBox.getSelectionModel().getSelectedIndex();
         selectedLevel = selectedLevel == -1 ? 6 : selectedLevel;
+
+        if(isEditMode && !filterNameField.getText().equals(filter.getFilterName())) {
+            File fileToDelete = new File(FILTER_DIRECTORY + "\\" + filter.getFilterName() + ".xml");
+            if(fileToDelete.delete()) {
+                System.out.println("File deleted");
+            }
+        }
 
         Filter filter = new Filter(filterNameField.getText(),
                 applicationNameField.getText(),
