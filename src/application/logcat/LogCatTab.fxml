@@ -20,7 +20,7 @@
 
         <HBox spacing="20">
             <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" promptText="Search" prefWidth="320" />
-            <Button fx:id="startButton" onAction="#handleStartButtonClicked" text="Start" minWidth="50"/>
+            <Button fx:id="startButton" onMouseClicked="#handleStartButtonClicked" text="Start" minWidth="50"/>
             <Button fx:id="clearButton" onAction="#handleClearButtonClicked" text="Clear"/>
             <ComboBox fx:id="logLevelComboBox" onAction="#handleLogLevelComboBoxPressed" promptText="Log Level">
                 <items>

@@ -17,6 +17,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -47,8 +48,6 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     private ComboBox<String> filtersComboBox;
 
     @FXML
-    private Button clearButton;
-    @FXML
     private Button saveButton;
     @FXML
     private Button addFilterButton;
@@ -73,7 +72,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     private Filter filter;
 
-    private volatile boolean canAddLine = true;
+    private String searchFieldText;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -100,25 +99,21 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         logCatListView.setCellFactory(lv -> new ListCell<String>() {
             @Override
             protected void updateItem(String string, boolean empty) {
+                super.updateItem(string, empty);
+                if (empty) {
+                    setText(null);
+                } else {
+                    setText(string);
+                }
                 if(string == null)
                     return;
 
-                if(canAddLine) {
-                    System.out.println("can add");
-                    super.updateItem(string, empty);
-                    setText(string);
-                } else {
-                    System.out.println("no can do");
-                    super.updateItem("", empty);
-                    setText("");
+                for(PseudoClass pseudoClass : pseudoClassHashMap.values()) {
+                    pseudoClassStateChanged(pseudoClass, false);
                 }
 
-
-
-                for(PseudoClass pseudoClass : pseudoClassHashMap.values())
-                    pseudoClassStateChanged(pseudoClass, false);
-
-                if(!string.startsWith("-")) {
+                if (!string.startsWith("-")) {
+                    string = string.replace("  ", " ");
                     String level = string.split(" ")[4];
                     pseudoClassStateChanged(pseudoClassHashMap.get(level), true);
                 }
@@ -139,9 +134,8 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         } catch (NullPointerException ignored) {}
     }
 
-    @FXML
-    private void handleStartButtonClicked(ActionEvent event) {
-        if(startButton.getText().equalsIgnoreCase("start")) {
+    private void getLogs(boolean flag) {
+        if(flag) {
             logCatListView.getItems().clear();
             logList.clear();
             stopFlag = false;
@@ -156,21 +150,12 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
                         if(stopFlag)
                             break;
 
-                        if(canAddLine = isOK(filter, line)) {
-                            logList.add(line);
+                        logList.add(line);
+
+                        if(isOK(filter, line)) {
                             final String newLine = line;
                             Platform.runLater(() -> logCatListView.getItems().add(newLine));
                         }
-
-//                        Task<ObservableList<String>> task = new Task<ObservableList<String>>() {
-//                            @Override
-//                            protected ObservableList<String> call() {
-//                                return filter(filter, logList);
-//                            }
-//                        };
-//                        task.setOnSucceeded(e -> Platform.runLater(() -> logCatListView.setItems(task.getValue())));
-//
-//                        new Thread(task).start();
                     }
                     return null;
                 }
@@ -182,6 +167,14 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
             startButton.setText("Start");
             stopFlag = true;
         }
+    }
+
+    @FXML
+    private void handleStartButtonClicked(MouseEvent event) {
+        if(startButton.getText().equalsIgnoreCase("start"))
+            getLogs(true);
+        else
+            getLogs(false);
     }
 
     @Override
@@ -222,12 +215,18 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     @FXML
     private void handleSearchFieldAction(KeyEvent keyEvent) {
-        filter.setSearchText(searchField.getText());
-        logCatListView.setItems(filter(filter, logList));
+        if(!searchField.getText().equalsIgnoreCase(searchFieldText)) {
+            searchFieldText = searchField.getText();
+            getLogs(true);
+
+            filter.setSearchText(searchField.getText());
+            logCatListView.setItems(filter(filter, logList));
+        }
     }
 
     @FXML
     private void handleLogLevelComboBoxPressed(ActionEvent event) {
+        getLogs(true);
         logLevel = LogLevel.getLogLevel(logLevelComboBox.getSelectionModel().getSelectedIndex());
 
         filter.setLogLevel2(logLevel);
@@ -297,6 +296,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     @FXML
     private void handleFiltersComboBoxPressed(ActionEvent event) {
         if(filtersComboBox.getSelectionModel().getSelectedIndex() > -1) {
+            getLogs(true);
             selectedFilterIndex = filtersComboBox.getSelectionModel().getSelectedIndex();
 
             if (selectedFilterIndex > 0) {

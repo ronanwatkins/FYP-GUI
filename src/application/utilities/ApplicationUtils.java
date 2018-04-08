@@ -10,6 +10,7 @@ import javafx.scene.image.ImageView;
 
 import java.awt.*;
 import java.net.URI;
+import java.util.Iterator;
 
 public interface ApplicationUtils {
     void initializeButtons();
@@ -59,29 +60,29 @@ public interface ApplicationUtils {
         if(filter.getSearchText() != null) {
             newList = FXCollections.observableArrayList();
 
-            for (String s : list) {
-                if(s.startsWith("-"))
+            for (String s : newList) {
+                if (s.startsWith("-"))
                     continue;
 
                 s = s.replace("  ", " ");
                 String level = s.split(" ")[4].trim();
 
-                String logLevel1 = filter.getLogLevel().substring(0,1).trim();
-                String logLevel2 = filter.getLogLevel2().substring(0,1).trim();
+                String logLevel1 = filter.getLogLevel().substring(0, 1).trim();
+                String logLevel2 = filter.getLogLevel2().substring(0, 1).trim();
 
-                if(!logLevel1.equals("N"))
-                    if(!level.equals(logLevel1))
+                if (!logLevel1.equals("N"))
+                    if (!level.equals(logLevel1))
                         continue;
 
-                if(!logLevel2.equals("N"))
-                    if(!level.equals(logLevel2))
+                if (!logLevel2.equals("N"))
+                    if (!level.equals(logLevel2))
                         continue;
 
                 if (s.contains(filter.getSearchText()) &&
-                    s.contains(filter.getApplicationName()) &&
-                    s.contains(filter.getPID()) &&
-                    s.contains(filter.getLogTag()) &&
-                    s.contains(filter.getLogMessage())) {
+                        s.contains(filter.getApplicationName()) &&
+                        s.contains(filter.getPID()) &&
+                        s.contains(filter.getLogTag()) &&
+                        s.contains(filter.getLogMessage())) {
                     newList.add(s);
                 }
             }

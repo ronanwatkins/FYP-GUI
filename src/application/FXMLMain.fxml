@@ -10,25 +10,25 @@
     <center>
         <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" >
             <tabs>
-                <Tab text="Sensors">
+                <Tab fx:id="sensorsTab" text="Sensors">
                     <fx:include fx:id="SensorsTabPage" source="sensors/SensorsTab.fxml"/>
                 </Tab>
-                <Tab text="Location">
+                <Tab fx:id="locationTab" text="Location">
                     <fx:include fx:id="LocationTabPage" source="location/LocationTab.fxml"/>
                 </Tab>
-                <Tab text="Phone">
+                <Tab fx:id="phoneTab" text="Phone">
                     <fx:include fx:id="PhoneTabPage" source="phone/PhoneTab.fxml"/>
                 </Tab>
-                <Tab text="Console">
+                <Tab fx:id="consoleTab" text="Console">
                     <fx:include fx:id="ConsoleTabPage" source="console/ConsoleTab.fxml"/>
                 </Tab>
-                <Tab text="Automation">
+                <Tab fx:id="automationTab" text="Automation">
                     <fx:include fx:id="AutomationTabPage" source="automation/AutomationTab.fxml"/>
                 </Tab>
-                <Tab text="Applications">
+                <Tab fx:id="applicationsTab" text="Applications">
                     <fx:include fx:id="ApplicationTabPage" source="applications/ApplicationTab.fxml"/>
                 </Tab>
-                <Tab text="LogCat">
+                <Tab fx:id="logCatTab" text="LogCat">
                     <fx:include fx:id="LogCatTabPage" source="logcat/LogCatTab.fxml"/>
                 </Tab>
             </tabs>

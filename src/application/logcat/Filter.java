@@ -94,6 +94,18 @@ public class Filter {
     public String getPID() {
         return PID;
     }
+
+    @Override
+    public String toString() {
+        return "filterName: " + filterName + "\n"
+                + "applicationName: " + applicationName  + "\n"
+                + "PID " + PID + "\n"
+                + "logMessage: " + logMessage + "\n"
+                + "logTag: " + logTag + "\n"
+                + "logLevel: " + (logLevel == null ? "NA" : logLevel.toString()) + "\n"
+                + "searchText: " + searchText + "\n"
+                + "logLevel2: " + (logLevel2 == null ? "NA" : logLevel2.toString());
+    }
 }
 
 

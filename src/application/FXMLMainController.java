@@ -1,11 +1,10 @@
 package application;
 
-import application.applications.ApplicationTabController;
-import application.automation.AutomationTabController;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import application.sensors.SensorsTabController;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.Tab;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -13,20 +12,33 @@ import java.util.ResourceBundle;
 public class FXMLMainController implements Initializable {
 
     @FXML
-    private TabPane tabPane;
+    private Tab locationTab;
+    @FXML
+    private Tab phoneTab;
+    @FXML
+    private Tab consoleTab;
+    @FXML
+    private Tab automationTab;
+    @FXML
+    private Tab applicationsTab;
+    @FXML
+    private Tab logCatTab;
+    @FXML
+    private Tab sensorsTab;
 
-    private ApplicationTabController applicationTabController;
-    
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        sensorsTab.setGraphic(setIcon("/resources/sensor.png", 40, 40));
+        locationTab.setGraphic(setIcon("/resources/location.jpg", 15, 15));
+        phoneTab.setGraphic(setIcon("/resources/phone.png",15, 15));
+        consoleTab.setGraphic(setIcon("/resources/console.png", 15, 15));
+        automationTab.setGraphic(setIcon("/resources/automation.png", 15, 15));
+        applicationsTab.setGraphic(setIcon("/resources/application.jpg ", 15, 15));
+        logCatTab.setGraphic(setIcon("/resources/logcat.png", 15, 15));
+    }
 
-        applicationTabController = new ApplicationTabController();
-
-        tabPane.setOnMouseClicked(event -> {
-            if(tabPane.getSelectionModel().isSelected(5)) {
-                System.out.println("selected");
-//                applicationTabController.updateDeviceListView();
-            }
-        });
+    private ImageView setIcon(String URL, int width, int height) {
+        Image image = new Image(URL, width, height, true, true);
+        return new ImageView(image);
     }
 }

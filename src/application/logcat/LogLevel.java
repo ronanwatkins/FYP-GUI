@@ -13,15 +13,25 @@ public enum LogLevel {
     ERROR,
     NONE;
 
-    private static Map<Integer, LogLevel> lookUpMap = new HashMap<>();
-    static{
+    private static Map<Integer, LogLevel> getLogLevelMap = new HashMap<>();
+    private static Map<String, Integer> getOrdinalMap = new HashMap<>();
+
+    static {
         int index = 0;
         for (LogLevel logLevel : EnumSet.allOf(LogLevel.class)) {
-            lookUpMap.put(index++, logLevel);
+            System.out.println(logLevel + " " + index);
+
+            getOrdinalMap.put(logLevel.toString(), index);
+            getLogLevelMap.put(index++, logLevel);
         }
     }
 
     public static LogLevel getLogLevel(int key) {
-        return lookUpMap.get(key);
+        return getLogLevelMap.get(key);
+    }
+
+    public static int getOrdinal(String key) {
+        System.out.println("getOrdinal>> key: " + key + ", " + getOrdinalMap.get(key));
+        return getOrdinalMap.get(key);
     }
 }
