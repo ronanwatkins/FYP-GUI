@@ -53,7 +53,6 @@ public class HTTPServer {
                         Socket cs = ss.accept();
                         if(!isConnected) {
                             isConnected = true;
-                            System.out.println("Im fconnected");
                             controller.setConnected(isConnected);
 //                            Platform.runLater(() -> {
 //
@@ -71,7 +70,6 @@ public class HTTPServer {
                             if(method == null) {
                                 if(request.startsWith("POST")) {
                                     method = "POST";
-                                    System.out.println("its post");
                                 }
                             }
 
@@ -87,7 +85,6 @@ public class HTTPServer {
                             br.read(contents);
                             String POSTContent = URLDecoder.decode(new String(contents), "UTF-8");
 
-                            System.out.println("fucking here");
                             displayAndSendData(POSTContent.substring(POSTContent.indexOf('{')));
                         }
 
@@ -120,8 +117,6 @@ public class HTTPServer {
     }
 
     private synchronized void displayAndSendData(String jsonString) throws JSONException {
-        System.out.println(jsonString);
-
         if(isListening.get()) {
             try {
                 JSONObject jsonObject = new JSONObject(jsonString);
