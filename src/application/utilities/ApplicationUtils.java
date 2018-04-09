@@ -56,68 +56,46 @@ public interface ApplicationUtils {
     }
 
     default ObservableList<String> filter(Filter filter, ObservableList<String> list) {
-        ObservableList<String> newList = null;
+        ObservableList<String> newList = FXCollections.observableArrayList();
+
         if(filter.getSearchText() != null) {
-            newList = FXCollections.observableArrayList();
 
-            for (String s : newList) {
-                if (s.startsWith("-"))
-                    continue;
-
-                s = s.replace("  ", " ");
-                String level = s.split(" ")[4].trim();
-
-                String logLevel1 = filter.getLogLevel().substring(0, 1).trim();
-                String logLevel2 = filter.getLogLevel2().substring(0, 1).trim();
-
-                if (!logLevel1.equals("N"))
-                    if (!level.equals(logLevel1))
-                        continue;
-
-                if (!logLevel2.equals("N"))
-                    if (!level.equals(logLevel2))
-                        continue;
-
-                if (s.contains(filter.getSearchText()) &&
-                        s.contains(filter.getApplicationName()) &&
-                        s.contains(filter.getPID()) &&
-                        s.contains(filter.getLogTag()) &&
-                        s.contains(filter.getLogMessage())) {
+            for (String s : list) {
+                if (matchesFilter(filter, s))
                     newList.add(s);
-                }
             }
         }
 
         return newList;
     }
 
-    default boolean isOK(Filter filter, String string) {
-        boolean result = false;
+    default boolean matchesFilter(Filter filter, String s) {
+        if (s.startsWith("-"))
+            return false;
 
-        if(string.startsWith("-"))
-            return true;
+        s = s.replace("  ", " ");
+        String[] split = s.split(" ");
+        String pid = split[2];
+        String level = split[4];
+        String tag = split[5];
+        String message = s.substring(s.indexOf(tag));
+        message = message.substring(message.indexOf(":")+1);
 
-        string = string.replace("  ", " ");
-        String level = string.split(" ")[4].trim();
+        String logLevel1 = filter.getLogLevel().substring(0, 1).trim();
+        String logLevel2 = filter.getLogLevel2().substring(0, 1).trim();
 
-        String filter1 = filter.getLogLevel().substring(0,1).trim();
-        String filter2 = filter.getLogLevel2().substring(0,1).trim();
-
-        if(!filter1.equals("N"))
-            if(!level.equals(filter1))
+        if (!logLevel1.equals("N"))
+            if (!level.equals(logLevel1))
                 return false;
 
-        if(!filter2.equals("N"))
-            if(!level.equals(filter2))
+        if (!logLevel2.equals("N"))
+            if (!level.equals(logLevel2))
                 return false;
 
-        if (string.contains(filter.getSearchText()) &&
-                string.contains(filter.getApplicationName()) &&
-                string.contains(filter.getPID()) &&
-                string.contains(filter.getLogTag()) &&
-                string.contains(filter.getLogMessage())) {
-            result = true;
-        }
-        return result;
+        return s.contains(filter.getSearchText()) &&
+                s.contains(filter.getApplicationName()) &&
+                (filter.getPID().isEmpty() || pid.contains(filter.getPID())) &&
+                (filter.getLogTag().isEmpty() || tag.contains(filter.getLogTag())) &&
+                (filter.getLogMessage().isEmpty() || message.contains(filter.getLogMessage()));
     }
 }

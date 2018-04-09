@@ -35,7 +35,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     private final String EXTENSION = ".log";
 
     @FXML
-    private volatile TextField searchField;
+    private TextField searchField;
     @FXML
     private TextField resultField;
 
@@ -64,7 +64,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     private volatile boolean stopFlag = false;
 
-    private volatile LogLevel logLevel;
+    private LogLevel logLevel;
 
     private ApplicationTabController applicationTabController;
 
@@ -73,6 +73,8 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     private Filter filter;
 
     private String searchFieldText;
+
+    private final Object lock = new Object();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -83,7 +85,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
         if(resources != null) {
             searchField.setText(resources.toString());
-            startButton.fire();
+            getLogs(true);
         }
 
         filter = new Filter(searchField.getText(), logLevel);
@@ -137,7 +139,9 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     private void getLogs(boolean flag) {
         if(flag) {
             logCatListView.getItems().clear();
-            logList.clear();
+            synchronized (lock) {
+                logList.clear();
+            }
             stopFlag = false;
 
             Task<Void> task = new Task<Void>() {
@@ -150,9 +154,11 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
                         if(stopFlag)
                             break;
 
-                        logList.add(line);
+                        synchronized (lock) {
+                            logList.add(line);
+                        }
 
-                        if(isOK(filter, line)) {
+                        if(matchesFilter(filter, line)) {
                             final String newLine = line;
                             Platform.runLater(() -> logCatListView.getItems().add(newLine));
                         }
@@ -199,7 +205,9 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     @FXML
     private void handleClearButtonClicked(ActionEvent event) {
-        logList.clear();
+        synchronized (lock) {
+            logList.clear();
+        }
         logCatListView.getItems().clear();
     }
 
@@ -215,23 +223,25 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     @FXML
     private void handleSearchFieldAction(KeyEvent keyEvent) {
-        if(!searchField.getText().equalsIgnoreCase(searchFieldText)) {
+        if(!searchField.getText().equals(searchFieldText)) {
             searchFieldText = searchField.getText();
-            getLogs(true);
 
             filter.setSearchText(searchField.getText());
-            logCatListView.setItems(filter(filter, logList));
+            synchronized (lock) {
+                logCatListView.setItems(filter(filter, logList));
+            }
         }
     }
 
     @FXML
     private void handleLogLevelComboBoxPressed(ActionEvent event) {
-        getLogs(true);
         logLevel = LogLevel.getLogLevel(logLevelComboBox.getSelectionModel().getSelectedIndex());
 
         filter.setLogLevel2(logLevel);
         logCatListView.getItems().clear();
-        logCatListView.setItems(filter(filter, logList));
+        synchronized (lock) {
+            logCatListView.setItems(filter(filter, logList));
+        }
     }
 
     @FXML
@@ -296,7 +306,6 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     @FXML
     private void handleFiltersComboBoxPressed(ActionEvent event) {
         if(filtersComboBox.getSelectionModel().getSelectedIndex() > -1) {
-            getLogs(true);
             selectedFilterIndex = filtersComboBox.getSelectionModel().getSelectedIndex();
 
             if (selectedFilterIndex > 0) {
@@ -310,7 +319,9 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
             deleteFilterButton.setDisable(!(selectedFilterIndex > 0));
             editFilterButton.setDisable(!(selectedFilterIndex > 0));
             logCatListView.getItems().clear();
-            logCatListView.setItems(filter(filter, logList));
+            synchronized (lock) {
+                logCatListView.setItems(filter(filter, logList));
+            }
         } 
     }
 

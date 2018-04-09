@@ -19,8 +19,6 @@ public enum LogLevel {
     static {
         int index = 0;
         for (LogLevel logLevel : EnumSet.allOf(LogLevel.class)) {
-            System.out.println(logLevel + " " + index);
-
             getOrdinalMap.put(logLevel.toString(), index);
             getLogLevelMap.put(index++, logLevel);
         }
