@@ -1,17 +1,22 @@
 package application.applications;
 
+import application.utilities.ADB;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
 import static application.utilities.ADB.*;
 
 public class AndroidApplication {
+    private static final Logger Log = LoggerFactory.getLogger(AndroidApplication.class.getName());
+
     private StringProperty packageName;
     private StringProperty APKName;
     private StringProperty APKPath;
@@ -73,22 +78,33 @@ public class AndroidApplication {
     public class VersionCode {
         private String versionName;
         private int code;
-        private int minSdk;
         private int targetSdk;
 
-        public VersionCode() {
+        private VersionCode() {
             versionName = getVersionName(packageName.get());
             String[] version = getVersionCode(packageName.get()).split(" ");
-            code = Integer.parseInt(version[0].split("=")[1]);
-            minSdk = Integer.parseInt(version[1].split("=")[1]);
-            targetSdk = Integer.parseInt(version[2].split("=")[1]);
+
+            if(version[0].split("=").length > 0) {
+                try {
+                    code = Integer.parseInt(version[0].split("=")[1]);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if(version[1].split("=").length > 0) {
+                try {
+                    targetSdk = Integer.parseInt(version[1].split("=")[1].trim());
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         @Override
         public String toString() {
             return "Ver Name: " + versionName  +
                     "\nVer code: " + code +
-                    "\nminSdk: " + minSdk +
                     "\ntargetSdk: " + targetSdk;
         }
     }

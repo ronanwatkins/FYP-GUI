@@ -27,6 +27,8 @@ import java.util.*;
 import static application.utilities.ADB.*;
 
 public class ApplicationTabController implements Initializable, ApplicationUtils {
+
+
     private static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\applications";
     private final String EXTENSION = ".apk";
 
@@ -260,6 +262,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     private void updateDeviceListView() {
+        System.out.println("updateDeviceListView>>");
         appsOnDeviceList = FXCollections.observableArrayList();
         try {
             appsOnDeviceListView.getItems().clear();
@@ -475,5 +478,20 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         setImage("/resources/delete.png", "Delete file", deleteButton);
         setImage("/resources/pop_out.png", null, showLogCatButton);
         setImage("/resources/refresh.png", null, refreshButton);
+    }
+
+    private ObservableList<String> filter(String searchText, ObservableList<String> list) {
+        ObservableList<String> newList = null;
+        if(searchText != null) {
+            newList = FXCollections.observableArrayList();
+
+            for (String s : list) {
+                if (s.contains(searchText)) {
+                    newList.add(s);
+                }
+            }
+        }
+
+        return newList;
     }
 }

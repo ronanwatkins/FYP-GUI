@@ -1,13 +1,8 @@
 package application.utilities;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -18,6 +13,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import application.location.KML;
+import application.location.LocationTabController;
 import application.logcat.Filter;
 import application.logcat.LogCatTabController;
 import application.logcat.LogLevel;
@@ -31,187 +27,28 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class XMLUtil {
-    private static Document document;
-    private static Element rootElement;
-    private AtomicBoolean isFileSaved = new AtomicBoolean(true);
-    private boolean isKml = false;
+    private Document document;
+    private Element rootElement;
 
-    public XMLUtil() {
-        try {
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-
-            document = documentBuilder.newDocument();
-            rootElement = document.createElement("global");
-            document.appendChild(rootElement);
-        } catch (ParserConfigurationException pce) {
-            pce.printStackTrace();
-        }
-    }
-
+    /*******************************************************
+     * CONSTRUCTORS
+     ******************************************************/
     public XMLUtil(boolean isKML) {
-        this.isKml = isKML;
-
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
             document = documentBuilder.newDocument();
-            rootElement = document.createElement("kml");
-
+            rootElement = document.createElement(isKML ? "kml" : "global");
             document.appendChild(rootElement);
         } catch (ParserConfigurationException pce) {
             pce.printStackTrace();
         }
     }
 
-    public void addElement(Map<String, Double> sensorValues) {
-        Element stage = document.createElement("stage");
-        rootElement.appendChild(stage);
-
-        Element sensor;
-
-        for(String key : sensorValues.keySet()) {
-            sensor = document.createElement("sensor");
-            sensor.setAttribute("type", key);
-
-            Element value = document.createElement("value");
-            value.appendChild(document.createTextNode(sensorValues.get(key)+""));
-            sensor.appendChild(value);
-
-            stage.appendChild(sensor);
-        }
-    }
-
-    private String printFile(File file) {
-        String content = "";
-        try {
-            List<String> fileContent = new ArrayList<>(Files.readAllLines(file.toPath()));
-            //fileContent.set(0, fileContent.get(0).replace("</kml>mark>", "<Placemark>")); //Sometimes a tag would become malformed so I came up with this quick fix
-            content = fileContent.get(0);
-            Files.write(file.toPath(), fileContent, StandardCharsets.UTF_8);
-        }catch (Exception ee) {
-            ee.printStackTrace();
-        } finally {
-            return content;
-        }
-    }
-
-    public void updateFile(File file, KML kml) {
-        System.out.println("updateFile before >> " + printFile(file));
-        try {
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-            Document document = documentBuilder.parse(file);
-
-            Element root = document.getDocumentElement();
-
-            Node firstDocImportedNode = document.importNode(addKMLElement(kml), true);
-            root.appendChild(firstDocImportedNode );
-
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource source = new DOMSource(document);
-
-            StreamResult result = new StreamResult(file);
-            transformer.transform(source, result);
-        } catch (Exception ee) {
-            ee.printStackTrace();
-        } finally {
-            isKml = false;
-            System.out.println("updateFile after >> " + printFile(file));
-            saveKMLFile(file);
-        }
-    }
-
-    public Element addKMLElement(KML kml) {
-        Element placemark = document.createElement("Placemark");
-        rootElement.appendChild(placemark);
-
-        Element name = document.createElement("name");
-        name.appendChild(document.createTextNode(kml.getName()));
-        placemark.appendChild(name);
-
-        Element description = document.createElement("description");
-        description.appendChild(document.createTextNode(kml.getDescription()));
-        placemark.appendChild(description);
-
-        Element point = document.createElement("Point");
-
-        Element coordinates = document.createElement("coordinates");
-        coordinates.appendChild(document.createTextNode(kml.getAllValues()));
-        point.appendChild(coordinates);
-
-        placemark.appendChild(point);
-
-        return placemark;
-    }
-
-    public void updateFile(File file, ObservableList<KML> KMLCommands) {
-        XMLUtil xmlUtil = new XMLUtil(true);
-
-        for(KML kml : KMLCommands) {
-            System.out.println("updateFile>> " + kml);
-            xmlUtil.addKMLElement(kml);
-        }
-
-        isKml = false;
-        saveKMLFile(file);
-    }
-
-    public void saveKMLFile(File file) {
-        System.out.println("saveKMLFile before >> " + printFile(file));
-        try {
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource source = new DOMSource(document);
-
-            StreamResult result = new StreamResult(file);
-            transformer.transform(source, result);
-        } catch (TransformerException te) {
-            te.printStackTrace();
-        }
-        System.out.println("saveKMLFile after >> " + printFile(file));
-    }
-
-    public void saveFile(File file) {
-        isFileSaved.set(false);
-
-        try {
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource source = new DOMSource(document);
-
-            StreamResult result = new StreamResult(file);
-
-            Task task = new Task<Void>() {
-
-                @Override
-                public Void call() throws TransformerException {
-                    transformer.transform(source, result);
-                    return null;
-                }
-            };
-            new Thread(task).start();
-
-            task.setOnSucceeded(event -> {
-                System.out.println("file saved");
-                isFileSaved.set(true);
-            });
-
-            task.setOnFailed(event -> {
-                System.out.println("file not saved");
-                isFileSaved.set(false);
-            });
-        } catch (TransformerException te) {
-            te.printStackTrace();
-        }
-    }
-
-    public boolean isFileSavedYet() {
-        return isFileSaved.get();
-    }
-
+    /*******************************************************
+     * SENSOR TAB FUNCTIONS
+     ******************************************************/
     public HashMap<Integer, HashMap<String, Double>> loadXML(File file) {
         HashMap<Integer, HashMap<String, Double>> returnMap = new HashMap<>();
 
@@ -265,56 +102,39 @@ public class XMLUtil {
         return returnMap;
     }
 
-    public void saveBatchCommands(ObservableList<String> batchCommands, File file) {
-        Element command;
+    public void addElement(Map<String, Double> sensorValues) {
+        Element stage = document.createElement("stage");
+        rootElement.appendChild(stage);
 
-        for(String s : batchCommands) {
-            command = document.createElement("command");
-            command.appendChild(document.createTextNode(s));
-            rootElement.appendChild(command);
+        Element sensor;
+
+        for(String key : sensorValues.keySet()) {
+            sensor = document.createElement("sensor");
+            sensor.setAttribute("type", key);
+
+            Element value = document.createElement("value");
+            value.appendChild(document.createTextNode(sensorValues.get(key)+""));
+            sensor.appendChild(value);
+
+            stage.appendChild(sensor);
         }
-
-        saveFile(file);
     }
 
-    public ObservableList<String> openBatchCommands(File file) {
-        while (!isFileSaved.get()) {
-            System.out.println("Waiting for file to be saved");
+    /*******************************************************
+     * LOCATION TAB FUNCTIONS
+     ******************************************************/
+    public void updateFile(String name, ObservableList<KML> KMLCommands) {
+        XMLUtil xmlUtil = new XMLUtil(true);
+
+        for(KML kml : KMLCommands) {
+            xmlUtil.addKMLElement(kml);
         }
 
-        ObservableList<String> returnList = FXCollections.observableArrayList();
-
-        Task task = new Task<Void>() {
-            @Override
-            public Void call() {
-                try {
-                    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-                    Document document = documentBuilder.parse(file);
-
-                    document.getDocumentElement().normalize();
-
-                    Element element;
-
-                    NodeList nodeList = document.getElementsByTagName("command");
-
-                    for (int i = 0; i < nodeList.getLength(); i++) { //looping through "command"
-                        element = (Element) nodeList.item(i);
-                        returnList.add(element.getTextContent());
-                    }
-                } catch (Exception ee) {
-                    ee.printStackTrace();
-                }
-
-                return null;
-            }
-        };
-        new Thread(task).run();
-
-        return returnList;
+        saveKMLFile(name);
     }
 
-    public ObservableList<KML> openKMLCommands(File file) {
+    public ObservableList<KML> openKMLCommands(String name) {
+        File file = new File( LocationTabController.DIRECTORY + "\\" + name + ".kml");
         ObservableList<KML> KMLList = FXCollections.observableArrayList();
 
         Task task = new Task<Void>() {
@@ -363,7 +183,121 @@ public class XMLUtil {
         return KMLList;
     }
 
+    public Element addKMLElement(KML kml) {
+        Element placemark = document.createElement("Placemark");
+        rootElement.appendChild(placemark);
 
+        Element name = document.createElement("name");
+        name.appendChild(document.createTextNode(kml.getName()));
+        placemark.appendChild(name);
+
+        Element description = document.createElement("description");
+        description.appendChild(document.createTextNode(kml.getDescription()));
+        placemark.appendChild(description);
+
+        Element point = document.createElement("Point");
+
+        Element coordinates = document.createElement("coordinates");
+        coordinates.appendChild(document.createTextNode(kml.getAllValues()));
+        point.appendChild(coordinates);
+
+        placemark.appendChild(point);
+
+        return placemark;
+    }
+
+    public void saveKMLFile(String name) {
+        File file = new File( LocationTabController.DIRECTORY + "\\" + name + ".kml");
+
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(document);
+
+            StreamResult result = new StreamResult(file);
+            transformer.transform(source, result);
+        } catch (TransformerException te) {
+            te.printStackTrace();
+        }
+    }
+
+    /*******************************************************
+     * COMMON FUNCTIONS
+     ******************************************************/
+    public void saveFile(File file) {
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(document);
+
+            StreamResult result = new StreamResult(file);
+
+            Task task = new Task<Void>() {
+
+                @Override
+                public Void call() throws TransformerException {
+                    transformer.transform(source, result);
+                    return null;
+                }
+            };
+            new Thread(task).start();
+
+        } catch (TransformerException te) {
+            te.printStackTrace();
+        }
+    }
+
+    /*******************************************************
+     * AUTOMATION TAB FUNCTIONS
+     ******************************************************/
+    public void saveBatchCommands(ObservableList<String> batchCommands, File file) {
+        Element command;
+
+        for(String s : batchCommands) {
+            command = document.createElement("command");
+            command.appendChild(document.createTextNode(s));
+            rootElement.appendChild(command);
+        }
+
+        saveFile(file);
+    }
+
+    public ObservableList<String> openBatchCommands(File file) {
+        ObservableList<String> returnList = FXCollections.observableArrayList();
+
+        Task task = new Task<Void>() {
+            @Override
+            public Void call() {
+                try {
+                    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                    DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+                    Document document = documentBuilder.parse(file);
+
+                    document.getDocumentElement().normalize();
+
+                    Element element;
+
+                    NodeList nodeList = document.getElementsByTagName("command");
+
+                    for (int i = 0; i < nodeList.getLength(); i++) { //looping through "command"
+                        element = (Element) nodeList.item(i);
+                        returnList.add(element.getTextContent());
+                    }
+                } catch (Exception ee) {
+                    ee.printStackTrace();
+                }
+
+                return null;
+            }
+        };
+        new Thread(task).run();
+
+        return returnList;
+    }
+
+    /*******************************************************
+     * FILTER FUNCTIONS
+     ******************************************************/
     private final String APPLICATION_NAME = "applicationName";
     private final String PID_TAG = "PID";
     private final String LOG_MESSAGE = "logMessage";
@@ -395,8 +329,6 @@ public class XMLUtil {
         File file = new File( LogCatTabController.FILTER_DIRECTORY + filter.getFilterName() + ".xml");
         saveFile(file);
     }
-
-
 
     public Filter openFilter(String name) {
         File file = new File( LogCatTabController.FILTER_DIRECTORY + name + ".xml");

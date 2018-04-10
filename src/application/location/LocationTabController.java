@@ -21,6 +21,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
+
 import java.io.File;
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -71,7 +72,8 @@ public class LocationTabController extends AutomationTabController implements In
 
     private ObservableList<KML> commandsList;
 
-    private File KMLFile;
+    //private File KMLFile;
+    String fileName;
 
     private GoogleMap map;
 
@@ -82,7 +84,7 @@ public class LocationTabController extends AutomationTabController implements In
     private double longitude = -9.009833;
     private double altitude = 9;
 
-    private Collection<Marker> markers;
+    private ArrayList<Marker> markers;
 
     @Override
     public void initialize(URL url, ResourceBundle resources) {
@@ -128,13 +130,10 @@ public class LocationTabController extends AutomationTabController implements In
 
     @Override
     public void refreshCommandsList() {
-        XMLUtil xmlUtil = new XMLUtil(true);
-
-        String commandName = filesListView.getSelectionModel().getSelectedItem();
-        if(commandName != null) {
+        fileName = filesListView.getSelectionModel().getSelectedItem();
+        if(fileName != null) {
             KMLTableView.setPlaceholder(new Label("Add waypoints to the list"));
-            KMLFile = new File(DIRECTORY + "\\" + commandName + EXTENSION);
-            commandsList = xmlUtil.openKMLCommands(KMLFile);
+            commandsList = KML.getKMLCommands(fileName);
             KMLTableView.getItems().clear();
 
             KMLTableView.setItems(commandsList);
@@ -178,8 +177,7 @@ public class LocationTabController extends AutomationTabController implements In
 
         KMLTableView.getItems().add(KMLTableView.getItems().size(), kml);
 
-        XMLUtil xmlUtil = new XMLUtil(true);
-        xmlUtil.updateFile(KMLFile, KMLTableView.getItems());
+        KML.update(fileName, KMLTableView.getItems());
 
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(new LatLong(kml.getLatitude(), kml.getLongitude() ))
@@ -203,7 +201,7 @@ public class LocationTabController extends AutomationTabController implements In
 
             ObservableList<KML> KMLCommands = KMLTableView.getItems();
             XMLUtil xmlUtil = new XMLUtil(true);
-            xmlUtil.updateFile(KMLFile, KMLCommands);
+            KML.update(fileName, KMLCommands);
         }
     }
 
@@ -400,7 +398,7 @@ public class LocationTabController extends AutomationTabController implements In
 
                 ObservableList<KML> KMLCommands = KMLTableView.getItems();
                 XMLUtil xmlUtil = new XMLUtil(true);
-                xmlUtil.updateFile(KMLFile, KMLCommands);
+                KML.update(fileName, KMLCommands);
             }
         } catch (IndexOutOfBoundsException ignored) {}
     }

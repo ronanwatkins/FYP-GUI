@@ -261,7 +261,7 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
     }
 
     public void refreshCommandsList() {
-        XMLUtil xmlUtil = new XMLUtil();
+        XMLUtil xmlUtil = new XMLUtil(false);
 
         String commandName = filesListView.getSelectionModel().getSelectedItem();
         System.out.println("Command name: " + commandName);

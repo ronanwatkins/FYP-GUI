@@ -50,13 +50,11 @@ public class Filter {
     }
 
     public void save() {
-        XMLUtil xmlUtil = new XMLUtil();
-        xmlUtil.saveFilter(this);
+        new XMLUtil(false).saveFilter(this);
     }
 
     public static Filter getFilter(String name) {
-        XMLUtil xmlUtil = new XMLUtil();
-        return xmlUtil.openFilter(name);
+        return new XMLUtil(false).openFilter(name);
     }
 
     public String getLogLevel2() {

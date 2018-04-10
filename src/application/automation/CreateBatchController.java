@@ -161,7 +161,7 @@ public class CreateBatchController implements Initializable, Showable<Automation
 
         if(editFile != null) {
             saveButton.setDisable(false);
-            XMLUtil xmlUtil = new XMLUtil();
+            XMLUtil xmlUtil = new XMLUtil(false);
 
             ObservableList<String> commands = xmlUtil.openBatchCommands(editFile);
             commandsListView.setItems(commands);
@@ -559,7 +559,7 @@ public class CreateBatchController implements Initializable, Showable<Automation
 
     @FXML
     private void handleSaveButtonClicked(ActionEvent event) {
-        XMLUtil xmlUtil = new XMLUtil();
+        XMLUtil xmlUtil = new XMLUtil(false);
 
         if(editFile != null) {
             xmlUtil.saveBatchCommands(commandsListView.getItems(), editFile);

@@ -1,6 +1,7 @@
 package application.logcat;
 
 import application.ADBUtil;
+import application.Main;
 import application.applications.ApplicationTabController;
 import application.utilities.ApplicationUtils;
 import application.utilities.Showable;
@@ -20,6 +21,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URL;
@@ -30,6 +33,8 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class LogCatTabController implements Initializable, Showable<Initializable>, ApplicationUtils {
+    private static final Logger Log = LoggerFactory.getLogger(Main.class.getName());
+
     private static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\logcat";
     public static final String FILTER_DIRECTORY = System.getProperty("user.dir") + "\\misc\\logcat\\filters\\";
     private final String EXTENSION = ".log";
@@ -115,6 +120,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
                 }
 
                 if (!string.startsWith("-")) {
+                    string = string.replace("   ", " ");
                     string = string.replace("  ", " ");
                     String level = string.split(" ")[4];
                     pseudoClassStateChanged(pseudoClassHashMap.get(level), true);
@@ -138,6 +144,8 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     private void getLogs(boolean flag) {
         if(flag) {
+            Log.info(ADBUtil.getAdbPath() + " -s " + ADBUtil.getDeviceName() + " logcat -v threadtime");
+
             logCatListView.getItems().clear();
             synchronized (lock) {
                 logList.clear();
@@ -147,7 +155,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
             Task<Void> task = new Task<Void>() {
                 @Override
                 protected Void call() throws Exception {
-                    Process process = Runtime.getRuntime().exec(ADBUtil.getAdbPath() + " -s " + ADBUtil.getDeviceName() + " logcat");
+                    Process process = Runtime.getRuntime().exec(ADBUtil.getAdbPath() + " -s " + ADBUtil.getDeviceName() + " logcat -v threadtime");
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
@@ -199,7 +207,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         Stage stage = new Stage();
         stage.initModality(Modality.NONE);
         stage.setTitle("LogCat");
-        stage.setScene(new Scene(root));
+        stage.setScene(new Scene(root,950, 600));
         stage.show();
     }
 
@@ -325,7 +333,6 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         } 
     }
 
-
     @FXML
     private void handleEditFilterButtonClicked(ActionEvent event) {
         fileToEdit = filtersComboBox.getSelectionModel().getSelectedItem();
@@ -340,5 +347,52 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     public String getFileToEditName() {
         return fileToEdit;
+    }
+
+    private ObservableList<String> filter(Filter filter, ObservableList<String> list) {
+        ObservableList<String> newList = FXCollections.observableArrayList();
+
+        if(filter.getSearchText() != null) {
+
+            for (String s : list) {
+                if (matchesFilter(filter, s))
+                    newList.add(s);
+            }
+        }
+
+        return newList;
+    }
+
+    private boolean matchesFilter(Filter filter, String s) {
+        if (s.startsWith("-") || s.isEmpty()) {
+            return false;
+        }
+
+        s = s.replace("   ", " ");
+        s = s.replace("  ", " ");
+
+        String[] split = s.split(" ");
+        String pid = split[2];
+        String level = split[4];
+        String tag = split[5];
+        String message = s.substring(s.indexOf(tag));
+        message = message.substring(message.indexOf(":")+1);
+
+        String logLevel1 = filter.getLogLevel().substring(0, 1).trim();
+        String logLevel2 = filter.getLogLevel2().substring(0, 1).trim();
+
+        if (!logLevel1.equals("N"))
+            if (!level.equals(logLevel1))
+                return false;
+
+        if (!logLevel2.equals("N"))
+            if (!level.equals(logLevel2))
+                return false;
+
+        return s.contains(filter.getSearchText()) &&
+                s.contains(filter.getApplicationName()) &&
+                (filter.getPID().isEmpty() || pid.contains(filter.getPID())) &&
+                (filter.getLogTag().isEmpty() || tag.contains(filter.getLogTag())) &&
+                (filter.getLogMessage().isEmpty() || message.contains(filter.getLogMessage()));
     }
 }

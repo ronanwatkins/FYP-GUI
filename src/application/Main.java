@@ -9,44 +9,39 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 public class Main extends Application {
+    private static final Logger Log = LoggerFactory.getLogger(Main.class.getName());
 
     private static Parent root;
     @Override
     public void start(Stage stage) throws Exception {
+        Log.info("Starting application");
 
-        try {
-            root = FXMLLoader.load(getClass().getResource("FXMLMain.fxml"));
-            Scene scene = new Scene(root, 950, 600);
-            scene.getStylesheets().add("/application/global.css");
+        root = FXMLLoader.load(getClass().getResource("FXMLMain.fxml"));
+        Scene scene = new Scene(root, 950, 600);
+        scene.getStylesheets().add("/application/global.css");
 
-            stage.getIcons().add(new Image("/resources/Android.png"));
-            stage.setTitle("Android Sensor Emulator");
-            stage.getProperties().put("hostServices", this.getHostServices());
-           // stage.setResizable(false);
-            stage.setOnCloseRequest(e -> {
-                ADBUtil.disconnect();
-                Platform.exit();
-                System.exit(0);
-            });
-            stage.setScene(scene);
-            stage.show();
+        stage.getIcons().add(new Image("/resources/Android.png"));
+        stage.setTitle("Android Sensor Emulator");
+        stage.getProperties().put("hostServices", this.getHostServices());
+        stage.setOnCloseRequest(e -> {
+            Log.info("Closing application");
+            ADBUtil.disconnect();
+            Platform.exit();
+            System.exit(0);
+        });
+        stage.setScene(scene);
+        stage.show();
 
-//            TelnetServer.connect();
-            ADBUtil.initADB();
+        ADBUtil.initADB();
 
-            if (!createDirectories())
-                System.out.println("Failed to make directories");
-        }
-        finally {
-            //System.out.println("Disconnecting");
-            //ADBUtil.disconnect();
-        }
-
-
+        if (!createDirectories())
+            Log.error("Could not create all application directories");
     }
 
     public static ObservableList<Node> getChildren() {
@@ -92,12 +87,5 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         launch(args);
-
-//        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-//            public void run() {
-//                System.out.println("Disconnecting");
-//                ADBUtil.disconnect();
-//            }
-//        }));
     }
 }

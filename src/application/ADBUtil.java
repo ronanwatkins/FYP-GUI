@@ -140,9 +140,9 @@ public class ADBUtil {
         } else {
             adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
             isADBFound = true;
-            Task task = new Task() {
+            Task<Void> task = new Task<Void>() {
                 @Override
-                protected Object call() throws Exception {
+                protected Void call() {
                     checkDevices();
                     return null;
                 }
@@ -152,12 +152,12 @@ public class ADBUtil {
     }
 
     private static void getResolution() {
-        String[] response = consoleCommand(new String[] {"-s", deviceName, "shell", "wm", "size"}, false).split(" ");
+        String[] response = consoleCommand("-s " + deviceName + " shell wm size").split(" ");
         String[] size = response[2].split("x");
         resolutionX = Double.parseDouble(size[0]);
         resolutionY = Double.parseDouble(size[1]);
 
-        response = consoleCommand(new String[] {"-s", deviceName, "shell", "\"getevent -il | grep ABS_MT_POSITION\""}, false).split("\n");
+        response = consoleCommand("-s " + deviceName + " shell \"getevent -il | grep ABS_MT_POSITION\"").split("\n");
 
         for(String res : response) {
             if(res.contains("ABS_MT_POSITION_X")) {
@@ -180,7 +180,7 @@ public class ADBUtil {
     public static void getKeyMaps() {
         keyMap = new HashMap<>();
 
-        String[] response = consoleCommand(new String[] {"-s", deviceName, "shell", "cat", "/system/usr/keylayout/Generic.kl"}, false).split("\n");
+        String[] response = consoleCommand("-s " + deviceName + " shell cat /system/usr/keylayout/Generic.kl").split("\n");
 
         for(String line: response) {
             if(line.contains("VOLUME_UP") && !keyMap.containsKey("VOLUME_UP"))
@@ -332,7 +332,7 @@ public class ADBUtil {
 
     public static void checkDevices() {
         while(true) {
-            String[] result = consoleCommand(new String[] {"devices"}).split("\n");
+            String[] result = consoleCommand("devices").split("\n");
 
             if(result.length == 2 && isFirstRun.get()) {
                 deviceName = result[1].split("\t")[0].trim();
@@ -397,12 +397,18 @@ public class ADBUtil {
                 ie.printStackTrace();
             }
 
+            System.out.println("isFirstRun has been set to false");
             isFirstRun.set(false);
+            System.out.println("see it is false " + isFirstRun.get());
         }
     }
 
     public static ArrayList<String> listApplications() {
-        String[] applications = consoleCommand(new String[] {"shell", "pm", "list" ,"packages"}).replace("package:", "").trim().split("\n");
+        System.out.println("listApplications>> ");
+        String[] applications = consoleCommand("shell pm list packages").replace("package:", "").trim().split("\n");
+
+        for(String str : applications)
+            System.out.println("str\t" + str);
 
         List<String> apps = Arrays.asList(applications);
 
@@ -410,9 +416,11 @@ public class ADBUtil {
     }
 
     public static String connectOverWifi(String name) {
+        isFirstRun.set(false);
+
         deviceName = name;
-        deviceName = consoleCommand(new String[] {"shell", "ifconfig", "wlan0"}, false).split(" ")[2] + ":5555";
-        return consoleCommand(new String[] {"connect", deviceName}, false);
+        deviceName = consoleCommand("shell ifconfig wlan0").split(" ")[2] + ":5555";
+        return consoleCommand("connect" + deviceName);
     }
 
     public static void setDeviceName(String name) {
@@ -427,88 +435,30 @@ public class ADBUtil {
         return adbPath;
     }
 
-    public static String consoleCommand(String[] parameters, boolean runInBackground) {
-        if(!isFirstRun.get() && !deviceName.equals("")) {
-            params = new String[parameters.length+3];
-            params[0] = adbPath;
-            params[1] = "-s";
-            params[2] = deviceName;
-
-            System.arraycopy(parameters, 0, params, 3, parameters.length);
-        } else {
-            params = new String[parameters.length+1];
-            params[0] = adbPath;
-
-            System.arraycopy(parameters, 0, params, 1, parameters.length);
-        }
-        StringBuilder result = new StringBuilder();
-        Task<String> task = new Task<String>() {
-            @Override
-            protected String call() throws Exception {
-
-                Process process = Runtime.getRuntime().exec(params);
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if(!line.isEmpty()) {
-                        //System.out.println(Thread.currentThread().getId() + " InputStream >> " + line);
-                        result.append(line).append("\n");
-                    }
-                }
-
-                bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                while ((line = bufferedReader.readLine()) != null) {
-                    if(!line.isEmpty()) {
-                        //System.out.println(Thread.currentThread().getId() + " ErrorStream >> " + line);
-                        result.append(line).append("\n");
-                    }
-                }
-
-                bufferedReader.close();
-                process.waitFor();
-                //process.waitFor(2, TimeUnit.SECONDS);
-
-                return result.toString();
-            }
-        };
-
-        Thread thread = new Thread(task);
-        if(runInBackground)
-            thread.start();
-        else
-            thread.run();
-
-        task.setOnSucceeded(event -> {
-
-            System.out.println("succeeded");
-        });
-        System.out.println("Im finished");
-        task.setOnFailed(event -> {
-            System.out.println("failed: " + task);
-            System.out.println(task.getException());
-        });
-
-        return result.toString();
-    }
-
     public static String consoleCommand(String command) {
-        return consoleCommand(command.split(" "));
-    }
+        System.out.println(!isFirstRun.get() + " " +  !deviceName.isEmpty());
+        System.out.println(!isFirstRun.get() && !deviceName.isEmpty());
 
-    public static String consoleCommand(String[] parameters) {
-        if(!isFirstRun.get() && !deviceName.equals("")) {
+        String[] parameters = command.split(" ");
+        if(!isFirstRun.get() && !deviceName.isEmpty()) {
             params = new String[parameters.length+3];
             params[0] = adbPath;
             params[1] = "-s";
             params[2] = deviceName;
 
             System.arraycopy(parameters, 0, params, 3, parameters.length);
+
+            System.out.print("one>> ");
+            for(String str : params)
+                System.out.print(str + " ");
         } else {
             params = new String[parameters.length+1];
             params[0] = adbPath;
 
             System.arraycopy(parameters, 0, params, 1, parameters.length);
+            System.out.print("two>> ");
+            for(String str : params)
+                System.out.print(str + " ");
         }
 
         StringBuilder result = new StringBuilder();
@@ -542,7 +492,6 @@ public class ADBUtil {
     }
 
     public static void disconnect() {
-        System.out.println("In disconnect yo");
-        System.out.println(consoleCommand(new String[] {"disconnect"}, false));
+        System.out.println(consoleCommand("disconnect"));
     }
 }

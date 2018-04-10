@@ -42,7 +42,7 @@
             <Button fx:id="editFilterButton" onAction="#handleEditFilterButtonClicked"/>
         </HBox>
 
-        <ListView fx:id="logCatListView" prefWidth="900" prefHeight="550"/>
+        <ListView fx:id="logCatListView" prefWidth="900" prefHeight="1000"/>
         <TextField fx:id="resultField" editable="false" prefWidth="320" />
     </VBox>
 </AnchorPane>

@@ -1,9 +1,11 @@
 package application.location;
 
+import application.utilities.XMLUtil;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.ObservableList;
 
 public class KML {
     private StringProperty name;
@@ -18,6 +20,18 @@ public class KML {
         this.latitude = new SimpleDoubleProperty(latitude);
         this.longitude = new SimpleDoubleProperty(longitude);
         this.altitude = new SimpleDoubleProperty(altitude);
+    }
+
+    public static ObservableList<KML> getKMLCommands(String name) {
+        return new XMLUtil(true).openKMLCommands(name);
+    }
+
+    public static void save(String name) {
+        new XMLUtil(true).saveKMLFile(name);
+    }
+
+    public static void update(String name, ObservableList<KML> KMLCommands) {
+        new XMLUtil(true).saveKMLFile(name);
     }
 
     public String getCoordinate() {

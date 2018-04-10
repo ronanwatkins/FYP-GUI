@@ -203,7 +203,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         initializeButtons();
         initHashMap();
 
-        xmlUtil = new XMLUtil();
+        xmlUtil = new XMLUtil(false);
 
         listenBox.setVisible(false);
         axisComboBox.getSelectionModel().select(0);
@@ -286,7 +286,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
             loggerLabel.setText("File not saved");
         }
 
-        xmlUtil = new XMLUtil();
+        xmlUtil = new XMLUtil(false);
 
         recordingTimer.cancel();
         startNewTimerTask = true;
@@ -312,7 +312,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
             setImage("/resources/play_cropped.png", null, playButton);
 
-            xmlUtil = new XMLUtil();
+            xmlUtil = new XMLUtil(false);
             loadedValues = xmlUtil.loadXML(file);
 
             if(playbackThread != null) {
@@ -526,8 +526,8 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
     private void initializePhone() {
         PhongMaterial redMaterial = new PhongMaterial();
-        redMaterial.setSpecularColor(Color.ORANGE);
-        redMaterial.setDiffuseColor(Color.RED);
+        redMaterial.setSpecularColor(Color.LIGHTGREEN);
+        redMaterial.setDiffuseColor(Color.GREEN);
 
         phone.setMaterial(redMaterial);
         phone.getTransforms().addAll(rotateZ, rotateY, rotateX);
@@ -544,6 +544,9 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     }
 
     private void handleMouseEvents() {
+
+
+
         listenBox.setOnMouseClicked(event -> server.setIsListening(listenBox.isSelected()));
 
         moveRadioButton.setOnMouseClicked(event -> {

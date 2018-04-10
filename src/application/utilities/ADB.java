@@ -1,15 +1,19 @@
 package application.utilities;
 
 import application.ADBUtil;
+import application.Main;
 import application.applications.Intent;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.reflect.generics.tree.Tree;
 
 import java.lang.reflect.Array;
 import java.util.*;
 
 public class ADB {
+    private static final Logger Log = LoggerFactory.getLogger(ADB.class.getName());
 
     public static String openApp(String app) {
         return ADBUtil.consoleCommand("shell monkey -p " + app + " 1");
@@ -61,7 +65,15 @@ public class ADB {
     }
 
     public static int getUserId(String app) {
-        return Integer.parseInt(ADBUtil.consoleCommand( "shell \"dumpsys package " + app + " | grep userId\"").split("\n")[0].split("=")[1].trim());
+        int userId = 0;
+
+        try {
+            userId = Integer.parseInt(ADBUtil.consoleCommand("shell \"dumpsys package " + app + " | grep userId\"").split("\n")[0].split("=")[1].split(" ")[0].trim());
+        } catch (NumberFormatException e) {
+            Log.error(e.getMessage());
+        }
+
+        return userId;
     }
 
     public static String getDataDir(String app) {
@@ -103,6 +115,8 @@ public class ADB {
         for(String s : temp) {
             if(s.isEmpty())
                 continue;
+
+            System.out.println(s);
 
             ArrayList<StringProperty> actions = new ArrayList<>();
             ArrayList<StringProperty> categories = new ArrayList<>();
