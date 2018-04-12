@@ -2,6 +2,7 @@ package application.automation.extras;
 
 import application.ADBUtil;
 import application.automation.CreateBatchController;
+import application.utilities.Device;
 import application.utilities.Showable;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -16,6 +17,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class GetTouchPositionController implements Initializable, Showable<CreateBatchController> {
+    private static final Logger Log = Logger.getLogger(GetTouchPositionController.class.getName());
 
     @FXML
     private TextField xField;
@@ -55,6 +58,8 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
     private Button OKButton;
 
     private static CreateBatchController controller;
+
+    private Device device = Device.getInstance();
     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -62,7 +67,7 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         tapRadioButton.setSelected(true);
         if(tapRadioButton.isSelected()) {
             try {
-                ADBUtil.getCursorPosition(this);
+                device.getCursorPosition(this);
             } catch (Exception ee) {
                 ee.printStackTrace();
             }
@@ -77,11 +82,12 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
     }
 
     @Override
-    public void newWindow(CreateBatchController createBatchController, File file) throws IOException {
+    public Initializable newWindow(CreateBatchController createBatchController, Object object) throws IOException {
         controller = createBatchController;
 
         FXMLLoader fxmlLoader = new FXMLLoader(createBatchController.getClass().getResource("/application/automation/extras/GetTouchPosition.fxml"));
         Parent root = fxmlLoader.load();
+        GetTouchPositionController getTouchPositionController = fxmlLoader.getController();
         root.getStylesheets().add("/application/global.css");
 
         Stage stage = new Stage();
@@ -89,14 +95,16 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         stage.setTitle("Get Cursor Location");
         stage.setScene(new Scene(root));
         stage.show();
+
+        return getTouchPositionController;
     }
 
     private void getCursorPositionTap() {
-        ADBUtil.setSwipeFlag(false);
+        device.setSwipeFlag(false);
     }
 
     private void getCursorPositionSwipe() {
-        ADBUtil.setSwipeFlag(true);
+        device.setSwipeFlag(true);
     }
 
     @FXML
@@ -125,7 +133,7 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         xEndField.setText("");
         yEndField.setText("");
         durationField.setText("");
-        ADBUtil.setSwipeFlag(false);
+        device.setSwipeFlag(false);
 
         ((Stage) OKButton.getScene().getWindow()).close();
     }

@@ -5,15 +5,14 @@ import application.Main;
 import application.applications.Intent;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import sun.reflect.generics.tree.Tree;
+import org.apache.log4j.Logger;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class ADB {
-    private static final Logger Log = LoggerFactory.getLogger(ADB.class.getName());
+    private static final Logger Log = Logger.getLogger(ADB.class.getName());
+
+    private static Device device = Device.getInstance();
 
     public static String openApp(String app) {
         return ADBUtil.consoleCommand("shell monkey -p " + app + " 1");
@@ -109,6 +108,30 @@ public class ADB {
     }
 
     public static Set<Intent> getIntents(String app) {
+        String egrep = device.isEmulator() ? "egrep" : "/system/xbin/busybox egrep";
+        String sed = device.isEmulator() ? "sed" : "/system/xbin/busybox sed";
+
+        if(device.isEmulator()) return getEmulatorIntents(app);
+        else return getDeviceIntents(app);
+    }
+
+    private static Set<Intent> getDeviceIntents(String app) {
+        Log.info("Command: " + "shell \"dumpsys package " + app);
+        Set<Intent> set = new TreeSet<>();
+
+        String temp = ADBUtil.consoleCommand("shell \"dumpsys package " + app);
+        System.out.println("temp: " + temp);
+        String activity = temp.substring(1,temp.indexOf("Receiver Resolver Table:"));
+        System.out.println("Activity: " + activity);
+        String receiver = temp.substring(temp.indexOf("Receiver Resolver Table:"), temp.indexOf("Service Resolver Table:"));
+        System.out.println("\nReceiver: " + receiver);
+        String service = temp.substring(temp.indexOf("Service Resolver Table:"), temp.indexOf("Preferred Activities"));
+        System.out.println("\nService: " + service);
+
+        return set;
+    }
+
+    private static Set<Intent> getEmulatorIntents(String app) {
         String[] temp = ADBUtil.consoleCommand("shell \"dumpsys package " + app + " | egrep ' filter|Action:|Category:|Type:' | sed '/[a-zA-Z0-9] com/i \\nDIVISIONHERE' | sed 's/^[ \\t]*//;s/[ \\t]*$//'\"").split("DIVISIONHERE");
 
         Set<Intent> set = new TreeSet<>();

@@ -1,6 +1,7 @@
 package application;
 
 import javafx.application.Application;
+import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -9,32 +10,37 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
 
 import java.io.File;
 
 public class Main extends Application {
-    private static final Logger Log = LoggerFactory.getLogger(Main.class.getName());
+    private static final Logger Log = Logger.getLogger(Main.class);
+
+    public static final String APPLICATION_DIRECTORY = System.getProperty("user.dir") + "\\misc";
 
     private static Parent root;
+
+    private static HostServices services;
+
     @Override
     public void start(Stage stage) throws Exception {
+        PropertyConfigurator.configure(Main.class.getClassLoader().getResource("log4j.properties"));
         Log.info("Starting application");
+        services = getHostServices();
 
-        root = FXMLLoader.load(getClass().getResource("FXMLMain.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("FXMLMain.fxml"));
+        root = fxmlLoader.load();
+
         Scene scene = new Scene(root, 950, 600);
         scene.getStylesheets().add("/application/global.css");
 
         stage.getIcons().add(new Image("/resources/Android.png"));
         stage.setTitle("Android Sensor Emulator");
         stage.getProperties().put("hostServices", this.getHostServices());
-        stage.setOnCloseRequest(e -> {
-            Log.info("Closing application");
-            ADBUtil.disconnect();
-            Platform.exit();
-            System.exit(0);
-        });
+        stage.setOnCloseRequest(e -> exit());
         stage.setScene(scene);
         stage.show();
 
@@ -44,45 +50,49 @@ public class Main extends Application {
             Log.error("Could not create all application directories");
     }
 
-    public static ObservableList<Node> getChildren() {
-        return root.getChildrenUnmodifiable();
+    public static HostServices hostServices() {
+        return services;
     }
 
     private boolean createDirectories() {
         boolean result = true;
 
-        String path = System.getProperty("user.dir");
-
-        path += "\\misc";
-        File directory = new File(path);
+        File directory = new File(APPLICATION_DIRECTORY);
         if(!directory.exists())
             result = directory.mkdir();
 
-        directory = new File(path + "\\automation");
+        directory = new File(APPLICATION_DIRECTORY + "\\automation");
         if(!directory.exists())
             result = directory.mkdir();
 
-        directory = new File(path + "\\sensors");
+        directory = new File(APPLICATION_DIRECTORY + "\\sensors");
         if(!directory.exists())
             result = directory.mkdir();
 
-        directory = new File(path + "\\files");
+        directory = new File(APPLICATION_DIRECTORY + "\\files");
         if(!directory.exists())
             result = directory.mkdir();
 
-        directory = new File(path + "\\location");
+        directory = new File(APPLICATION_DIRECTORY + "\\location");
         if(!directory.exists())
             result = directory.mkdir();
 
-        directory = new File(path + "\\applications");
+        directory = new File(APPLICATION_DIRECTORY + "\\applications");
         if(!directory.exists())
             result = directory.mkdir();
 
-        directory = new File(path + "\\logcat\\filters");
+        directory = new File(APPLICATION_DIRECTORY + "\\logcat\\filters");
         if(!directory.exists())
             result = directory.mkdir();
 
         return result;
+    }
+
+    public static void exit() {
+        Log.info("Closing application");
+        ADBUtil.disconnect();
+        Platform.exit();
+        System.exit(0);
     }
 
     public static void main(String[] args) {

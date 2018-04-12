@@ -33,11 +33,12 @@ public class RecordInputsController implements Initializable, Showable<CreateBat
     }
 
     @Override
-    public void newWindow(CreateBatchController createBatchController, File file) throws IOException {
+    public Initializable newWindow(CreateBatchController createBatchController, Object object) throws IOException {
         controller = createBatchController;
 
         FXMLLoader fxmlLoader = new FXMLLoader(createBatchController.getClass().getResource("/application/automation/extras/RecordInputs.fxml"));
         Parent root = fxmlLoader.load();
+        RecordInputsController recordInputsController = fxmlLoader.getController();
         root.getStylesheets().add("/application/global.css");
 
         Stage stage = new Stage();
@@ -45,6 +46,8 @@ public class RecordInputsController implements Initializable, Showable<CreateBat
         stage.setTitle("Record Inputs");
         stage.setScene(new Scene(root));
         stage.show();
+
+        return this;
     }
 
     @FXML

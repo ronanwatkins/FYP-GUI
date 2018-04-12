@@ -18,6 +18,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +28,7 @@ import java.util.*;
 import static application.utilities.ADB.*;
 
 public class ApplicationTabController implements Initializable, ApplicationUtils {
-
+    private static final Logger Log = Logger.getLogger(ApplicationTabController.class.getName());
 
     private static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\applications";
     private final String EXTENSION = ".apk";
@@ -262,7 +263,6 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     private void updateDeviceListView() {
-        System.out.println("updateDeviceListView>>");
         appsOnDeviceList = FXCollections.observableArrayList();
         try {
             appsOnDeviceListView.getItems().clear();
@@ -318,7 +318,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
             ObservableList<StringProperty> values = cellDataFeatures.getValue();
             // Pad to current value if necessary:
             for (int index = values.size(); index <= columnIndex; index++) {
-                values.add(index, new SimpleStringProperty("cunt fart"));
+                values.add(index, new SimpleStringProperty(""));
             }
             return cellDataFeatures.getValue().get(columnIndex);
         });
@@ -330,7 +330,6 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     @FXML
     private void handleAppsListViewClicked(MouseEvent mouseEvent) {
-        System.out.println("handleAppsListViewClicked");
         enableButtons();
         applicationTableView.setPlaceholder(new Label("Loading Application details..."));
         String applicationName = appsOnDeviceListView.getSelectionModel().getSelectedItem();

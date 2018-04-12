@@ -1,18 +1,19 @@
 package application.utilities;
 
-import application.logcat.Filter;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import org.apache.log4j.Logger;
 
 import java.awt.*;
+import java.io.IOException;
 import java.net.URI;
-import java.util.Iterator;
+import java.net.URISyntaxException;
 
 public interface ApplicationUtils {
+    Logger Log = Logger.getLogger(ApplicationUtils.class.getName());
+
     void initializeButtons();
 
     default void browse(String URL) {
@@ -24,8 +25,8 @@ public interface ApplicationUtils {
                     desktop.browse(uri);
                 }
             }
-        } catch (Exception ee) {
-            ee.printStackTrace();
+        } catch (IOException|URISyntaxException ee) {
+            Log.error(ee.getMessage(), ee);
         }
     }
 

@@ -6,7 +6,21 @@
 
 <?import javafx.scene.control.Label?>
 <?import javafx.geometry.Insets?>
-<BorderPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.FXMLMainController">
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<BorderPane fx:id="borderPane" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.FXMLMainController">
+    <top>
+        <MenuBar>
+            <Menu text="File">
+                <MenuItem text="Manage Connections" onAction="#handleConnectionItemClicked"/>
+                <MenuItem text="Open Application Directory" onAction="#handleOpenItemClicked"/>
+                <SeparatorMenuItem/>
+                <MenuItem text="Exit" onAction="#handleExitItemClicked"/>
+            </Menu>
+        </MenuBar>
+    </top>
     <center>
         <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" >
             <tabs>

@@ -72,13 +72,14 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
     }
 
     @Override
-    public void newWindow(LogCatTabController logCatTabController, File file) throws IOException {
+    public Initializable newWindow(LogCatTabController logCatTabController, Object object) throws IOException {
         controller = logCatTabController;
         FXMLLoader fxmlLoader = new FXMLLoader(logCatTabController.getClass().getResource("/application/logcat/CreateFilter.fxml"));
         Bundle bundle = new Bundle(logCatTabController.getFileToEditName());
         fxmlLoader.setResources(bundle);
 
         Parent root = fxmlLoader.load();
+        CreateFilterController createFilterController = fxmlLoader.getController();
         root.getStylesheets().add("/application/global.css");
 
         Stage stage = new Stage();
@@ -87,6 +88,8 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
         stage.setTitle("Create Filter");
         stage.setScene(new Scene(root));
         stage.show();
+
+        return createFilterController;
     }
 
     @FXML

@@ -7,15 +7,14 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 
 import static application.utilities.ADB.*;
 
 public class AndroidApplication {
-    private static final Logger Log = LoggerFactory.getLogger(AndroidApplication.class.getName());
+    private static final Logger Log = Logger.getLogger(AndroidApplication.class.getName());
 
     private StringProperty packageName;
     private StringProperty APKName;
@@ -35,10 +34,15 @@ public class AndroidApplication {
         APKPath = new SimpleStringProperty(getAPKPath(packageName));
         versionCode = new VersionCode();
         userId = new SimpleIntegerProperty(getUserId(packageName));
+        System.out.println(1);
         dataDir = new SimpleStringProperty(getDataDir(packageName));
+        System.out.println(2);
         flags = FXCollections.observableArrayList(getFlags(packageName));
+        System.out.println(3);
         permissions = FXCollections.observableArrayList(getPermissions(packageName));
+        System.out.println(4);
         intents = FXCollections.observableArrayList(getIntents(packageName));
+        System.out.println(5);
     }
 
     public StringProperty packageNameProperty() {

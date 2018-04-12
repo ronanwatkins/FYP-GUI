@@ -3,43 +3,30 @@ package application;
 import application.automation.extras.GetTouchPositionController;
 import application.automation.extras.RecordInputsController;
 import application.utilities.ADBConnectionController;
+import application.utilities.Device;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.TextInputDialog;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ADBUtil {
+    private static final Logger Log = Logger.getLogger(ADBUtil.class.getName());
 
+    private static Device device = Device.getInstance();
     private static File adbLocation;
-    private static String DIRECTORY;
+    private static String DIRECTORY = System.getProperty("user.dir") + "\\misc\\automation\\";
     private static String adbPath;
     private static String[] params;
-    private static boolean isDeviceNameSet;
-    private static boolean isADBFound;
+    private static boolean isADBFound = false;
     private static Integer decimal;
     private static String lineGlobal;
-    private static double resolutionX;
-    private static double resolutionY;
-    private static double maxPositionX;
-    private static double maxPositionY;
 
-    private static String deviceName;
-    private static final Object lock;
+    private static final Object lock = new Object();
     private static AtomicBoolean isFirstRun;
-
-    private static double xStart;
-    private static double yStart;
-    private static double xEnd;
-    private static double yEnd;
 
     private static int deviceCount;
     private static ADBConnectionController controller;
@@ -48,41 +35,12 @@ public class ADBUtil {
     private static AtomicBoolean stopRecordingFlag;
     private static Task recordValuesTask;
 
-    private static HashMap<String, String> keyMap;
-
-    private static AtomicBoolean swipeFlag;
 
     static {
+
         adbLocation = new File(System.getProperty("user.home") + "\\AppData\\Local\\Android\\Sdk\\platform-tools");
-        DIRECTORY = System.getProperty("user.dir") + "\\misc\\automation\\";
-        params = null;
-        isDeviceNameSet = false;
-        isADBFound = false;
-        decimal = 0;
-        lineGlobal = "";
-        deviceName = "";
-        lock = new Object();
         isFirstRun = new AtomicBoolean(true);
-
-        xStart = 0.0;
-        yStart = 0.0;
-        xEnd = 0.0;
-        yEnd = 0.0;
-
-        deviceCount = 0;
-        controller = null;
-
         stopRecordingFlag = new AtomicBoolean(false);
-        swipeFlag = new AtomicBoolean(false);
-    }
-
-    public static void setSwipeFlag(Boolean flag) {
-            swipeFlag.set(flag);
-
-            if(flag) {
-                xStart = 0.0;
-                yStart = 0.0;
-            }
     }
 
     public static void initADB() {
@@ -151,53 +109,9 @@ public class ADBUtil {
         }
     }
 
-    private static void getResolution() {
-        String[] response = consoleCommand("-s " + deviceName + " shell wm size").split(" ");
-        String[] size = response[2].split("x");
-        resolutionX = Double.parseDouble(size[0]);
-        resolutionY = Double.parseDouble(size[1]);
-
-        response = consoleCommand("-s " + deviceName + " shell \"getevent -il | grep ABS_MT_POSITION\"").split("\n");
-
-        for(String res : response) {
-            if(res.contains("ABS_MT_POSITION_X")) {
-                String temp = res.split(",")[2];
-                maxPositionX =  Double.parseDouble(temp.substring(temp.length()-5, temp.length()).trim());
-            }
-            if(res.contains("ABS_MT_POSITION_Y")) {
-                String temp = res.split(",")[2];
-                maxPositionY =  Double.parseDouble(temp.substring(temp.length()-5, temp.length()).trim());
-            }
-        }
-
-        System.out.println("resolution X: " + resolutionX);
-        System.out.println("resolution Y: " + resolutionY);
-
-        System.out.println("MaxX: " + maxPositionX);
-        System.out.println("MaxY: " + maxPositionY);
-    }
-
-    public static void getKeyMaps() {
-        keyMap = new HashMap<>();
-
-        String[] response = consoleCommand("-s " + deviceName + " shell cat /system/usr/keylayout/Generic.kl").split("\n");
-
-        for(String line: response) {
-            if(line.contains("VOLUME_UP") && !keyMap.containsKey("VOLUME_UP"))
-                keyMap.put("VOLUME_UP", line.split(" ")[1]);
-            if(line.contains("VOLUME_DOWN") && !keyMap.containsKey("VOLUME_DOWN"))
-                keyMap.put("VOLUME_DOWN", line.split(" ")[1]);
-            if(line.contains("POWER") && !keyMap.containsKey("POWER"))
-                keyMap.put("POWER", line.split(" ")[1]);
-            if(line.contains("CAMERA") && !keyMap.containsKey("CAMERA"))
-                keyMap.put("CAMERA", line.split(" ")[1]);
-        }
-    }
-
     public static void setStopRecordingFlag(boolean flag) {
         if(flag) {
             recordValuesTask.cancel();
-
             System.out.println(sendEventBuilder.toString());
         }
     }
@@ -210,7 +124,7 @@ public class ADBUtil {
             recordValuesTask = new Task() {
                 @Override
                 protected Object call() throws Exception {
-                    Process process = Runtime.getRuntime().exec(adbPath + " -s " + deviceName + " shell getevent -t");
+                    Process process = Runtime.getRuntime().exec(adbPath + " -s " + device.getName() + " shell getevent -t");
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
                     String line;
@@ -237,198 +151,61 @@ public class ADBUtil {
         }
     }
 
-    public static void getCursorPosition(GetTouchPositionController controller) throws Exception{
-
-        try {
-
-            Task task = new Task() {
-                @Override
-                protected Object call() throws Exception {
-                    Process process = Runtime.getRuntime().exec(adbPath + " -s " + deviceName + " shell getevent -lt");
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                    long startTime = 0;
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-
-
-                //    while ((line = consoleCommand(new String[] {"shell", "getevent", "-lt"}, false)) != null) {
-
-                        if(line.contains("ABS_MT_POSITION")) {
-                            lineGlobal = line;
-                            String position = line.substring(line.trim().length()-8).trim();
-                            decimal = 0;
-                            try {
-                                decimal = Integer.parseInt(position, 16);
-                            } catch (NumberFormatException nfe) {
-                                nfe.printStackTrace();
-                            }
-
-                            if(decimal != null) {
-                                try {
-
-                                    if(lineGlobal.contains("ABS_MT_POSITION_X")) {
-                                        double x = decimal.doubleValue()*(resolutionX/maxPositionX);
-                                        System.out.println("decimal: " + decimal);
-                                        System.out.println("resolutionX: " + resolutionX);
-                                        System.out.println("maxpositioX: " + maxPositionX);
-
-                                        if(swipeFlag.get()) {
-                                            if (xStart == 0.0) {
-                                                xStart = x;
-                                                System.out.println("XStart: " + xStart);
-                                                controller.setXField(xStart);
-                                                startTime = System.currentTimeMillis();
-                                            } else {
-                                                xEnd = x;
-                                                controller.setXEndField(xEnd);
-                                            }
-
-                                            if(System.currentTimeMillis() - startTime > 2000) {
-                                                startTime = 0;
-                                                xStart = 0.0;
-                                                yStart = 0.0;
-                                            }
-                                        } else {
-                                            System.out.println("X: " + x);
-                                            controller.setXField(x);
-                                        }
-                                    }
-                                    else if(lineGlobal.contains("ABS_MT_POSITION_Y")) {
-                                        double y = decimal.doubleValue()*(resolutionY/maxPositionY);
-
-                                        if(swipeFlag.get()) {
-                                            if (yStart == 0.0) {
-                                                yStart = y;
-                                                System.out.println("YStart: " + yStart);
-                                                controller.setYField(yStart);
-                                            } else {
-                                                yEnd = y;
-                                                controller.setYEndField(yEnd);
-                                            }
-                                        } else {
-                                            System.out.println("Y: " + y);
-                                            controller.setYField(y);
-                                        }
-                                    }
-                                } catch (Exception ee) {
-                                    ee.printStackTrace();
-                                }
-                            }
-                        }
-                    }
-
-                    bufferedReader.close();
-                    process.waitFor();
-
-                    return null;
-                }
-            };
-            new Thread(task).start();
-
-        } catch (Exception ee) {
-            ee.printStackTrace();
-        }
-    }
-
-    public static void checkDevices() {
+    private static void checkDevices() {
         while(true) {
-            String[] result = consoleCommand("devices").split("\n");
+            String[] result = connectedDevices();
 
             if(result.length == 2 && isFirstRun.get()) {
-                deviceName = result[1].split("\t")[0].trim();
-                Task task = new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        getResolution();
-                        getKeyMaps();
-                        return null;
-                    }
-                };
-                new Thread(task).start();
+                device.setName(result[1].replace("device", "").trim());
+                device.handleNewConnection();
             }
-            else if(result.length > 2 && !isDeviceNameSet){
-                deviceName = result[1].split("\t")[0].trim();
+            else if(result.length > 2 && deviceCount!=result.length){
+                deviceCount = result.length;
+
                 Platform.runLater(() -> {
                     try {
-                        FXMLLoader fxmlLoader = new FXMLLoader(ADBConnectionController.class.getClass().getResource("/application/utilities/ADBConnection.fxml"));
-                        Parent root = fxmlLoader.load();
-                        root.getStylesheets().add("/application/global.css");
-
-                        controller = fxmlLoader.getController();
-                        controller.initDevices(result);
-
-                        Stage stage = new Stage();
-                        stage.initModality(Modality.APPLICATION_MODAL);
-                        stage.setScene(new Scene(root));
-
-                        stage.show();
+                        if (controller == null) {
+                            System.out.println("here 1");
+                            synchronized (lock) {
+                                controller = new ADBConnectionController();
+                                controller = (ADBConnectionController) controller.newWindow(null, null);
+                                controller.initDevices(result);
+                            }
+                        } else System.out.println("not null " + controller);
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException ie) {
+                            ie.printStackTrace();
+                        }
                     } catch (IOException ioe) {
-                       ioe.printStackTrace();
+                       Log.error(ioe.getMessage());
                     }
                 });
-
-                isDeviceNameSet = true;
-                Task task = new Task<Void>() {
-                    @Override
-                    protected Void call() throws Exception {
-                        getResolution();
-                        getKeyMaps();
-                        return null;
-                    }
-                };
-                new Thread(task).start();
+                System.out.println("here 2");
             }
 
-            if(deviceCount != result.length) {
-                if(controller != null) {
-                    Platform.runLater(() -> controller.initDevices(result));
-                }
-                deviceCount = result.length;
-            }
-
-            if(isFirstRun.get()) {
-                int port = Integer.parseInt(deviceName.split("-")[1]);
-                TelnetServer.connect(port);
-            }
+          //  System.out.println("isFirstRun has been set to false");
+            isFirstRun.set(false);
+          //  System.out.println("see it is false " + isFirstRun.get());
 
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ie) {
                 ie.printStackTrace();
             }
-
-            System.out.println("isFirstRun has been set to false");
-            isFirstRun.set(false);
-            System.out.println("see it is false " + isFirstRun.get());
         }
     }
 
     public static ArrayList<String> listApplications() {
-        System.out.println("listApplications>> ");
         String[] applications = consoleCommand("shell pm list packages").replace("package:", "").trim().split("\n");
-
-        for(String str : applications)
-            System.out.println("str\t" + str);
 
         List<String> apps = Arrays.asList(applications);
 
         return new ArrayList<>(apps);
     }
 
-    public static String connectOverWifi(String name) {
-        isFirstRun.set(false);
-
-        deviceName = name;
-        deviceName = consoleCommand("shell ifconfig wlan0").split(" ")[2] + ":5555";
-        return consoleCommand("connect" + deviceName);
-    }
-
-    public static void setDeviceName(String name) {
-        deviceName = name;
-    }
-
-    public static String getDeviceName() {
-        return deviceName;
+    public static String[] connectedDevices() {
+        return consoleCommand("devices").split("\n");
     }
 
     public static String getAdbPath() {
@@ -436,31 +213,37 @@ public class ADBUtil {
     }
 
     public static String consoleCommand(String command) {
-        System.out.println(!isFirstRun.get() + " " +  !deviceName.isEmpty());
-        System.out.println(!isFirstRun.get() && !deviceName.isEmpty());
+       // System.out.println(!isFirstRun.get() + " " +  !device.getName().isEmpty());
+       // System.out.println(!isFirstRun.get() && !device.getName().isEmpty());
 
         String[] parameters = command.split(" ");
-        if(!isFirstRun.get() && !deviceName.isEmpty()) {
+        if(!isFirstRun.get() && !device.getName().isEmpty()) {
             params = new String[parameters.length+3];
             params[0] = adbPath;
             params[1] = "-s";
-            params[2] = deviceName;
+            params[2] = device.getName();
 
             System.arraycopy(parameters, 0, params, 3, parameters.length);
 
-            System.out.print("one>> ");
-            for(String str : params)
-                System.out.print(str + " ");
+           // System.out.print("one>> ");
+           // for(String str : params)
+               // System.out.print(str + " ");
         } else {
             params = new String[parameters.length+1];
             params[0] = adbPath;
 
             System.arraycopy(parameters, 0, params, 1, parameters.length);
-            System.out.print("two>> ");
-            for(String str : params)
-                System.out.print(str + " ");
+         //   System.out.print("two>> ");
+          //  for(String str : params)
+             //   System.out.print(str + " ");
         }
 
+        if(!command.contains("devices")) {
+            StringBuilder sb = new StringBuilder("Command: ");
+            for (String string : params)
+                sb.append(string).append(" ");
+            //Log.info(sb.toString());
+        }
         StringBuilder result = new StringBuilder();
         try {
             Process process = Runtime.getRuntime().exec(params);
@@ -488,10 +271,13 @@ public class ADBUtil {
             ee.printStackTrace();
         }
 
+       // if(!command.contains("devices"))
+           // Log.info("Response: " + result.toString());
+
         return result.toString();
     }
 
     public static void disconnect() {
-        System.out.println(consoleCommand("disconnect"));
+        Log.info(consoleCommand("disconnect"));
     }
 }

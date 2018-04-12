@@ -239,22 +239,25 @@ public class CreateBatchController implements Initializable, Showable<Automation
     }
 
     @Override
-    public void newWindow(AutomationTabController commandsTabController, File file) throws IOException {
+    public Initializable newWindow(AutomationTabController commandsTabController, Object object) throws IOException {
         controller = commandsTabController;
-        editFile = file;
+        editFile = (File) object;
 
         FXMLLoader fxmlLoader = new FXMLLoader(commandsTabController.getClass().getResource("/application/automation/CreateBatchView.fxml"));
         Parent root = fxmlLoader.load();
+        CreateBatchController createBatchController = fxmlLoader.getController();
         root.getStylesheets().add("/application/global.css");
 
         Stage stage = new Stage();
 
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setResizable(false);
-        String title = file == null ? "Create Batch Commands" : "Editing \"" + file.getName().replace(".xml", "") + "\"";
+        String title = object == null ? "Create Batch Commands" : "Editing \"" + editFile.getName().replace(".xml", "") + "\"";
         stage.setTitle(title);
         stage.setScene(new Scene(root));
         stage.show();
+
+        return createBatchController;
     }
 
     //****START TOGGLE BUTTON HANDLERS****//

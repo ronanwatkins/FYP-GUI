@@ -1,7 +1,9 @@
 package application.utilities;
 
 import application.ADBUtil;
+import application.FXMLMainController;
 import application.TelnetServer;
+import application.logcat.Bundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -9,7 +11,10 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -17,12 +22,17 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.log4j.Logger;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class ADBConnectionController implements Initializable {
+public class ADBConnectionController implements Initializable, Showable<FXMLMainController> {
+    private static final Logger Log = Logger.getLogger(ADBConnectionController.class.getName());
 
     @FXML
     private Button connectButton;
@@ -39,6 +49,8 @@ public class ADBConnectionController implements Initializable {
 
     @FXML
     private ObservableList<String> devicesList = FXCollections.observableArrayList();
+
+    private Device device = Device.getInstance();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -73,14 +85,8 @@ public class ADBConnectionController implements Initializable {
 
     @FXML
     private void handleConnectButtonClicked() {
-        String device = devicesListView.getSelectionModel().getSelectedItem();
-        ADBUtil.setDeviceName(device);
-
-        if(device.contains("emulator")) {
-            int port = Integer.parseInt(device.split("-")[1]);
-            TelnetServer.connect(port);
-            System.out.println("Connected to telnet port: " + port);
-        }
+        String deviceName = devicesListView.getSelectionModel().getSelectedItem();
+        device.setName(deviceName);
 
         resultLabel.setTextFill(Color.GREEN);
         resultLabel.setText("Connected to " + device);
@@ -90,33 +96,37 @@ public class ADBConnectionController implements Initializable {
 
     @FXML
     private void handleConnectWifiClicked() {
-        String device = devicesListView.getSelectionModel().getSelectedItem();
+        String deviceName = devicesListView.getSelectionModel().getSelectedItem();
+        device.setName(deviceName);
+
         resultLabel.setText("Connecting...");
 
-        Task<String> task = new Task<String>() {
+        Task<Integer> task = new Task<Integer>() {
             @Override
-            protected String call() throws Exception {
-                return ADBUtil.connectOverWifi(device);
+            protected Integer call() {
+                return device.connectOverWifi();
             }
         };
 
         task.setOnSucceeded(event -> {
-            String result = task.getValue();
-            System.out.println("RESULT: " + result);
-            if(result.startsWith("connected")) {
-                resultLabel.setTextFill(Color.GREEN);
-                resultLabel.setText("Connected to " + device + "\n" +
-                        "You can disconnect it from the USB port");
+            switch (task.getValue()) {
+                case 0:
+                    resultLabel.setTextFill(Color.GREEN);
+                    resultLabel.setText("Connected to " + device + "\n" +
+                            "You can disconnect it from the USB port");
 
-                OKButton.setVisible(true);
-            } else if(result.startsWith("already")) {
-                resultLabel.setTextFill(Color.GREEN);
-                resultLabel.setText("Already connected to " + device);
+                    OKButton.setVisible(true);
+                    break;
+                case 1:
+                    resultLabel.setTextFill(Color.GREEN);
+                    resultLabel.setText("Already connected to " + device);
 
-                OKButton.setVisible(true);
-            } else {
-                resultLabel.setTextFill(Color.RED);
-                resultLabel.setText("Could not connect to " + device);
+                    OKButton.setVisible(true);
+                    break;
+                case 2:
+                    resultLabel.setTextFill(Color.RED);
+                    resultLabel.setText("Could not connect to " + device);
+                    break;
             }
         });
 
@@ -129,6 +139,24 @@ public class ADBConnectionController implements Initializable {
 
     @FXML
     private void handleOKButtonClicked(ActionEvent event) {
+        device.handleNewConnection();
         ((Stage) connectButton.getScene().getWindow()).close();
+    }
+
+    @Override
+    public Initializable newWindow(FXMLMainController controller, Object object) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(ADBConnectionController.class.getClass().getResource("/application/utilities/ADBConnection.fxml"));
+
+        Parent root = fxmlLoader.load();
+        ADBConnectionController adbConnectionController = fxmlLoader.getController();
+        root.getStylesheets().add("/application/global.css");
+
+        Stage stage = new Stage();
+        stage.setResizable(false);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setScene(new Scene(root));
+        stage.show();
+
+        return adbConnectionController;
     }
 }

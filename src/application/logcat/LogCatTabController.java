@@ -4,6 +4,7 @@ import application.ADBUtil;
 import application.Main;
 import application.applications.ApplicationTabController;
 import application.utilities.ApplicationUtils;
+import application.utilities.Device;
 import application.utilities.Showable;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -21,8 +22,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.net.URL;
@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class LogCatTabController implements Initializable, Showable<Initializable>, ApplicationUtils {
-    private static final Logger Log = LoggerFactory.getLogger(Main.class.getName());
+    private static final Logger Log = Logger.getLogger(Main.class.getName());
 
     private static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\logcat";
     public static final String FILTER_DIRECTORY = System.getProperty("user.dir") + "\\misc\\logcat\\filters\\";
@@ -80,6 +80,8 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     private String searchFieldText;
 
     private final Object lock = new Object();
+
+    private Device device = Device.getInstance();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -144,7 +146,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     private void getLogs(boolean flag) {
         if(flag) {
-            Log.info(ADBUtil.getAdbPath() + " -s " + ADBUtil.getDeviceName() + " logcat -v threadtime");
+            Log.info(ADBUtil.getAdbPath() + " -s " + device.getName() + " logcat -v threadtime");
 
             logCatListView.getItems().clear();
             synchronized (lock) {
@@ -155,7 +157,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
             Task<Void> task = new Task<Void>() {
                 @Override
                 protected Void call() throws Exception {
-                    Process process = Runtime.getRuntime().exec(ADBUtil.getAdbPath() + " -s " + ADBUtil.getDeviceName() + " logcat -v threadtime");
+                    Process process = Runtime.getRuntime().exec(ADBUtil.getAdbPath() + " -s " + device.getName() + " logcat -v threadtime");
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
@@ -192,7 +194,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     }
 
     @Override
-    public void newWindow(Initializable controller, File file) throws IOException {
+    public Initializable newWindow(Initializable controller, Object object) throws IOException {
         if(controller instanceof ApplicationTabController) {
             applicationTabController = (ApplicationTabController) controller;
         }
@@ -202,6 +204,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         fxmlLoader.setResources(bundle);
 
         Parent root = fxmlLoader.load();
+        LogCatTabController logCatTabController = fxmlLoader.getController();
         root.getStylesheets().add("/application/global.css");
 
         Stage stage = new Stage();
@@ -209,6 +212,8 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         stage.setTitle("LogCat");
         stage.setScene(new Scene(root,950, 600));
         stage.show();
+
+        return logCatTabController;
     }
 
     @FXML
@@ -255,7 +260,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     @FXML
     private void handleSaveButtonClicked(ActionEvent event) {
         final String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
-        final String fileName = ADBUtil.getDeviceName() + "_" + timeStamp + EXTENSION;
+        final String fileName = device.getName() + "_" + timeStamp + EXTENSION;
 
         Task<Void> task = new Task<Void>() {
             @Override

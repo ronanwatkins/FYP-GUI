@@ -184,14 +184,14 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     public Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
     public Rotate rotateZ = new Rotate(0, Rotate.Z_AXIS);
 
-    private volatile Map<String, Double> sensorValues = new HashMap<>();
+    private Map<String, Double> sensorValues = Collections.synchronizedMap(new HashMap<>());
     private playbackThread playbackThread;
     private Timer recordingTimer;
 
     private XMLUtil xmlUtil;
     private HTTPServer server;
 
-    private boolean isRecording = false;
+    private volatile boolean isRecording = false;
     private boolean startNewTimerTask = true;
     private boolean isLoaded = false;
     private boolean wasPaused = false;
