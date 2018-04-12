@@ -1,8 +1,7 @@
 package application.automation.extras;
 
-import application.ADBUtil;
 import application.automation.CreateBatchController;
-import application.utilities.Device;
+import application.device.Device;
 import application.utilities.Showable;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -19,7 +18,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;

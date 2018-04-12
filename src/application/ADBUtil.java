@@ -1,9 +1,8 @@
 package application;
 
-import application.automation.extras.GetTouchPositionController;
 import application.automation.extras.RecordInputsController;
 import application.utilities.ADBConnectionController;
-import application.utilities.Device;
+import application.device.Device;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.control.TextInputDialog;

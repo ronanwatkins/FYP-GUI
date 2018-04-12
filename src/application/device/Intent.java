@@ -1,4 +1,4 @@
-package application.applications;
+package application.device;
 
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -9,16 +9,21 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class Intent implements Comparable<Intent> {
-    private StringProperty component;
+    protected StringProperty component;
     private ObservableList<StringProperty> actions;
     private ObservableList<StringProperty> categories;
     private ObservableList<StringProperty> mimeTypes;
+    protected IntentType intentType;
+    protected Boolean isMimeTyped;
 
-    public Intent(StringProperty component, ArrayList<StringProperty> actions, ArrayList<StringProperty> categories, ArrayList<StringProperty> mimeTypes) {
+    public Intent() {}
+
+    public Intent(StringProperty component, ArrayList<StringProperty> actions, ArrayList<StringProperty> categories, ArrayList<StringProperty> mimeTypes, boolean isMimeTyped) {
         this.component = component;
         this.actions = FXCollections.observableArrayList(actions);
         this.categories = FXCollections.observableArrayList(categories);
         this.mimeTypes = FXCollections.observableArrayList(mimeTypes);
+        this.isMimeTyped = isMimeTyped;
     }
 
     public StringProperty componentProperty() {
@@ -45,7 +50,7 @@ public class Intent implements Comparable<Intent> {
     @Override
     public int hashCode() {
        // System.out.println("hashCode");
-        return Objects.hash(this.component, this.actions, this.categories, this.mimeTypes);
+        return Objects.hash(this.component, this.actions, this.categories, this.mimeTypes, this.isMimeTyped);
        // Objects.
     }
 
@@ -79,6 +84,6 @@ public class Intent implements Comparable<Intent> {
 
     @Override
     public int compareTo(@NotNull Intent o) {
-        return this.component.get().compareTo(o.component.get());
+        return this.isMimeTyped.compareTo(o.isMimeTyped);
     }
 }

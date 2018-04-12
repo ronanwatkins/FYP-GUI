@@ -1,6 +1,5 @@
-package application.applications;
+package application.device;
 
-import application.utilities.ADB;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -8,8 +7,6 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.apache.log4j.Logger;
-
-import java.util.ArrayList;
 
 import static application.utilities.ADB.*;
 

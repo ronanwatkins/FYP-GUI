@@ -3,7 +3,7 @@ package application.console;
 import application.ADBUtil;
 
 import application.utilities.ApplicationUtils;
-import application.utilities.Device;
+import application.device.Device;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;

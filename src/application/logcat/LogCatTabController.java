@@ -4,7 +4,7 @@ import application.ADBUtil;
 import application.Main;
 import application.applications.ApplicationTabController;
 import application.utilities.ApplicationUtils;
-import application.utilities.Device;
+import application.device.Device;
 import application.utilities.Showable;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;

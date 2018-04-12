@@ -1,8 +1,9 @@
-package application.utilities;
+package application.device;
 
 import application.ADBUtil;
 import application.TelnetServer;
 import application.automation.extras.GetTouchPositionController;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import org.apache.log4j.Logger;
 
@@ -19,6 +20,8 @@ public class Device {
     private String name = "";
     private int port;
     private boolean isEmulator;
+    private ObservableList<AndroidApplication> androidApplications;
+    private ObservableList<String> applicationNames;
     private double resolutionX;
     private double resolutionY;
     private double maxPositionX;
@@ -32,6 +35,14 @@ public class Device {
     }
 
     //Setters
+    public void setApplicationNames(ObservableList<String> applicationNames) {
+        this.applicationNames = applicationNames;
+    }
+
+    public void setAndroidApplications(ObservableList<AndroidApplication> androidApplications) {
+        this.androidApplications = androidApplications;
+    }
+
     public void setName(String name) {
         this.name = name;
 
@@ -78,6 +89,10 @@ public class Device {
         return name;
     }
 
+    public ObservableList<AndroidApplication> getAndroidApplications() {
+        return androidApplications;
+    }
+
     public boolean isEmulator() {
         return isEmulator;
     }
@@ -96,6 +111,16 @@ public class Device {
 
     public double getMaxPositionY() {
         return maxPositionY;
+    }
+
+    //Actions
+    public void addAnroidApplication(AndroidApplication androidApplication) {
+        this.androidApplications.add(androidApplication);
+    }
+
+    public boolean removeAndroidApplication(AndroidApplication androidApplication) {
+        return this.androidApplications.remove(androidApplication);
+
     }
 
     public int connectOverWifi() {

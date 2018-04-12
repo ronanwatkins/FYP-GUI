@@ -1,15 +1,16 @@
 package application.applications;
 
 import application.ADBUtil;
+import application.device.AndroidApplication;
+import application.device.Device;
+import application.device.Intent;
 import application.logcat.LogCatTabController;
 import application.utilities.ApplicationUtils;
 import javafx.beans.property.*;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -102,11 +103,12 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private ListView<String> componentsListView;
 
     private ObservableList<String> appsOnPCList;
-    private ObservableList<String> appsOnDeviceList;
 
     private AndroidApplication androidApplication;
 
     private File directory;
+
+    private Device device = Device.getInstance();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -263,10 +265,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     private void updateDeviceListView() {
-        appsOnDeviceList = FXCollections.observableArrayList();
+        //appsOnDeviceList = FXCollections.observableArrayList();
         try {
             appsOnDeviceListView.getItems().clear();
-            appsOnDeviceList.clear();
+            device.getAndroidApplications().clear();
 
             Task<ObservableList<String>> task = new Task<ObservableList<String>>() {
                 @Override
@@ -274,9 +276,18 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
                 }
             };
             task.setOnSucceeded(event1 -> {
-                appsOnDeviceList = task.getValue();
-                Collections.sort(appsOnDeviceList);
-                appsOnDeviceListView.setItems(filter(searchField.getText(), appsOnDeviceList));
+                Task<Void> task1 = new Task<Void>() {
+                    @Override
+                    protected Void call() {
+                        for(String appName : task.getValue())
+                            device.addAnroidApplication(new AndroidApplication(appName));
+                        return null;
+                    }
+                };
+                new Thread(task1).start();
+                //device.setAndroidApplications(task.getValue());
+                //Collections.sort(appsOnDeviceList);
+                appsOnDeviceListView.setItems(filter(searchField.getText(), task.getValue()));
             });
 
             new Thread(task).start();
@@ -449,7 +460,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     @FXML
     private void handleSearchFieldAction(KeyEvent event) {
-        appsOnDeviceListView.setItems(filter(searchField.getText(), appsOnDeviceList));
+     //   appsOnDeviceListView.setItems(filter(searchField.getText(), appsOnDeviceList));
     }
 
     public String getApplicationName() {
