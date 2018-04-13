@@ -7,6 +7,8 @@ import application.device.Intent;
 import application.device.IntentType;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -107,18 +109,11 @@ public class ADB {
         return new ArrayList<>(Arrays.asList(values));
     }
 
-    public static ArrayList<StringProperty> listApplications() {
-        ArrayList<StringProperty> values = new ArrayList<>();
-        for(String application : ADBUtil.listApplications())
-            values.add(new SimpleStringProperty(application));
-
-        return values;
+    public static ArrayList<String> listApplications() {
+        return ADBUtil.listApplications();
     }
 
     public static Set<? extends Intent> getIntents(String app) {
-        String egrep = device.isEmulator() ? "egrep" : "/system/xbin/busybox egrep";
-        String sed = device.isEmulator() ? "sed" : "/system/xbin/busybox sed";
-
         if(device.isEmulator()) return getEmulatorIntents(app);
         else return getDeviceIntents(app);
     }
@@ -127,73 +122,54 @@ public class ADB {
         Log.info("Command: " + "shell dumpsys package " + app);
         Set<DeviceIntent> set = new TreeSet<>();
 
-        String temp = ADBUtil.consoleCommand("shell dumpsys package " + app);
-        //System.out.println("temp: " + temp);
+        String packageDetails = ADBUtil.consoleCommand("shell dumpsys package " + app);
+        System.out.println("PACKAGE DETAILS: " + packageDetails);
 
-        if(temp.contains(ACTIVITY_RESOLVER_TABLE))
-            set.addAll(intents(temp, IntentType.ACTIVITY));
-       // if(temp.contains(RECEIVER_RESOLVER_TABLE))
-        //    set.addAll(intents(temp, IntentType.BROADCAST));
-       // if(temp.contains(SERVICE_RESOLVER_TABLE))
-        //    set.addAll(intents(temp, IntentType.SERVICE));
+        if(packageDetails.contains(ACTIVITY_RESOLVER_TABLE))
+            set.addAll(deviceIntents(packageDetails, IntentType.ACTIVITY));
+        if(packageDetails.contains(RECEIVER_RESOLVER_TABLE))
+            set.addAll(deviceIntents(packageDetails, IntentType.BROADCAST));
+        if(packageDetails.contains(SERVICE_RESOLVER_TABLE))
+            set.addAll(deviceIntents(packageDetails, IntentType.SERVICE));
 
-
-        //String receiver = temp.substring(temp.indexOf("Receiver Resolver Table:"), temp.indexOf("Service Resolver Table:"));
-        //System.out.println("\nReceiver: " + receiver);
-        //String service = temp.substring(temp.indexOf("Service Resolver Table:"), temp.indexOf("Preferred Activities"));
-        //System.out.println("\nService: " + service);
+        for(DeviceIntent deviceIntent : set)
+            System.out.println("FINISHED: " + deviceIntent);
 
         return set;
     }
 
-    private static Set<DeviceIntent> intents(String input, IntentType intentType) {
-        Log.info("input: \n" + input);
-        Log.info("Intent type: " + intentType.toString());
-
+    private static Set<DeviceIntent> deviceIntents(String input, IntentType intentType) {
         Set<DeviceIntent> intents = new TreeSet<>();
 
         String data = "";
         int position = 0;
 
-//        Pattern p = Pattern.compile("\\n[A-Za-z]");
-        Pattern p = Pattern.compile(".");
-        Matcher m = p.matcher(data);
-        Log.info("Finding...");
+        Pattern p = Pattern.compile("\\n[A-Za-z]");
+        Matcher m = p.matcher(input);
+
+        int i=0;
         while (m.find()) {
-            Log.info("In find");
-            Log.info("sham " + m.end());
-            Log.info("Group: " + m.group());
-           // position = m.start();
-           // Log.info("Position: " + position);
-
+            try {
+                if(i > intentType.ordinal())
+                    break;
+                position = m.start();
+                i++;
+            } catch (IllegalStateException|IndexOutOfBoundsException e) {
+                Log.error(e.getMessage(), e);
+            }
         }
-        Log.info("Done");
-        m = m.reset();
-
-        Log.info("Looking at...");
-        while (m.lookingAt()) {
-            Log.info("in Look at");
-            Log.info("hey " + m.start());
-            Log.info("group: " + m.group());
-        }
-        Log.info("Done 2");
-        //else {
-        //    Log.warn("Me no find");
-       // }
 
         switch (intentType) {
             case ACTIVITY:
-                data = input.substring(input.indexOf(ACTIVITY_RESOLVER_TABLE),input.indexOf(position));
+                data = input.substring(input.indexOf(ACTIVITY_RESOLVER_TABLE),position);
                 break;
             case SERVICE:
-                data = input.substring(input.indexOf(SERVICE_RESOLVER_TABLE),input.indexOf(position));
+                data = input.substring(input.indexOf(SERVICE_RESOLVER_TABLE),position);
                 break;
             case BROADCAST:
-                data = input.substring(input.indexOf(RECEIVER_RESOLVER_TABLE),input.indexOf(position));
+                data = input.substring(input.indexOf(RECEIVER_RESOLVER_TABLE),position);
                 break;
         }
-
-        System.out.println("DATA: " + data);
 
         int s1 = data.indexOf("Non-Data Actions:");
         int s2 = data.indexOf("MIME Typed Actions:");
@@ -206,32 +182,65 @@ public class ADB {
             boolean isNonDataFirst = s1 < s2;
 
             int start = isNonDataFirst ? s1 : s2;
-            System.out.println("s1: " + s1);
-            System.out.println("s2: " + s2);
-            System.out.println("isNonDataFirst: " + isNonDataFirst);
-            System.out.println("start: " + start);
             data = data.substring(start);
 
-            System.out.println("ACTIVITY: \n" + data);
-
             String[] actions = data.split(!isNonDataFirst ? "Non-Data Actions:" : "MIME Typed Actions:");
-            for (int i = 0; i < actions.length; i++)
+            for (i = 0; i < actions.length; i++)
                 actions[i] = actions[i].replace("Non-Data Actions:", "").replace("MIME Typed Actions:", "");
 
             String nonDataActions = actions[isNonDataFirst ? 0 : 1];
-            String mimeTypedActions = actions[isNonDataFirst ? 1 : 0];
+            intents.addAll(intents(nonDataActions, intentType, false));
 
-            System.out.println("no data: " + nonDataActions);
-            System.out.println("mime type: " + mimeTypedActions);
+            String mimeTypedActions = actions[isNonDataFirst ? 1 : 0];
+            intents.addAll(intents(mimeTypedActions, intentType, true));
         } else if (containsNonData && !containsMimeTypes) {
             System.out.println("----------------SECOND------------------");
             String nonDataActions = data.substring(s1).replace("Non-Data Actions:", "");
-            System.out.println(nonDataActions);
+            System.out.println("nonDataActions: " + nonDataActions);
+            intents.addAll(intents(nonDataActions, intentType, false));
         } else if (!containsNonData && containsMimeTypes) {
             System.out.println("----------------THIRD------------------");
             String mimeTypedActions = data.substring(s2).replace("MIME Typed Actions:", "");
-            System.out.println(mimeTypedActions);
+            intents.addAll(intents(mimeTypedActions, intentType, true));
         }
+
+        return intents;
+    }
+
+    private static Set<DeviceIntent> intents(String input, IntentType intentType, boolean isMimeTyped) {
+        boolean canBreak = false;
+        Set<DeviceIntent> intents = new TreeSet<>();
+
+        String[] split = input.trim().split("\\n {6}(?! )");
+        for (String string : split) {
+            if(string.isEmpty())
+                continue;
+
+            String[] temp = string.trim().split("\n");
+            String action = temp[0].replace(":", "").trim();
+            System.out.println("ACTION: " + action);
+            ObservableList<StringProperty> components = FXCollections.observableArrayList();
+            for(int i=1; i<temp.length; i++) {
+                System.out.println("temp" + i + " " +temp[i]);
+                if(temp[i].startsWith("Key Set Manager:") || temp[i].startsWith("Permissions:") || temp[i].startsWith("Registered ContentProviders:")) {
+                    System.out.println("fuck: " + temp[i]);
+                    canBreak = true;
+                    break;
+                }
+
+                String component = temp[i].trim().split(" ")[1].trim();
+                System.out.println("COMPONENT: " + component);
+                components.add(new SimpleStringProperty(component));
+            }
+
+            if(canBreak)
+                break;
+
+            intents.add(new DeviceIntent(action, components, intentType, isMimeTyped));
+        }
+
+        for(DeviceIntent intent : intents)
+            System.out.println("RESULT:\t" + intent);
 
         return intents;
     }

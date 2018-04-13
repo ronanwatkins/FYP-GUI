@@ -2,22 +2,27 @@ package application.device;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import java.util.Objects;
 
 public class DeviceIntent extends Intent {
     private StringProperty action;
+    private StringProperty category;
+    private ObservableList<StringProperty> components;
 
-    public DeviceIntent(String action, String component, IntentType intentType, boolean isMimeTyped) {
+    public DeviceIntent(String action, ObservableList<StringProperty> components, IntentType intentType, boolean isMimeTyped) {
         this.action = new SimpleStringProperty(action);
-        this.component = new SimpleStringProperty(component);
+        this.category = new SimpleStringProperty("android.intent.category.DEFAULT");
+        this.components = components;
         this.intentType = intentType;
         this.isMimeTyped = isMimeTyped;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.component, this.action, this.intentType, this.isMimeTyped);
+        return Objects.hash(this.components, this.action, this.intentType, this.isMimeTyped);
     }
 
     @Override
@@ -27,9 +32,13 @@ public class DeviceIntent extends Intent {
 
     @Override
     public String toString() {
-        return "Component: " + component + "\n"
-                + "Actions: " + action + "\n"
-                + "Categories: " + "android.intent.category.DEFAULT" + "\n"
+        StringBuilder stringBuilder = new StringBuilder();
+        for(StringProperty component : components)
+            stringBuilder.append(component.get()).append("\n");
+
+        return  "Action: " + action.get() + "\n"
+                + "Component: " + stringBuilder.toString()
+                + "Category: " + category.get() + "\n"
                 + "Intent Type: " + intentType.toString().toLowerCase() + "\n"
                 + "is Mime Type: " + isMimeTyped + "\n";
     }

@@ -13,6 +13,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -163,5 +164,10 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
     @Override
     public void initializeButtons() {
         saveButton.setDisable(true);
+    }
+
+    @FXML
+    private void handleyoke(MouseEvent mouseEvent) {
+
     }
 }

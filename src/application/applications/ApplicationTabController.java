@@ -5,12 +5,14 @@ import application.device.AndroidApplication;
 import application.device.Device;
 import application.device.Intent;
 import application.logcat.LogCatTabController;
+import application.utilities.ADB;
 import application.utilities.ApplicationUtils;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -104,9 +106,9 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     private ObservableList<String> appsOnPCList;
 
-    private AndroidApplication androidApplication;
-
     private File directory;
+
+    private LogCatTabController logCatTabController;
 
     private Device device = Device.getInstance();
 
@@ -265,33 +267,25 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     private void updateDeviceListView() {
-        //appsOnDeviceList = FXCollections.observableArrayList();
         try {
             appsOnDeviceListView.getItems().clear();
-            device.getAndroidApplications().clear();
+            device.getApplicationNames().clear();
 
             Task<ObservableList<String>> task = new Task<ObservableList<String>>() {
                 @Override
-                protected ObservableList<String> call() { return FXCollections.observableArrayList(ADBUtil.listApplications());
+                protected ObservableList<String> call() { return FXCollections.observableArrayList(ADB.listApplications());
                 }
             };
             task.setOnSucceeded(event1 -> {
-                Task<Void> task1 = new Task<Void>() {
-                    @Override
-                    protected Void call() {
-                        for(String appName : task.getValue())
-                            device.addAnroidApplication(new AndroidApplication(appName));
-                        return null;
-                    }
-                };
-                new Thread(task1).start();
-                //device.setAndroidApplications(task.getValue());
-                //Collections.sort(appsOnDeviceList);
+                Collections.sort(task.getValue());
                 appsOnDeviceListView.setItems(filter(searchField.getText(), task.getValue()));
+                device.setApplicationNames(task.getValue());
             });
-
+            task.setOnFailed(event -> Log.error(task.getException().getMessage(), task.getException()));
             new Thread(task).start();
-        } catch (NullPointerException ignored) {}
+        } catch (NullPointerException npe) {
+            Log.error(npe.getMessage(), npe);
+        }
     }
 
     @FXML
@@ -299,7 +293,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         if(componentsListView.getSelectionModel().getSelectedItem() == null)
             return;
 
-        ObservableList<Intent> intents = androidApplication.intents();
+        ObservableList<Intent> intents = device.getSelectedApplication().intents();
 
         Intent intent = null;
         String component = componentsListView.getSelectionModel().getSelectedItem().replace("...",  appsOnDeviceListView.getSelectionModel().getSelectedItem());
@@ -354,10 +348,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
             }
         };
         task.setOnSucceeded(event -> {
-            androidApplication = task.getValue();
-            applicationTableView.getItems().add(androidApplication);
+            device.setSelectedApplication(task.getValue());
+            applicationTableView.getItems().add(device.getSelectedApplication());
 
-            updateComponentsListView(androidApplication);
+            //updateComponentsListView(device.getSelectedApplication());
             //updateIntentsTable(androidApplication);
         });
 
@@ -433,16 +427,23 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     @FXML
     private void handleLogCatButtonClicked(ActionEvent event) {
-        LogCatTabController logCatTabController = new LogCatTabController();
-        try {
-            logCatTabController.newWindow(this, null);
-        } catch (IOException ioe) {
-            resultTextArea.setText(ioe.getMessage());
+        if(logCatTabController == null) {
+            logCatTabController = new LogCatTabController();
+            try {
+                logCatTabController = (LogCatTabController) logCatTabController.newWindow(this, null);
+            } catch (IOException ioe) {
+                resultTextArea.setText(ioe.getMessage());
+            }
+        } else {
+            System.out.println(logCatTabController);
+            logCatTabController.setSearchField(getApplicationName());
         }
     }
 
     @FXML
     private void handleRefreshButtonClicked(ActionEvent event) {
+        Log.info("");
+
         applicationTableView.getItems().clear();
         updateDeviceListView();
         updatePCListView();
@@ -460,11 +461,15 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     @FXML
     private void handleSearchFieldAction(KeyEvent event) {
-     //   appsOnDeviceListView.setItems(filter(searchField.getText(), appsOnDeviceList));
+        appsOnDeviceListView.setItems(filter(searchField.getText(), device.getApplicationNames()));
     }
 
     public String getApplicationName() {
         return appsOnDeviceListView.getSelectionModel().getSelectedItem();
+    }
+
+    public void setLogCatTabController(LogCatTabController logCatTabController) {
+        this.logCatTabController = logCatTabController;
     }
 
     private void enableButtons() {

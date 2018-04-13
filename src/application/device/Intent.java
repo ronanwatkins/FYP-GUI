@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class Intent implements Comparable<Intent> {
-    protected StringProperty component;
+    private StringProperty component;
     private ObservableList<StringProperty> actions;
     private ObservableList<StringProperty> categories;
     private ObservableList<StringProperty> mimeTypes;
@@ -84,6 +84,6 @@ public class Intent implements Comparable<Intent> {
 
     @Override
     public int compareTo(@NotNull Intent o) {
-        return this.isMimeTyped.compareTo(o.isMimeTyped);
+        return this.toString().compareTo(o.toString());
     }
 }

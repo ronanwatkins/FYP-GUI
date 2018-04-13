@@ -17,12 +17,9 @@ public class ADBUtil {
 
     private static Device device = Device.getInstance();
     private static File adbLocation;
-    private static String DIRECTORY = System.getProperty("user.dir") + "\\misc\\automation\\";
     private static String adbPath;
     private static String[] params;
     private static boolean isADBFound = false;
-    private static Integer decimal;
-    private static String lineGlobal;
 
     private static final Object lock = new Object();
     private static AtomicBoolean isFirstRun;
@@ -31,15 +28,11 @@ public class ADBUtil {
     private static ADBConnectionController controller;
 
     private static StringBuilder sendEventBuilder;
-    private static AtomicBoolean stopRecordingFlag;
     private static Task recordValuesTask;
 
-
     static {
-
         adbLocation = new File(System.getProperty("user.home") + "\\AppData\\Local\\Android\\Sdk\\platform-tools");
         isFirstRun = new AtomicBoolean(true);
-        stopRecordingFlag = new AtomicBoolean(false);
     }
 
     public static void initADB() {

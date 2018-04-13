@@ -131,6 +131,11 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         });
     }
 
+    public void setSearchField(String text) {
+        searchField.setText(text);
+        searchTextChanged();
+    }
+
     private void initializeComboBox() {
         File directory = new File(FILTER_DIRECTORY);
 
@@ -211,6 +216,8 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         stage.initModality(Modality.NONE);
         stage.setTitle("LogCat");
         stage.setScene(new Scene(root,950, 600));
+        stage.setOnCloseRequest(event -> applicationTabController.setLogCatTabController(null));
+
         stage.show();
 
         return logCatTabController;
@@ -236,6 +243,10 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     @FXML
     private void handleSearchFieldAction(KeyEvent keyEvent) {
+        searchTextChanged();
+    }
+
+    private void searchTextChanged() {
         if(!searchField.getText().equals(searchFieldText)) {
             searchFieldText = searchField.getText();
 

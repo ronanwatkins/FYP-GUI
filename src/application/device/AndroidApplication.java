@@ -42,6 +42,10 @@ public class AndroidApplication {
         System.out.println(5);
     }
 
+    public String getName() {
+        return packageName.get();
+    }
+
     public StringProperty packageNameProperty() {
         return packageName;
     }

@@ -3,6 +3,7 @@ package application.device;
 import application.ADBUtil;
 import application.TelnetServer;
 import application.automation.extras.GetTouchPositionController;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import org.apache.log4j.Logger;
@@ -20,7 +21,7 @@ public class Device {
     private String name = "";
     private int port;
     private boolean isEmulator;
-    private ObservableList<AndroidApplication> androidApplications;
+    private AndroidApplication selectedApplication;
     private ObservableList<String> applicationNames;
     private double resolutionX;
     private double resolutionY;
@@ -32,6 +33,8 @@ public class Device {
     }
 
     private Device() {
+        if(applicationNames == null)
+            applicationNames = FXCollections.observableArrayList();
     }
 
     //Setters
@@ -39,8 +42,8 @@ public class Device {
         this.applicationNames = applicationNames;
     }
 
-    public void setAndroidApplications(ObservableList<AndroidApplication> androidApplications) {
-        this.androidApplications = androidApplications;
+    public void setSelectedApplication(AndroidApplication androidApplication) {
+        this.selectedApplication = androidApplication;
     }
 
     public void setName(String name) {
@@ -59,6 +62,7 @@ public class Device {
     }
 
     public void setResolution() {
+        Log.info("");
         String[] response = consoleCommand("shell wm size").split(" ");
         String[] size = response[2].split("x");
         resolutionX = Double.parseDouble(size[0]);
@@ -77,11 +81,11 @@ public class Device {
             }
         }
 
-       // System.out.println("resolution X: " + resolutionX);
-       // System.out.println("resolution Y: " + resolutionY);
+        Log.info("resolution X: " + resolutionX);
+        Log.info("resolution Y: " + resolutionY);
 
-        //System.out.println("MaxX: " + maxPositionX);
-        //System.out.println("MaxY: " + maxPositionY);
+        Log.info("MaxX: " + maxPositionX);
+        Log.info("MaxY: " + maxPositionY);
     }
 
     //Getters
@@ -89,8 +93,12 @@ public class Device {
         return name;
     }
 
-    public ObservableList<AndroidApplication> getAndroidApplications() {
-        return androidApplications;
+    public AndroidApplication getSelectedApplication() {
+        return selectedApplication;
+    }
+
+    public ObservableList<String> getApplicationNames() {
+        return applicationNames;
     }
 
     public boolean isEmulator() {
@@ -114,15 +122,6 @@ public class Device {
     }
 
     //Actions
-    public void addAnroidApplication(AndroidApplication androidApplication) {
-        this.androidApplications.add(androidApplication);
-    }
-
-    public boolean removeAndroidApplication(AndroidApplication androidApplication) {
-        return this.androidApplications.remove(androidApplication);
-
-    }
-
     public int connectOverWifi() {
         consoleCommand("tcpip 5555");
 

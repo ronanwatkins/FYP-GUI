@@ -45,7 +45,7 @@
           <Label text="Log Message:" GridPane.rowIndex="3" />
           <TextField fx:id="logMessageField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
-          <Label text="Log Tag:" GridPane.rowIndex="4" />
+          <Label text="Log Tag:" onMouseReleased="#handleyoke" GridPane.rowIndex="4" />
           <TextField fx:id="logTagField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
           <Label text="Log Level:" GridPane.rowIndex="5" />
