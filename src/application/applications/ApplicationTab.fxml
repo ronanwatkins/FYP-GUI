@@ -48,20 +48,34 @@
                             </columns>
                         </TableView>
 
-                        <SplitPane dividerPositions="0.35" prefHeight="200.0" prefWidth="100.0">
-                            <ListView fx:id="componentsListView" onMouseClicked="#handleComponentsListViewClicked" />
-                            <TableView fx:id="intentsTableView">
-                                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-                                <placeholder>
-                                    <Label text="" />
-                                </placeholder>
-                                <columns>
-                                    <TableColumn fx:id="actionsColumn"  text="Actions" />
-                                    <TableColumn fx:id="categoriesColumn"  text="Categories" />
-                                    <TableColumn fx:id="mimeTypesColumn"  text="Mime Types" />
-                                </columns>
-                            </TableView>
-                        </SplitPane>
+                        <TableView fx:id="intentsTableView">
+                            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                            <placeholder>
+                                <Label/>
+                            </placeholder>
+                            <columns>
+                                <TableColumn fx:id="actionColumn" text="Action" />
+                                <TableColumn fx:id="componentColumn" text="Component" />
+                                <TableColumn fx:id="categoryColumn" text="Category" />
+                                <TableColumn fx:id="intentTypeColumn" text="Type" />
+                                <TableColumn fx:id="mimeTypeColumn" text="Takes Data" />
+                            </columns>
+                        </TableView>
+
+                        <!--<SplitPane dividerPositions="0.35" prefHeight="200.0" prefWidth="100.0">-->
+                            <!--<ListView fx:id="componentsListView" onMouseClicked="#handleComponentsListViewClicked" />-->
+                            <!--<TableView fx:id="intentsTableView">-->
+                                <!--<columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>-->
+                                <!--<placeholder>-->
+                                    <!--<Label text="" />-->
+                                <!--</placeholder>-->
+                                <!--<columns>-->
+                                    <!--<TableColumn fx:id="actionsColumn"  text="Actions" />-->
+                                    <!--<TableColumn fx:id="categoriesColumn"  text="Categories" />-->
+                                    <!--<TableColumn fx:id="mimeTypesColumn"  text="Mime Types" />-->
+                                <!--</columns>-->
+                            <!--</TableView>-->
+                        <!--</SplitPane>-->
 
 
                         <!--<TreeTableView fx:id="intentsTableView" prefHeight="200.0" prefWidth="200.0">-->

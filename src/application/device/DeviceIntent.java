@@ -1,10 +1,13 @@
 package application.device;
 
+import application.ADBUtil;
+import application.utilities.ADB;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.util.Map;
 import java.util.Objects;
 
 public class DeviceIntent extends Intent {
@@ -18,6 +21,35 @@ public class DeviceIntent extends Intent {
         this.components = components;
         this.intentType = intentType;
         this.isMimeTyped = isMimeTyped;
+    }
+
+    public static Map<String, String> mimeMap(String packageName) {
+        return ADB.getMimeMap(packageName);
+    }
+
+    //Properties
+    public StringProperty actionProperty() {
+        return action;
+    }
+
+    @Override
+    public StringProperty componentProperty() {
+        StringBuilder stringBuilder = new StringBuilder();
+        for(StringProperty component : components)
+            stringBuilder.append(component.get()).append("\n");
+
+        return new SimpleStringProperty(stringBuilder.toString());
+    }
+
+    public StringProperty categoryProperty() {
+        return category;
+    }
+
+    public StringProperty isMimeTypedProperty() {
+        return new SimpleStringProperty(this.isMimeTyped.toString());
+    }
+    public StringProperty intentTypeProperty() {
+        return new SimpleStringProperty(this.intentType.toString().toLowerCase());
     }
 
     @Override

@@ -8,6 +8,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Map;
+
 import static application.utilities.ADB.*;
 
 public class AndroidApplication {
@@ -21,7 +25,9 @@ public class AndroidApplication {
     private StringProperty dataDir;
     private ObservableList<StringProperty> flags;
     private ObservableList<StringProperty> permissions;
-    private ObservableList<Intent> intents;
+    private ObservableList<DeviceIntent> intents;
+    private Map<String, String> mimeTypeMap;
+
     private boolean isRunning;
     private boolean isSystem;
 
@@ -40,10 +46,16 @@ public class AndroidApplication {
         System.out.println(4);
         intents = FXCollections.observableArrayList(getIntents(packageName));
         System.out.println(5);
+        mimeTypeMap = DeviceIntent.mimeMap(packageName);
+        System.out.println(6);
     }
 
     public String getName() {
         return packageName.get();
+    }
+
+    public boolean canOpen() {
+        return intents.size() > 0;
     }
 
     public StringProperty packageNameProperty() {
@@ -78,7 +90,10 @@ public class AndroidApplication {
         return permissions;
     }
 
-    public ObservableList<Intent> intents() { return intents; }
+    public ObservableList<DeviceIntent> intents() {
+        FXCollections.sort(intents, (o1, o2) -> o1.intentType.compareTo(o2.intentType));
+        return intents;
+    }
 
     public class VersionCode {
         private String versionName;

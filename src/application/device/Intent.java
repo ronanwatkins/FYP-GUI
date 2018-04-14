@@ -30,15 +30,15 @@ public class Intent implements Comparable<Intent> {
         return component;
     }
 
-    public ObservableList<StringProperty> actionProperty() {
+    public ObservableList<StringProperty> actionsProperty() {
         return actions;
     }
 
-    public ObservableList<StringProperty> categoryProperty() {
+    public ObservableList<StringProperty> categoriesProperty() {
         return categories;
     }
 
-    public ObservableList<StringProperty> mimeTypeProperty() {
+    public ObservableList<StringProperty> mimeTypesProperty() {
         return mimeTypes;
     }
 

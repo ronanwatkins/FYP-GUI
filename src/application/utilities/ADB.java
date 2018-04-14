@@ -21,6 +21,8 @@ public class ADB {
     private static final String ACTIVITY_RESOLVER_TABLE = "Activity Resolver Table:";
     private static final String SERVICE_RESOLVER_TABLE = "Service Resolver Table:";
     private static final String RECEIVER_RESOLVER_TABLE = "Receiver Resolver Table:";
+    private static final String FULL_MIME_TYPES = "Full MIME Types:";
+    private static final String BASE_MIME_TYPES = "Base MIME Types:";
 
     private static Device device = Device.getInstance();
 
@@ -113,17 +115,95 @@ public class ADB {
         return ADBUtil.listApplications();
     }
 
-    public static Set<? extends Intent> getIntents(String app) {
-        if(device.isEmulator()) return getEmulatorIntents(app);
-        else return getDeviceIntents(app);
+    public static Map<String, Set<String>> getMimeMap(String app) {
+        Log.info("Command: " + "shell dumpsys package " + app);
+        Map<String, Set<String>> map = new HashMap<>();
+
+        String details = ADBUtil.consoleCommand("shell dumpsys package " + app);
+        Log.info("Result: " + details);
+        if(details.contains(ACTIVITY_RESOLVER_TABLE)) {
+            String temp = details;
+            if (temp.contains(FULL_MIME_TYPES) && temp.contains(BASE_MIME_TYPES)) {
+                Log.info(ACTIVITY_RESOLVER_TABLE + " Getting details...");
+                temp = temp.substring(temp.indexOf(FULL_MIME_TYPES), temp.indexOf(BASE_MIME_TYPES)).replace(FULL_MIME_TYPES, "");
+                Log.info("Got temp, now to get map...");
+                map.putAll(mimeMap(temp));
+            }
+        }
+
+        if(details.contains(RECEIVER_RESOLVER_TABLE)) {
+            String temp = details.substring(details.indexOf(RECEIVER_RESOLVER_TABLE));
+            if (temp.contains(FULL_MIME_TYPES) && temp.contains(BASE_MIME_TYPES)) {
+                Log.info(RECEIVER_RESOLVER_TABLE + " Getting details...");
+                temp = temp.substring(temp.indexOf(FULL_MIME_TYPES), temp.indexOf(BASE_MIME_TYPES)).replace(FULL_MIME_TYPES, "");
+                Log.info("Got temp, now to get map...");
+                map.putAll(mimeMap(temp));
+
+
+
+            }
+        }
+
+        if(details.contains(SERVICE_RESOLVER_TABLE)) {
+            String temp = details.substring(details.indexOf(SERVICE_RESOLVER_TABLE));
+            if (temp.contains(FULL_MIME_TYPES) && temp.contains(BASE_MIME_TYPES)) {
+                Log.info(SERVICE_RESOLVER_TABLE + " Getting details...");
+                temp = temp.substring(temp.indexOf(FULL_MIME_TYPES), temp.indexOf(BASE_MIME_TYPES)).replace(FULL_MIME_TYPES, "");
+                Log.info("Got temp, now to get map...");
+                map.putAll(mimeMap(temp));
+            }
+        }
+
+        Log.info("Full map: ");
+        for(String string : map.keySet())
+            System.out.println("Key: " + string + ", Value: " + map.get(string));
+
+        return map;
+    }
+
+    private static Map<String, Set<String>> mimeMap(String input) {
+        Map<String, Set<String>> map = new HashMap<>();
+
+        String[] split = input.split("\\n {6}(?! )");
+        for(String string : split) {
+            if(string.isEmpty())
+                continue;
+            string = string.trim();
+
+            Log.info("Loop 1: " + string);
+            String[] split2 = string.split("\n");
+            String mimeType = split2[0].replace(":", "");
+            Log.info("mimeType: " + mimeType);
+            Set<String> components = new TreeSet<>();
+            for(int i=1; i<split2.length; i++) {
+                split2[i] = split2[i].trim();
+                Log.info("Loop 2: " + split2[i]);
+                String component = split2[i].split(" ")[1];
+                Log.info("component: " + component);
+                components.add(component);
+            }
+
+            map.put(mimeType, components);
+        }
+        Log.info("Details: " + input);
+        for(String string : map.keySet())
+            System.out.println("Key: " + string + ", Value: " + map.get(string));
+
+        return map;
+    }
+
+    public static Set<DeviceIntent> getIntents(String app) {
+        //if(device.isEmulator()) return getEmulatorIntents(app);
+        //else
+            return getDeviceIntents(app);
     }
 
     private static Set<DeviceIntent> getDeviceIntents(String app) {
-        Log.info("Command: " + "shell dumpsys package " + app);
+  //      Log.info("Command: " + "shell dumpsys package " + app);
         Set<DeviceIntent> set = new TreeSet<>();
 
         String packageDetails = ADBUtil.consoleCommand("shell dumpsys package " + app);
-        System.out.println("PACKAGE DETAILS: " + packageDetails);
+       // System.out.println("PACKAGE DETAILS: " + packageDetails);
 
         if(packageDetails.contains(ACTIVITY_RESOLVER_TABLE))
             set.addAll(deviceIntents(packageDetails, IntentType.ACTIVITY));
@@ -132,8 +212,8 @@ public class ADB {
         if(packageDetails.contains(SERVICE_RESOLVER_TABLE))
             set.addAll(deviceIntents(packageDetails, IntentType.SERVICE));
 
-        for(DeviceIntent deviceIntent : set)
-            System.out.println("FINISHED: " + deviceIntent);
+     //   for(DeviceIntent deviceIntent : set)
+       //     System.out.println("FINISHED: " + deviceIntent);
 
         return set;
     }
@@ -178,7 +258,7 @@ public class ADB {
         boolean containsMimeTypes = s2 > -1;
 
         if(containsNonData && containsMimeTypes) {
-            System.out.println("----------------FIRST------------------");
+        //    System.out.println("----------------FIRST------------------");
             boolean isNonDataFirst = s1 < s2;
 
             int start = isNonDataFirst ? s1 : s2;
@@ -194,12 +274,12 @@ public class ADB {
             String mimeTypedActions = actions[isNonDataFirst ? 1 : 0];
             intents.addAll(intents(mimeTypedActions, intentType, true));
         } else if (containsNonData && !containsMimeTypes) {
-            System.out.println("----------------SECOND------------------");
+        //    System.out.println("----------------SECOND------------------");
             String nonDataActions = data.substring(s1).replace("Non-Data Actions:", "");
-            System.out.println("nonDataActions: " + nonDataActions);
+        //    System.out.println("nonDataActions: " + nonDataActions);
             intents.addAll(intents(nonDataActions, intentType, false));
         } else if (!containsNonData && containsMimeTypes) {
-            System.out.println("----------------THIRD------------------");
+         //   System.out.println("----------------THIRD------------------");
             String mimeTypedActions = data.substring(s2).replace("MIME Typed Actions:", "");
             intents.addAll(intents(mimeTypedActions, intentType, true));
         }
@@ -218,18 +298,18 @@ public class ADB {
 
             String[] temp = string.trim().split("\n");
             String action = temp[0].replace(":", "").trim();
-            System.out.println("ACTION: " + action);
+           // System.out.println("ACTION: " + action);
             ObservableList<StringProperty> components = FXCollections.observableArrayList();
             for(int i=1; i<temp.length; i++) {
-                System.out.println("temp" + i + " " +temp[i]);
+              //  System.out.println("temp" + i + " " +temp[i]);
                 if(temp[i].startsWith("Key Set Manager:") || temp[i].startsWith("Permissions:") || temp[i].startsWith("Registered ContentProviders:")) {
-                    System.out.println("fuck: " + temp[i]);
+               //     System.out.println("fuck: " + temp[i]);
                     canBreak = true;
                     break;
                 }
 
                 String component = temp[i].trim().split(" ")[1].trim();
-                System.out.println("COMPONENT: " + component);
+            //    System.out.println("COMPONENT: " + component);
                 components.add(new SimpleStringProperty(component));
             }
 
@@ -239,8 +319,8 @@ public class ADB {
             intents.add(new DeviceIntent(action, components, intentType, isMimeTyped));
         }
 
-        for(DeviceIntent intent : intents)
-            System.out.println("RESULT:\t" + intent);
+     //   for(DeviceIntent intent : intents)
+     //       System.out.println("RESULT:\t" + intent);
 
         return intents;
     }

@@ -3,6 +3,7 @@ package application.applications;
 import application.ADBUtil;
 import application.device.AndroidApplication;
 import application.device.Device;
+import application.device.DeviceIntent;
 import application.device.Intent;
 import application.logcat.LogCatTabController;
 import application.utilities.ADB;
@@ -54,17 +55,27 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private TableColumn<AndroidApplication, String> dataDirColumn;
 
     @FXML
-    private TableView<Intent> intentsTableView;
+    private TableView<DeviceIntent> intentsTableView;
+    @FXML
+    private TableColumn<DeviceIntent, String> actionColumn;
+    @FXML
+    private TableColumn<DeviceIntent, String> componentColumn;
+    @FXML
+    private TableColumn<DeviceIntent, String> categoryColumn;
+    @FXML
+    private TableColumn<DeviceIntent, String> intentTypeColumn;
+    @FXML
+    private TableColumn<DeviceIntent, String> mimeTypeColumn;
 
 //    @FXML
 //    private TableColumn<Intent, ObservableList<String>> actionsColumn;
 
-    @FXML
-    private TableColumn<ObservableList<StringProperty>, String> actionsColumn;
-    @FXML
-    private TableColumn categoriesColumn;
-    @FXML
-    private TableColumn mimeTypesColumn;
+//    @FXML
+//    private TableColumn<ObservableList<StringProperty>, String> actionsColumn;
+//    @FXML
+//    private TableColumn categoriesColumn;
+//    @FXML
+//    private TableColumn mimeTypesColumn;
 
 //    @FXML
 //    private TableColumn<Intent, ObservableList<StringProperty>> actionsColumn;
@@ -73,6 +84,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 //    private TableColumn<ObservableList<StringProperty>, String> categoriesColumn;
 //    @FXML
 //    private TableColumn<ObservableList<StringProperty>, String> mimeTypesColumn;
+
 
     @FXML
     private TextArea resultTextArea;
@@ -101,8 +113,8 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private ListView<String> appsOnPCListView;
     @FXML
     private ListView<String> appsOnDeviceListView;
-    @FXML
-    private ListView<String> componentsListView;
+//    @FXML
+//    private ListView<String> componentsListView;
 
     private ObservableList<String> appsOnPCList;
 
@@ -145,115 +157,25 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     private void initializeIntentTableView() {
-       // actionsColumn.setCellValueFactory(
-        //        (TableColumn.CellDataFeatures<Intent, String>  p) ->
-          //              new SimpleStringProperty(":)"));
-//        actionsColumn.setCellValueFactory(new PropertyValueFactory<>("actions"));
-//        actionsColumn.setCellValueFactory(p -> {
-//
-//            System.out.println("yaboyya:  " + p.getValue());
-//
-//            final ObservableList row = p.getValue().actionProperty();
-//
-//            List<Observable> dependencies = new ArrayList<>();
-//            for (Object value : row) {
-//                if (value instanceof Observable) {
-//                    dependencies.add((Observable)value);
-//                }
-//            }
-//            dependencies.add(row);
-//
-//            return null;
-//            return Bindings.createStringBinding(() -> {
-//                StringBuilder sb = new StringBuilder();
-//                for (int i = 0; i < row.size(); i++) {
-//                    //Check for Property objects and append the value
-//                    if (row.get(i) instanceof Property) {
-//                        sb.append(((Property)row.get(i)).getValue());
-//                    }
-//                    else {
-//                        sb.append(row.get(i));
-//                    }
-//
-//                    if (i+1 < row.size()) {
-//                        sb.append(", ");
-//                    }
-//                }
-//                return sb.toString();
-//            }, dependencies.toArray(new Observable[dependencies.size()]));
-//        });
-//        categoriesColumn.setCellValueFactory(p -> {
-//            final ObservableList row = p.getValue();
-//
-//            List<Observable> dependencies = new ArrayList<>();
-//            for (Object value : row) {
-//                if (value instanceof Observable) {
-//                    dependencies.add((Observable)value);
-//                }
-//            }
-//            dependencies.add(row);
-//
-//            return Bindings.createStringBinding(() -> {
-//                StringBuilder sb = new StringBuilder();
-//                for (int i = 0; i < row.size(); i++) {
-//                    //Check for Property objects and append the value
-//                    if (row.get(i) instanceof Property) {
-//                        sb.append(((Property)row.get(i)).getValue());
-//                    }
-//                    else {
-//                        sb.append(row.get(i));
-//                    }
-//
-//                    if (i+1 < row.size()) {
-//                        sb.append(", ");
-//                    }
-//                }
-//                return sb.toString();
-//            }, dependencies.toArray(new Observable[dependencies.size()]));
-//        });
-//        mimeTypesColumn.setCellValueFactory(p -> {
-//            final ObservableList row = p.getValue();
-//
-//            List<Observable> dependencies = new ArrayList<>();
-//            for (Object value : row) {
-//                if (value instanceof Observable) {
-//                    dependencies.add((Observable)value);
-//                }
-//            }
-//            dependencies.add(row);
-//
-//            return Bindings.createStringBinding(() -> {
-//                StringBuilder sb = new StringBuilder();
-//                for (int i = 0; i < row.size(); i++) {
-//                    //Check for Property objects and append the value
-//                    if (row.get(i) instanceof Property) {
-//                        sb.append(((Property)row.get(i)).getValue());
-//                    }
-//                    else {
-//                        sb.append(row.get(i));
-//                    }
-//
-//                    if (i+1 < row.size()) {
-//                        sb.append(", ");
-//                    }
-//                }
-//                return sb.toString();
-//            }, dependencies.toArray(new Observable[dependencies.size()]));
-//        });
+        actionColumn.setCellValueFactory( cellData -> cellData.getValue().actionProperty());
+        componentColumn.setCellValueFactory( cellData -> cellData.getValue().componentProperty());
+        categoryColumn.setCellValueFactory( cellData -> cellData.getValue().categoryProperty());
+        intentTypeColumn.setCellValueFactory( cellData -> cellData.getValue().intentTypeProperty());
+        mimeTypeColumn.setCellValueFactory( cellData -> cellData.getValue().isMimeTypedProperty());
     }
 
-    private void updateComponentsListView(AndroidApplication androidApplication) {
-        componentsListView.getItems().clear();
-
-        ObservableList<Intent> intents = androidApplication.intents();
-
-        for (Intent intent : intents) {
-            String componentName = intent.getComponent();
-            if(componentName.contains("/"))
-                componentName = "..." + componentName.substring(componentName.indexOf("/"));
-            componentsListView.getItems().add(componentName);
-        }
-    }
+//    private void updateComponentsListView(AndroidApplication androidApplication) {
+//        componentsListView.getItems().clear();
+//
+//        ObservableList<Intent> intents = androidApplication.intents();
+//
+//        for (Intent intent : intents) {
+//            String componentName = intent.getComponent();
+//            if(componentName.contains("/"))
+//                componentName = "..." + componentName.substring(componentName.indexOf("/"));
+//            componentsListView.getItems().add(componentName);
+//        }
+//    }
 
     private void updatePCListView() {
         appsOnPCList = FXCollections.observableArrayList();
@@ -288,34 +210,34 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         }
     }
 
-    @FXML
-    private void handleComponentsListViewClicked(MouseEvent mouseEvent) {
-        if(componentsListView.getSelectionModel().getSelectedItem() == null)
-            return;
-
-        ObservableList<Intent> intents = device.getSelectedApplication().intents();
-
-        Intent intent = null;
-        String component = componentsListView.getSelectionModel().getSelectedItem().replace("...",  appsOnDeviceListView.getSelectionModel().getSelectedItem());
-
-        for(Intent in : intents) {
-            System.out.println(component + " " + in.getComponent() + " " + in.getComponent().equals(component));
-            if(in.getComponent().equals(component))
-                intent = in;
-        }
-
-        System.out.println(intent);
-
-        intentsTableView.getItems().clear();
-
-        ObservableList<Intent> temp = FXCollections.observableArrayList(intent);
-        //intentsTableView.setItems(temp);
-
-        actionsColumn.getColumns().add(getColumn(1));
-
-
-       // intentsTableView.getItems().add(intent);
-    }
+//    @FXML
+//    private void handleComponentsListViewClicked(MouseEvent mouseEvent) {
+//        if(componentsListView.getSelectionModel().getSelectedItem() == null)
+//            return;
+//
+//        ObservableList<Intent> intents = device.getSelectedApplication().intents();
+//
+//        Intent intent = null;
+//        String component = componentsListView.getSelectionModel().getSelectedItem().replace("...",  appsOnDeviceListView.getSelectionModel().getSelectedItem());
+//
+//        for(Intent in : intents) {
+//            System.out.println(component + " " + in.getComponent() + " " + in.getComponent().equals(component));
+//            if(in.getComponent().equals(component))
+//                intent = in;
+//        }
+//
+//        System.out.println(intent);
+//
+//        intentsTableView.getItems().clear();
+//
+//        ObservableList<Intent> temp = FXCollections.observableArrayList(intent);
+//        //intentsTableView.setItems(temp);
+//
+//        actionsColumn.getColumns().add(getColumn(1));
+//
+//
+//       // intentsTableView.getItems().add(intent);
+//    }
 
     private TableColumn<ObservableList<StringProperty>, String> getColumn(int columnIndex) {
         TableColumn<ObservableList<StringProperty>, String> column = new TableColumn<>();
@@ -339,7 +261,8 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         applicationTableView.setPlaceholder(new Label("Loading Application details..."));
         String applicationName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
         applicationTableView.getItems().clear();
-        componentsListView.getItems().clear();
+        intentsTableView.getItems().clear();
+        //componentsListView.getItems().clear();
 
         Task<AndroidApplication> task = new Task<AndroidApplication>() {
             @Override
@@ -350,9 +273,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         task.setOnSucceeded(event -> {
             device.setSelectedApplication(task.getValue());
             applicationTableView.getItems().add(device.getSelectedApplication());
-
-            //updateComponentsListView(device.getSelectedApplication());
-            //updateIntentsTable(androidApplication);
+            intentsTableView.getItems().addAll(device.getSelectedApplication().intents());
+            openButton.setDisable(!device.getSelectedApplication().canOpen());
+            closeButton.setDisable(openButton.isDisable());
+            intentsTableView.setPlaceholder(new Label(openButton.isDisable()  ? "No intents found for Application" : ""));
         });
 
         new Thread(task).start();
@@ -474,8 +398,6 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     private void enableButtons() {
         showLogCatButton.setDisable(false);
-        openButton.setDisable(false);
-        closeButton.setDisable(false);
         uninstallButton.setDisable(false);
         copyButton.setDisable(false);
     }
@@ -485,10 +407,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         showLogCatButton.setDisable(true);
         deleteButton.setDisable(true);
         installButton.setDisable(true);
-        openButton.setDisable(true);
-        closeButton.setDisable(true);
         uninstallButton.setDisable(true);
         copyButton.setDisable(true);
+        openButton.setDisable(true);
+        closeButton.setDisable(true);
 
         setImage("/resources/delete.png", "Delete file", deleteButton);
         setImage("/resources/pop_out.png", null, showLogCatButton);
