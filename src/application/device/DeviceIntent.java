@@ -1,6 +1,5 @@
 package application.device;
 
-import application.ADBUtil;
 import application.utilities.ADB;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -9,13 +8,14 @@ import javafx.collections.ObservableList;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class DeviceIntent extends Intent {
     private StringProperty action;
     private StringProperty category;
     private ObservableList<StringProperty> components;
 
-    public DeviceIntent(String action, ObservableList<StringProperty> components, IntentType intentType, boolean isMimeTyped) {
+    public DeviceIntent(String action, ObservableList<StringProperty> components, int intentType, boolean isMimeTyped) {
         this.action = new SimpleStringProperty(action);
         this.category = new SimpleStringProperty("android.intent.category.DEFAULT");
         this.components = components;
@@ -23,8 +23,8 @@ public class DeviceIntent extends Intent {
         this.isMimeTyped = isMimeTyped;
     }
 
-    public static Map<String, String> mimeMap(String packageName) {
-        return ADB.getMimeMap(packageName);
+    public static ObservableList<String> getAssociatedMimeTypes(String packageName, String componentName, int intentType) {
+        return ADB.getAssociatedMimeTypes(packageName, componentName, intentType);
     }
 
     //Properties
@@ -48,8 +48,40 @@ public class DeviceIntent extends Intent {
     public StringProperty isMimeTypedProperty() {
         return new SimpleStringProperty(this.isMimeTyped.toString());
     }
+
     public StringProperty intentTypeProperty() {
-        return new SimpleStringProperty(this.intentType.toString().toLowerCase());
+        SimpleStringProperty value = null;
+
+        switch (this.intentType) {
+           case ACTIVITY:
+               value = new SimpleStringProperty("Activity");
+               break;
+           case BROADCAST:
+               value = new SimpleStringProperty("Broadcast");
+               break;
+           case SERVICE:
+               value = new SimpleStringProperty("Service");
+               break;
+        }
+
+        return value;
+    }
+
+    //Getters
+    public ObservableList<StringProperty> getComponentPropertiess() {
+        return components;
+    }
+
+    public ObservableList<String> getComponents() {
+        ObservableList<String> list = FXCollections.observableArrayList();
+        for(StringProperty stringProperty : components)
+            list.add(stringProperty.get());
+
+        return list;
+    }
+
+    public int getIntentType() {
+        return intentType;
     }
 
     @Override
@@ -71,7 +103,7 @@ public class DeviceIntent extends Intent {
         return  "Action: " + action.get() + "\n"
                 + "Component: " + stringBuilder.toString()
                 + "Category: " + category.get() + "\n"
-                + "Intent Type: " + intentType.toString().toLowerCase() + "\n"
+                + "Intent Type: " + this.intentTypeProperty().get() + "\n"
                 + "is Mime Type: " + isMimeTyped + "\n";
     }
 }

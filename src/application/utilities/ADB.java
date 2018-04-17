@@ -4,11 +4,11 @@ import application.ADBUtil;
 import application.device.Device;
 import application.device.DeviceIntent;
 import application.device.Intent;
-import application.device.IntentType;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -45,10 +45,10 @@ public class ADB {
 
     public static String getAPKFile(String app, String destination) {
         String APKPath = ADBUtil.consoleCommand("shell pm path " + app).replace("package:", "").trim();
-        String APKName = APKPath.substring(APKPath.lastIndexOf("/")+1);
+        String APKName =  app + "." + APKPath.substring(APKPath.lastIndexOf("/")+1);
 
         ADBUtil.consoleCommand("shell cp "+ APKPath +" /sdcard/" + APKName);
-        String result = ADBUtil.consoleCommand("pull /sdcard/" + APKName + " " + destination);
+        String result = ADBUtil.consoleCommand("pull /sdcard/" +  APKName + " " + destination);
 
         if(result.startsWith("["))
             result = APKName + " copied to " + destination;
@@ -115,54 +115,48 @@ public class ADB {
         return ADBUtil.listApplications();
     }
 
-    public static Map<String, Set<String>> getMimeMap(String app) {
+    public static ObservableList<String> getAssociatedMimeTypes(String app, String component, int intentType) {
         Log.info("Command: " + "shell dumpsys package " + app);
-        Map<String, Set<String>> map = new HashMap<>();
+        ObservableList<String> mimeTypes = FXCollections.observableArrayList();
 
         String details = ADBUtil.consoleCommand("shell dumpsys package " + app);
+        String temp = "";
         Log.info("Result: " + details);
-        if(details.contains(ACTIVITY_RESOLVER_TABLE)) {
-            String temp = details;
-            if (temp.contains(FULL_MIME_TYPES) && temp.contains(BASE_MIME_TYPES)) {
-                Log.info(ACTIVITY_RESOLVER_TABLE + " Getting details...");
-                temp = temp.substring(temp.indexOf(FULL_MIME_TYPES), temp.indexOf(BASE_MIME_TYPES)).replace(FULL_MIME_TYPES, "");
-                Log.info("Got temp, now to get map...");
-                map.putAll(mimeMap(temp));
-            }
+
+        switch (intentType) {
+            case Intent.ACTIVITY:
+                if(details.contains(ACTIVITY_RESOLVER_TABLE))
+                    temp = details;
+                break;
+            case Intent.BROADCAST:
+                if(details.contains(RECEIVER_RESOLVER_TABLE))
+                    temp = details.substring(details.indexOf(RECEIVER_RESOLVER_TABLE));
+                break;
+            case Intent.SERVICE:
+                if(details.contains(SERVICE_RESOLVER_TABLE))
+                    temp = details.substring(details.indexOf(SERVICE_RESOLVER_TABLE));
+                break;
         }
 
-        if(details.contains(RECEIVER_RESOLVER_TABLE)) {
-            String temp = details.substring(details.indexOf(RECEIVER_RESOLVER_TABLE));
-            if (temp.contains(FULL_MIME_TYPES) && temp.contains(BASE_MIME_TYPES)) {
-                Log.info(RECEIVER_RESOLVER_TABLE + " Getting details...");
-                temp = temp.substring(temp.indexOf(FULL_MIME_TYPES), temp.indexOf(BASE_MIME_TYPES)).replace(FULL_MIME_TYPES, "");
-                Log.info("Got temp, now to get map...");
-                map.putAll(mimeMap(temp));
-
-
-
-            }
-        }
-
-        if(details.contains(SERVICE_RESOLVER_TABLE)) {
-            String temp = details.substring(details.indexOf(SERVICE_RESOLVER_TABLE));
-            if (temp.contains(FULL_MIME_TYPES) && temp.contains(BASE_MIME_TYPES)) {
-                Log.info(SERVICE_RESOLVER_TABLE + " Getting details...");
-                temp = temp.substring(temp.indexOf(FULL_MIME_TYPES), temp.indexOf(BASE_MIME_TYPES)).replace(FULL_MIME_TYPES, "");
-                Log.info("Got temp, now to get map...");
-                map.putAll(mimeMap(temp));
-            }
+        if (temp.contains(FULL_MIME_TYPES) && temp.contains(BASE_MIME_TYPES)) {
+            Log.info("Getting details...");
+            temp = temp.substring(temp.indexOf(FULL_MIME_TYPES), temp.indexOf(BASE_MIME_TYPES)).replace(FULL_MIME_TYPES, "");
+            Log.info("Got temp, now to get map...");
+            mimeTypes.addAll(associatedMimeTypes(temp, component));
         }
 
         Log.info("Full map: ");
-        for(String string : map.keySet())
-            System.out.println("Key: " + string + ", Value: " + map.get(string));
+        for(String string : mimeTypes)
+            System.out.println("Value: " + string);
 
-        return map;
+        return mimeTypes;
     }
 
-    private static Map<String, Set<String>> mimeMap(String input) {
-        Map<String, Set<String>> map = new HashMap<>();
+    private static ObservableList<String> associatedMimeTypes(String input, String component) {
+        Log.info("Component: " + component);
+        Log.info("Input: " + input);
+
+        ObservableList<String> mimeTypes = FXCollections.observableArrayList();
 
         String[] split = input.split("\\n {6}(?! )");
         for(String string : split) {
@@ -174,22 +168,40 @@ public class ADB {
             String[] split2 = string.split("\n");
             String mimeType = split2[0].replace(":", "");
             Log.info("mimeType: " + mimeType);
-            Set<String> components = new TreeSet<>();
+
             for(int i=1; i<split2.length; i++) {
                 split2[i] = split2[i].trim();
                 Log.info("Loop 2: " + split2[i]);
-                String component = split2[i].split(" ")[1];
-                Log.info("component: " + component);
-                components.add(component);
+                String tempComponent = split2[i].split(" ")[1];
+                Log.info("tempComponent: " + tempComponent);
+                if(tempComponent.equals(component))
+                    mimeTypes.add(mimeType);
             }
-
-            map.put(mimeType, components);
         }
-        Log.info("Details: " + input);
-        for(String string : map.keySet())
-            System.out.println("Key: " + string + ", Value: " + map.get(string));
 
-        return map;
+        FXCollections.sort(mimeTypes);
+        return mimeTypes;
+    }
+
+    public static String sendIntent(String action, String component, String category, int type) {
+        StringBuilder stringBuilder = new StringBuilder("shell am ");
+        switch (type) {
+            case Intent.ACTIVITY:
+                stringBuilder.append("start ");
+                break;
+            case Intent.BROADCAST:
+                stringBuilder.append("broadcast ");
+                break;
+            case Intent.SERVICE:
+                stringBuilder.append("startservice ");
+                break;
+        }
+
+        stringBuilder.append("-a ").append(action);
+        stringBuilder.append(" -c ").append(category);
+        stringBuilder.append(" -n ").append(component);
+
+        return ADBUtil.consoleCommand(stringBuilder.toString());
     }
 
     public static Set<DeviceIntent> getIntents(String app) {
@@ -206,11 +218,11 @@ public class ADB {
        // System.out.println("PACKAGE DETAILS: " + packageDetails);
 
         if(packageDetails.contains(ACTIVITY_RESOLVER_TABLE))
-            set.addAll(deviceIntents(packageDetails, IntentType.ACTIVITY));
+            set.addAll(deviceIntents(packageDetails, Intent.ACTIVITY));
         if(packageDetails.contains(RECEIVER_RESOLVER_TABLE))
-            set.addAll(deviceIntents(packageDetails, IntentType.BROADCAST));
+            set.addAll(deviceIntents(packageDetails, Intent.BROADCAST));
         if(packageDetails.contains(SERVICE_RESOLVER_TABLE))
-            set.addAll(deviceIntents(packageDetails, IntentType.SERVICE));
+            set.addAll(deviceIntents(packageDetails, Intent.SERVICE));
 
      //   for(DeviceIntent deviceIntent : set)
        //     System.out.println("FINISHED: " + deviceIntent);
@@ -218,7 +230,7 @@ public class ADB {
         return set;
     }
 
-    private static Set<DeviceIntent> deviceIntents(String input, IntentType intentType) {
+    private static Set<DeviceIntent> deviceIntents(String input, int intentType) {
         Set<DeviceIntent> intents = new TreeSet<>();
 
         String data = "";
@@ -230,7 +242,7 @@ public class ADB {
         int i=0;
         while (m.find()) {
             try {
-                if(i > intentType.ordinal())
+                if(i > intentType)
                     break;
                 position = m.start();
                 i++;
@@ -240,14 +252,14 @@ public class ADB {
         }
 
         switch (intentType) {
-            case ACTIVITY:
+            case Intent.ACTIVITY:
                 data = input.substring(input.indexOf(ACTIVITY_RESOLVER_TABLE),position);
                 break;
-            case SERVICE:
-                data = input.substring(input.indexOf(SERVICE_RESOLVER_TABLE),position);
-                break;
-            case BROADCAST:
+            case Intent.BROADCAST:
                 data = input.substring(input.indexOf(RECEIVER_RESOLVER_TABLE),position);
+                break;
+            case Intent.SERVICE:
+                data = input.substring(input.indexOf(SERVICE_RESOLVER_TABLE),position);
                 break;
         }
 
@@ -287,7 +299,7 @@ public class ADB {
         return intents;
     }
 
-    private static Set<DeviceIntent> intents(String input, IntentType intentType, boolean isMimeTyped) {
+    private static Set<DeviceIntent> intents(String input, int intentType, boolean isMimeTyped) {
         boolean canBreak = false;
         Set<DeviceIntent> intents = new TreeSet<>();
 

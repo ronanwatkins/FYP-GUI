@@ -46,8 +46,8 @@ public class AndroidApplication {
         System.out.println(4);
         intents = FXCollections.observableArrayList(getIntents(packageName));
         System.out.println(5);
-        mimeTypeMap = DeviceIntent.mimeMap(packageName);
-        System.out.println(6);
+        //mimeTypeMap = DeviceIntent.mimeMap(packageName);
+        //System.out.println(6);
     }
 
     public String getName() {

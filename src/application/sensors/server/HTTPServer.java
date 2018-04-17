@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HTTPServer {
     private SensorsTabController controller;
-    private ServerSocket ss;
+    private ServerSocket serverSocket;
     private final int PORT = 1338;
     private String IPAddress;
 
@@ -30,13 +30,13 @@ public class HTTPServer {
 
     public HTTPServer(SensorsTabController controller) throws IOException {
         this.controller = controller;
-        ss = new ServerSocket();
+        serverSocket = new ServerSocket();
 
         IPAddress = getIPAddress();
         System.out.println(IPAddress);
 
         try {
-            ss.bind(new InetSocketAddress(IPAddress, PORT));
+            serverSocket.bind(new InetSocketAddress(IPAddress, PORT));
         } catch (BindException be) {
             //NOOP
         }
@@ -50,7 +50,7 @@ public class HTTPServer {
             @Override public Void call() {
                 try {
                     while(true) {
-                        Socket cs = ss.accept();
+                        Socket socket = serverSocket.accept();
                         if(!isConnected) {
                             isConnected = true;
                             controller.setConnected(isConnected);
@@ -59,14 +59,14 @@ public class HTTPServer {
 //                            });
                         }
 
-                        BufferedReader br = new BufferedReader(new InputStreamReader(cs.getInputStream()));
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                         String request;
                         String clString = "";
 
                         String method = null;
                         do {
-                            request = br.readLine();
+                            request = bufferedReader.readLine();
                             if(method == null) {
                                 if(request.startsWith("POST")) {
                                     method = "POST";
@@ -82,13 +82,13 @@ public class HTTPServer {
                         if(method !=  null) {
                             int contentLength = Integer.parseInt(clString.substring(16));
                             final char[] contents = new char[contentLength + 2];
-                            br.read(contents);
+                            bufferedReader.read(contents);
                             String POSTContent = URLDecoder.decode(new String(contents), "UTF-8");
 
                             displayAndSendData(POSTContent.substring(POSTContent.indexOf('{')));
                         }
 
-                        OutputStream os = cs.getOutputStream();
+                        OutputStream os = socket.getOutputStream();
                         PrintWriter pw = new PrintWriter(os);
                         pw.print("HTTP/1.1 200 OK\n" +
                                 "Content-Type: text/html\n" +
@@ -97,7 +97,7 @@ public class HTTPServer {
 
                         pw.close();
                         os.close();
-                        cs.close();
+                        socket.close();
                     }
 
                 } catch (IOException ioe) {
@@ -186,7 +186,7 @@ public class HTTPServer {
                                 latitude =  (Double) jsonObject.getJSONArray(key).get(0);
                                 longitude = (Double) jsonObject.getJSONArray(key).get(1);
                                 TelnetServer.setLocation(longitude + " " + latitude);
-                                Platform.runLater(() -> controller.locationLabel.setText("Latidude: " + latitude + "\n" + "Longitude: " + longitude));
+                                Platform.runLater(() -> controller.locationLabel.setText("Latitude: " + latitude + "\n" + "Longitude: " + longitude));
                             }
                             break;
                     }

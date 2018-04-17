@@ -544,9 +544,6 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     }
 
     private void handleMouseEvents() {
-
-
-
         listenBox.setOnMouseClicked(event -> server.setIsListening(listenBox.isSelected()));
 
         moveRadioButton.setOnMouseClicked(event -> {

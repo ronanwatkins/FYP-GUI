@@ -1,5 +1,6 @@
 package application.device;
 
+import application.utilities.ADB;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -9,11 +10,15 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class Intent implements Comparable<Intent> {
+    public static final int ACTIVITY = 0;
+    public static final int BROADCAST = 1;
+    public static final int SERVICE = 2;
+
     private StringProperty component;
     private ObservableList<StringProperty> actions;
     private ObservableList<StringProperty> categories;
     private ObservableList<StringProperty> mimeTypes;
-    protected IntentType intentType;
+    protected Integer intentType;
     protected Boolean isMimeTyped;
 
     public Intent() {}
@@ -45,6 +50,14 @@ public class Intent implements Comparable<Intent> {
     //Getters
     public String getComponent() {
         return component.get();
+    }
+
+    public static String send(String action, String component, String category, int type) {
+        return ADB.sendIntent(action, component, category, type);
+    }
+
+    public boolean takesData() {
+        return isMimeTyped;
     }
 
     @Override

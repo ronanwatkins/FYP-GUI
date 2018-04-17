@@ -5,10 +5,12 @@ import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -34,7 +36,7 @@ public class Main extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("FXMLMain.fxml"));
         root = fxmlLoader.load();
 
-        Scene scene = new Scene(root, 950, 600);
+        Scene scene = new Scene(root);
         scene.getStylesheets().add("/application/global.css");
 
         stage.getIcons().add(new Image("/resources/Android.png"));
@@ -42,7 +44,13 @@ public class Main extends Application {
         stage.getProperties().put("hostServices", this.getHostServices());
         stage.setOnCloseRequest(e -> exit());
         stage.setScene(scene);
+        stage.setMaximized(true);
+
+        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+        //primaryScreenBounds.
         stage.show();
+
+
 
         ADBUtil.initADB();
 

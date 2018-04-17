@@ -1,6 +1,5 @@
 package application.applications;
 
-import application.ADBUtil;
 import application.device.AndroidApplication;
 import application.device.Device;
 import application.device.DeviceIntent;
@@ -8,16 +7,13 @@ import application.device.Intent;
 import application.logcat.LogCatTabController;
 import application.utilities.ADB;
 import application.utilities.ApplicationUtils;
-import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -39,6 +35,16 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     @FXML
     private TextField searchField;
+    @FXML
+    private TextField actionField;
+    @FXML
+    private TextField categoryField;
+    @FXML
+    private TextField componentField;
+    @FXML
+    private TextField mimeTypeField;
+    @FXML
+    private TextField dataField;
 
     @FXML
     private TableView<AndroidApplication> applicationTableView;
@@ -67,24 +73,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     @FXML
     private TableColumn<DeviceIntent, String> mimeTypeColumn;
 
-//    @FXML
-//    private TableColumn<Intent, ObservableList<String>> actionsColumn;
-
-//    @FXML
-//    private TableColumn<ObservableList<StringProperty>, String> actionsColumn;
-//    @FXML
-//    private TableColumn categoriesColumn;
-//    @FXML
-//    private TableColumn mimeTypesColumn;
-
-//    @FXML
-//    private TableColumn<Intent, ObservableList<StringProperty>> actionsColumn;
-//
-//    @FXML
-//    private TableColumn<ObservableList<StringProperty>, String> categoriesColumn;
-//    @FXML
-//    private TableColumn<ObservableList<StringProperty>, String> mimeTypesColumn;
-
+    @FXML
+    private ComboBox<String> mimeTypeComboBox;
+    @FXML
+    private ComboBox<String> componentComboBox;
 
     @FXML
     private TextArea resultTextArea;
@@ -105,6 +97,8 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private Button copyButton;
     @FXML
     private Button closeButton;
+    @FXML
+    private Button sendIntentButton;
 
     @FXML
     private AnchorPane pane;
@@ -113,8 +107,6 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private ListView<String> appsOnPCListView;
     @FXML
     private ListView<String> appsOnDeviceListView;
-//    @FXML
-//    private ListView<String> componentsListView;
 
     private ObservableList<String> appsOnPCList;
 
@@ -123,6 +115,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private LogCatTabController logCatTabController;
 
     private Device device = Device.getInstance();
+    private DeviceIntent selectedIntent;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -130,13 +123,12 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
         initializeApplicationTableView();
         initializeIntentTableView();
+        initializeComboBoxes();
         initializeButtons();
         updatePCListView();
     }
 
     private void initializeApplicationTableView() {
-       // applicationTableView.setRowResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
         APKNameColumn.setCellValueFactory(cellData -> cellData.getValue().APKNameProperty());
         APKPathColumn.setCellValueFactory(cellData -> cellData.getValue().APKPathProperty());
         APKPathColumn.setCellFactory(tc -> textWrappingCell());
@@ -157,25 +149,12 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     private void initializeIntentTableView() {
-        actionColumn.setCellValueFactory( cellData -> cellData.getValue().actionProperty());
-        componentColumn.setCellValueFactory( cellData -> cellData.getValue().componentProperty());
-        categoryColumn.setCellValueFactory( cellData -> cellData.getValue().categoryProperty());
-        intentTypeColumn.setCellValueFactory( cellData -> cellData.getValue().intentTypeProperty());
-        mimeTypeColumn.setCellValueFactory( cellData -> cellData.getValue().isMimeTypedProperty());
+        actionColumn.setCellValueFactory(cellData -> cellData.getValue().actionProperty());
+        componentColumn.setCellValueFactory(cellData -> cellData.getValue().componentProperty());
+        categoryColumn.setCellValueFactory(cellData -> cellData.getValue().categoryProperty());
+        intentTypeColumn.setCellValueFactory(cellData -> cellData.getValue().intentTypeProperty());
+        mimeTypeColumn.setCellValueFactory(cellData -> cellData.getValue().isMimeTypedProperty());
     }
-
-//    private void updateComponentsListView(AndroidApplication androidApplication) {
-//        componentsListView.getItems().clear();
-//
-//        ObservableList<Intent> intents = androidApplication.intents();
-//
-//        for (Intent intent : intents) {
-//            String componentName = intent.getComponent();
-//            if(componentName.contains("/"))
-//                componentName = "..." + componentName.substring(componentName.indexOf("/"));
-//            componentsListView.getItems().add(componentName);
-//        }
-//    }
 
     private void updatePCListView() {
         appsOnPCList = FXCollections.observableArrayList();
@@ -183,7 +162,9 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
             for (File file : Objects.requireNonNull(directory.listFiles())) {
                 appsOnPCList.add(file.getName());
             }
-        } catch (NullPointerException ignored) {}
+        } catch (NullPointerException npe) {
+            Log.error(npe.getMessage(), npe);
+        }
 
         appsOnPCListView.setItems(appsOnPCList);
     }
@@ -195,7 +176,8 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
             Task<ObservableList<String>> task = new Task<ObservableList<String>>() {
                 @Override
-                protected ObservableList<String> call() { return FXCollections.observableArrayList(ADB.listApplications());
+                protected ObservableList<String> call() {
+                    return FXCollections.observableArrayList(ADB.listApplications());
                 }
             };
             task.setOnSucceeded(event1 -> {
@@ -210,51 +192,6 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         }
     }
 
-//    @FXML
-//    private void handleComponentsListViewClicked(MouseEvent mouseEvent) {
-//        if(componentsListView.getSelectionModel().getSelectedItem() == null)
-//            return;
-//
-//        ObservableList<Intent> intents = device.getSelectedApplication().intents();
-//
-//        Intent intent = null;
-//        String component = componentsListView.getSelectionModel().getSelectedItem().replace("...",  appsOnDeviceListView.getSelectionModel().getSelectedItem());
-//
-//        for(Intent in : intents) {
-//            System.out.println(component + " " + in.getComponent() + " " + in.getComponent().equals(component));
-//            if(in.getComponent().equals(component))
-//                intent = in;
-//        }
-//
-//        System.out.println(intent);
-//
-//        intentsTableView.getItems().clear();
-//
-//        ObservableList<Intent> temp = FXCollections.observableArrayList(intent);
-//        //intentsTableView.setItems(temp);
-//
-//        actionsColumn.getColumns().add(getColumn(1));
-//
-//
-//       // intentsTableView.getItems().add(intent);
-//    }
-
-    private TableColumn<ObservableList<StringProperty>, String> getColumn(int columnIndex) {
-        TableColumn<ObservableList<StringProperty>, String> column = new TableColumn<>();
-        column.setCellValueFactory(cellDataFeatures -> {
-            ObservableList<StringProperty> values = cellDataFeatures.getValue();
-            // Pad to current value if necessary:
-            for (int index = values.size(); index <= columnIndex; index++) {
-                values.add(index, new SimpleStringProperty(""));
-            }
-            return cellDataFeatures.getValue().get(columnIndex);
-        });
-        column.setCellFactory(TextFieldTableCell.forTableColumn());
-
-        return column;
-    }
-
-
     @FXML
     private void handleAppsListViewClicked(MouseEvent mouseEvent) {
         enableButtons();
@@ -262,7 +199,6 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         String applicationName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
         applicationTableView.getItems().clear();
         intentsTableView.getItems().clear();
-        //componentsListView.getItems().clear();
 
         Task<AndroidApplication> task = new Task<AndroidApplication>() {
             @Override
@@ -276,7 +212,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
             intentsTableView.getItems().addAll(device.getSelectedApplication().intents());
             openButton.setDisable(!device.getSelectedApplication().canOpen());
             closeButton.setDisable(openButton.isDisable());
-            intentsTableView.setPlaceholder(new Label(openButton.isDisable()  ? "No intents found for Application" : ""));
+            intentsTableView.setPlaceholder(new Label(openButton.isDisable() ? "No intents found for Application" : ""));
         });
 
         new Thread(task).start();
@@ -289,7 +225,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         resultTextArea.setText("Attempting to install " + appName + "...");
         Task<String> task = new Task<String>() {
             @Override
-            protected String call()  {
+            protected String call() {
                 return installApp(directory.getAbsolutePath() + "\\" + appName);
             }
         };
@@ -306,7 +242,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         String fileName = appsOnPCListView.getSelectionModel().getSelectedItem();
         int fileIndex = appsOnPCListView.getSelectionModel().getSelectedIndex();
         File fileToDelete = new File(directory.getAbsolutePath() + "\\" + fileName);
-        if(fileToDelete.delete()) {
+        if (fileToDelete.delete()) {
             appsOnPCList.remove(fileIndex);
             updatePCListView();
         }
@@ -351,15 +287,15 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     @FXML
     private void handleLogCatButtonClicked(ActionEvent event) {
-        if(logCatTabController == null) {
+        if (logCatTabController == null) {
             logCatTabController = new LogCatTabController();
             try {
                 logCatTabController = (LogCatTabController) logCatTabController.newWindow(this, null);
             } catch (IOException ioe) {
+                Log.error(ioe.getMessage(), ioe);
                 resultTextArea.setText(ioe.getMessage());
             }
         } else {
-            System.out.println(logCatTabController);
             logCatTabController.setSearchField(getApplicationName());
         }
     }
@@ -380,12 +316,51 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
                 deleteButton.setDisable(false);
                 installButton.setDisable(false);
             }
-        } catch (NullPointerException ignored) {}
+        } catch (NullPointerException npe) {
+            Log.error(npe.getMessage(), npe);
+        }
     }
 
     @FXML
     private void handleSearchFieldAction(KeyEvent event) {
         appsOnDeviceListView.setItems(filter(searchField.getText(), device.getApplicationNames()));
+    }
+
+    @FXML
+    private void handleSendIntentButtonClicked(ActionEvent event) {
+        String action = actionField.getText();
+        String category = categoryField.getText();
+        String component = componentField.getText();
+
+        DeviceIntent selectedIntent = intentsTableView.getSelectionModel().getSelectedItem();
+        int type = selectedIntent.getIntentType();
+
+        resultTextArea.setText(Intent.send(action, component, category, type));
+    }
+
+    @FXML
+    private void handleIntentsTableViewClicked(MouseEvent mouseEvent) {
+        if (intentsTableView.getItems().isEmpty())
+            return;
+
+        selectedIntent = intentsTableView.getSelectionModel().getSelectedItem();
+        actionField.setText(selectedIntent.actionProperty().get());
+
+       // mimeTypeComboBox.getItems().clear();
+
+        mimeTypeComboBox.setItems(null);
+
+        String component = selectedIntent.componentProperty().get().split("\n")[0];
+        if (!component.equals(componentField.getText())) {
+            componentField.setText(component);
+            updateMimeTypeComboBox();
+        }
+
+        componentComboBox.setItems(selectedIntent.getComponents());
+        categoryField.setText(selectedIntent.categoryProperty().get());
+
+        mimeTypeField.setText("");
+        dataField.setText("");
     }
 
     public String getApplicationName() {
@@ -417,9 +392,23 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         setImage("/resources/refresh.png", null, refreshButton);
     }
 
+    private void initializeComboBoxes() {
+        componentComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                componentField.setText(newValue);
+            }
+        });
+
+        mimeTypeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                mimeTypeField.setText(newValue);
+            }
+        });
+    }
+
     private ObservableList<String> filter(String searchText, ObservableList<String> list) {
         ObservableList<String> newList = null;
-        if(searchText != null) {
+        if (searchText != null) {
             newList = FXCollections.observableArrayList();
 
             for (String s : list) {
@@ -430,5 +419,18 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         }
 
         return newList;
+    }
+
+    @FXML
+    private void updateMimeTypeComboBox() {
+        if (selectedIntent == null)
+            return;
+
+        if(selectedIntent.takesData())
+            mimeTypeComboBox.setItems(DeviceIntent.getAssociatedMimeTypes(
+                    device.getSelectedApplication().getName(),
+                    componentField.getText(),
+                    selectedIntent.getIntentType())
+            );
     }
 }

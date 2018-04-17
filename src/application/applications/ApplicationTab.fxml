@@ -13,6 +13,12 @@
 <?import javafx.scene.layout.VBox?>
 
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.layout.Region?>
+
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.RowConstraints?>
 <AnchorPane fx:id="pane" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.applications.ApplicationTabController">
     <VBox spacing="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <padding>
@@ -20,17 +26,17 @@
         </padding>
 
         <HBox spacing="20">
-            <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" prefWidth="150" prefHeight="28" promptText="Search" />
+            <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" prefWidth="200" prefHeight="28" promptText="Search" />
             <Button fx:id="refreshButton" onAction="#handleRefreshButtonClicked" prefHeight="28.0" text="Refresh" />
             <Button fx:id="openButton" onAction="#handleOpenButtonClicked" prefHeight="28.0" prefWidth="46.0" text="Open" />
             <Button fx:id="uninstallButton" onAction="#handleUninstallButtonClicked" prefHeight="28.0" text="Uninstall" />
-            <Button fx:id="copyButton" onAction="#handleCopyButtonClicked" prefHeight="28.0" text="Copy APK" />
+            <Button fx:id="copyButton" onAction="#handleCopyButtonClicked" prefHeight="28.0" text="Get APK" />
             <Button fx:id="closeButton" onAction="#handleCloseButtonClicked" prefHeight="28.0" text="Close" />
             <Button fx:id="showLogCatButton" onAction="#handleLogCatButtonClicked" prefHeight="28.0" text="Show LogCat" />
         </HBox>
-        <SplitPane dividerPositions="0.1919191919191919" layoutX="14.0" layoutY="57.0" prefHeight="1000">
+        <SplitPane dividerPositions="0.1919191919191919" layoutX="14.0" layoutY="57.0" prefHeight="800">
             <items>
-                <ListView fx:id="appsOnDeviceListView" onMouseClicked="#handleAppsListViewClicked" />
+                <ListView fx:id="appsOnDeviceListView" minWidth="200" onMouseClicked="#handleAppsListViewClicked" />
 
                 <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="100.0">
                     <items>
@@ -48,7 +54,7 @@
                             </columns>
                         </TableView>
 
-                        <TableView fx:id="intentsTableView">
+                        <TableView fx:id="intentsTableView" onMouseReleased="#handleIntentsTableViewClicked">
                             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
                             <placeholder>
                                 <Label/>
@@ -61,43 +67,42 @@
                                 <TableColumn fx:id="mimeTypeColumn" text="Takes Data" />
                             </columns>
                         </TableView>
-
-                        <!--<SplitPane dividerPositions="0.35" prefHeight="200.0" prefWidth="100.0">-->
-                            <!--<ListView fx:id="componentsListView" onMouseClicked="#handleComponentsListViewClicked" />-->
-                            <!--<TableView fx:id="intentsTableView">-->
-                                <!--<columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>-->
-                                <!--<placeholder>-->
-                                    <!--<Label text="" />-->
-                                <!--</placeholder>-->
-                                <!--<columns>-->
-                                    <!--<TableColumn fx:id="actionsColumn"  text="Actions" />-->
-                                    <!--<TableColumn fx:id="categoriesColumn"  text="Categories" />-->
-                                    <!--<TableColumn fx:id="mimeTypesColumn"  text="Mime Types" />-->
-                                <!--</columns>-->
-                            <!--</TableView>-->
-                        <!--</SplitPane>-->
-
-
-                        <!--<TreeTableView fx:id="intentsTableView" prefHeight="200.0" prefWidth="200.0">-->
-                            <!--<columns>-->
-                                <!--<TreeTableColumn fx:id="componentColumn" prefWidth="175.0" text="Component" />-->
-                            <!--</columns>-->
-                            <!--<TreeItem fx:id="componentItem" />-->
-                            <!--<TreeItem fx:id="actionItem" />-->
-                            <!--<TreeItem fx:id="categoryItem" />-->
-                            <!--<TreeItem fx:id="mimeTypeItem" />-->
-                        <!--</TreeTableView>-->
                     </items>
                 </SplitPane>
             </items>
         </SplitPane>
-        <HBox spacing="20">
-           <Button fx:id="installButton" onAction="#handleInstallButtonClicked" prefHeight="28.0" text="Install" />
-           <Button fx:id="deleteButton" onAction="#handleDeleteButtonClicked" />
-        </HBox>
-        <HBox spacing="20">
-          <ListView fx:id="appsOnPCListView" minWidth="200" onMouseClicked="#handleAppsOnPCListViewClicked" prefHeight="125" prefWidth="200" />
-          <TextArea fx:id="resultTextArea" minHeight="125" prefWidth="2000" />
-        </HBox>
+
+        <GridPane hgap="20" vgap="10">
+            <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS" maxWidth="200.0" />
+                <ColumnConstraints hgrow="ALWAYS"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints prefHeight="100.0" vgrow="ALWAYS" />
+                <RowConstraints prefHeight="100.0" vgrow="ALWAYS" />
+                <RowConstraints prefHeight="100.0" vgrow="ALWAYS" />
+                <RowConstraints minHeight="100.0" vgrow="ALWAYS" />
+            </rowConstraints>
+
+            <!--COLUMN 0-->
+            <Button fx:id="installButton" onAction="#handleInstallButtonClicked" prefHeight="28.0" minWidth="50" text="Install"  />
+            <Button fx:id="deleteButton" onAction="#handleDeleteButtonClicked" GridPane.halignment="CENTER" />
+            <ListView fx:id="appsOnPCListView" onMouseClicked="#handleAppsOnPCListViewClicked" GridPane.rowIndex="1" GridPane.rowSpan="3"/>
+            <!--COLUMN 1-->
+            <TextField fx:id="actionField" prefWidth="200" promptText="Action" GridPane.columnIndex="1" />
+            <TextField fx:id="componentField" GridPane.halignment="LEFT" prefWidth="160" onKeyReleased="#updateMimeTypeComboBox" promptText="Component" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <ComboBox fx:id="componentComboBox" maxWidth="5" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.halignment="RIGHT" />
+            <TextField fx:id="categoryField" prefWidth="200" promptText="Category" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <TextArea fx:id="resultTextArea" editable="false" wrapText="true" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="3" />
+            <!--COLUMN 2-->
+            <TextField fx:id="mimeTypeField" GridPane.halignment="LEFT" prefWidth="200" promptText="Mime Type" GridPane.columnIndex="2" />
+            <ComboBox fx:id="mimeTypeComboBox" maxWidth="5" GridPane.columnIndex="2" GridPane.halignment="RIGHT" />
+            <TextField fx:id="dataField" minWidth="200" promptText="Data" GridPane.rowIndex="1" GridPane.columnIndex="2" />
+            <ComboBox fx:id="intentTypeComboBox" prefWidth="100" GridPane.rowIndex="2" GridPane.columnIndex="2" GridPane.halignment="LEFT"/>
+            <Button fx:id="sendIntentButton" prefWidth="200" onAction="#handleSendIntentButtonClicked" text="Send" GridPane.halignment="RIGHT" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+        </GridPane>
+
+
     </VBox>
 </AnchorPane>
