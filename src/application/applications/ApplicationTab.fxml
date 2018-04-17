@@ -19,6 +19,8 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
 <AnchorPane fx:id="pane" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.applications.ApplicationTabController">
     <VBox spacing="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <padding>
@@ -48,7 +50,7 @@
                             <columns>
                                 <TableColumn fx:id="APKNameColumn" prefWidth="152.0" text="APK Name" />
                                 <TableColumn fx:id="APKPathColumn" prefWidth="192.0" text="APK Path" />
-                                <TableColumn fx:id="versionCodeColumn" prefWidth="104.0" text="Version Code" />
+                                <TableColumn fx:id="versionCodeColumn" prefWidth="104.0" text="Version Information" />
                                 <TableColumn fx:id="userIdColumn" prefWidth="93.0" text="App ID" />
                                 <TableColumn fx:id="dataDirColumn" prefWidth="222.0" text="Data Directory" />
                             </columns>
@@ -99,7 +101,17 @@
             <TextField fx:id="mimeTypeField" GridPane.halignment="LEFT" prefWidth="200" promptText="Mime Type" GridPane.columnIndex="2" />
             <ComboBox fx:id="mimeTypeComboBox" maxWidth="5" GridPane.columnIndex="2" GridPane.halignment="RIGHT" />
             <TextField fx:id="dataField" minWidth="200" promptText="Data" GridPane.rowIndex="1" GridPane.columnIndex="2" />
-            <ComboBox fx:id="intentTypeComboBox" prefWidth="100" GridPane.rowIndex="2" GridPane.columnIndex="2" GridPane.halignment="LEFT"/>
+            <ComboBox fx:id="schemeComboBox" maxWidth="5" GridPane.columnIndex="2" GridPane.rowIndex="1" GridPane.halignment="RIGHT" />
+
+            <ComboBox fx:id="intentTypeComboBox" prefWidth="200" GridPane.rowIndex="2" GridPane.columnIndex="2" GridPane.halignment="LEFT">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="Activity"/>
+                        <String fx:value="Broadcast"/>
+                        <String fx:value="Service"/>
+                    </FXCollections>
+                </items>
+            </ComboBox>
             <Button fx:id="sendIntentButton" prefWidth="200" onAction="#handleSendIntentButtonClicked" text="Send" GridPane.halignment="RIGHT" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
         </GridPane>
 

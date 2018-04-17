@@ -17,7 +17,7 @@
 <?import javafx.geometry.Insets?>
 
 <AnchorPane fx:id="anchorPane" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.sensors.SensorsTabController">
-   <GridPane hgap="60" maxHeight="Infinity" maxWidth="Infinity" vgap="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" >
+   <GridPane hgap="60" vgap="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" >
      <padding>
         <Insets right="20" top="20" bottom="20" left="20"/>
      </padding>
@@ -36,7 +36,7 @@
          <RowConstraints />
       </rowConstraints>
 
-      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="0">
+      <GridPane GridPane.rowIndex="0">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
@@ -54,7 +54,7 @@
          <Label fx:id="lightLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
       </GridPane>
 
-      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="1">
+      <GridPane GridPane.rowIndex="1">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
@@ -72,7 +72,7 @@
          <Label fx:id="temperatureLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
       </GridPane>
 
-      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="2">
+      <GridPane GridPane.rowIndex="2">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
@@ -90,7 +90,7 @@
          <Label fx:id="humidityLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
       </GridPane>
 
-      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="3">
+      <GridPane GridPane.rowIndex="3">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
@@ -108,7 +108,7 @@
          <Label fx:id="pressureLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
       </GridPane>
 
-      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="4">
+      <GridPane GridPane.rowIndex="4">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
@@ -126,7 +126,7 @@
          <Label fx:id="proximityLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
       </GridPane>
 
-      <GridPane maxHeight="Infinity"  maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="0">
+      <GridPane GridPane.columnIndex="1" GridPane.rowIndex="0">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
@@ -143,7 +143,7 @@
          <Label fx:id="yawLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
       </GridPane>
 
-      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1">
+      <GridPane GridPane.columnIndex="1" GridPane.rowIndex="1">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
@@ -160,7 +160,7 @@
          <Label fx:id="pitchLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
       </GridPane>
 
-      <GridPane maxHeight="Infinity" maxWidth="Infinity" prefWidth="243.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+      <GridPane prefWidth="243.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="100.0" />
@@ -177,7 +177,7 @@
          <Label fx:id="rollLabel" text="0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
       </GridPane>
 
-      <GridPane maxHeight="Infinity" maxWidth="Infinity" prefHeight="100.0" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.rowSpan="2">
+      <GridPane prefHeight="100.0" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.rowSpan="2">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="101.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="497.0" />
@@ -210,7 +210,7 @@
          <Label fx:id="locationLabel" text="Latitude: 53.27846&#10;Longitude: -9.00983" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" />
       </GridPane>
 
-      <GridPane maxHeight="Infinity" maxWidth="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="0" GridPane.rowSpan="3">
+      <GridPane GridPane.columnIndex="2" GridPane.rowIndex="0" GridPane.rowSpan="3">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="104.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="96.0" />
@@ -240,7 +240,7 @@
          <RadioButton fx:id="moveRadioButton" text="Move" GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
       </GridPane>
 
-      <GridPane gridLinesVisible="false" maxHeight="Infinity" maxWidth="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="3" GridPane.rowSpan="3">
+      <GridPane gridLinesVisible="false" GridPane.columnIndex="2" GridPane.rowIndex="3" GridPane.rowSpan="3">
          <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="190.0" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="123.0" />

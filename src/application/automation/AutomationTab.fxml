@@ -38,7 +38,7 @@
             </HBox.margin></CheckBox>
         </HBox>
 
-        <GridPane hgap="20" maxHeight="Infinity" maxWidth="Infinity" vgap="20">
+        <GridPane hgap="20"  vgap="20">
         <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS" prefWidth="1000" />
             <ColumnConstraints hgrow="ALWAYS" prefWidth="1000" />

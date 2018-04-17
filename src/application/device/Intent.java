@@ -52,8 +52,8 @@ public class Intent implements Comparable<Intent> {
         return component.get();
     }
 
-    public static String send(String action, String component, String category, int type) {
-        return ADB.sendIntent(action, component, category, type);
+    public static String send(String action, String component, String category, String mimeType, String data, int type) {
+        return ADB.sendIntent(action, component, category, mimeType, data, type);
     }
 
     public boolean takesData() {

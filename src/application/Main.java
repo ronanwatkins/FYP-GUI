@@ -3,10 +3,8 @@ package application;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -14,7 +12,6 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-
 
 import java.io.File;
 
@@ -47,10 +44,10 @@ public class Main extends Application {
         stage.setMaximized(true);
 
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
-        //primaryScreenBounds.
+        stage.setMaxWidth(primaryScreenBounds.getWidth());
+        stage.setMaxHeight(primaryScreenBounds.getHeight());
+
         stage.show();
-
-
 
         ADBUtil.initADB();
 

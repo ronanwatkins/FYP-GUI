@@ -45,6 +45,9 @@
                 <Tab fx:id="logCatTab" text="LogCat">
                     <fx:include fx:id="LogCatTabPage" source="logcat/LogCatTab.fxml"/>
                 </Tab>
+                <Tab fx:id="CPUInfo" text="CPU">
+                    <fx:include fx:id="CPUTabPage" source="cpu/CPUTab.fxml"/>
+                </Tab>
             </tabs>
         </TabPane>
     </center>

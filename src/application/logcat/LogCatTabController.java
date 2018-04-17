@@ -33,14 +33,14 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class LogCatTabController implements Initializable, Showable<Initializable>, ApplicationUtils {
-    private static final Logger Log = Logger.getLogger(Main.class.getName());
+    private static final Logger Log = Logger.getLogger(LogCatTabController.class.getName());
 
     private static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\logcat";
     public static final String FILTER_DIRECTORY = System.getProperty("user.dir") + "\\misc\\logcat\\filters\\";
     private final String EXTENSION = ".log";
 
     @FXML
-    private TextField searchField;
+    protected TextField searchField;
     @FXML
     private TextField resultField;
 
@@ -59,15 +59,17 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     @FXML
     private Button deleteFilterButton;
     @FXML
-    private Button startButton;
+    protected Button startButton;
     @FXML
     private Button editFilterButton;
+    @FXML
+    protected Button clearButton;
 
     private String fileToEdit;
 
     private volatile ObservableList<String> logList;
 
-    private volatile boolean stopFlag = false;
+    protected volatile boolean stopFlag = false;
 
     private LogLevel logLevel;
 
@@ -79,7 +81,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     private String searchFieldText;
 
-    private final Object lock = new Object();
+    protected final Object lock = new Object();
 
     private Device device = Device.getInstance();
 
@@ -191,7 +193,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     }
 
     @FXML
-    private void handleStartButtonClicked(MouseEvent event) {
+    protected void handleStartButtonClicked(MouseEvent event) {
         if(startButton.getText().equalsIgnoreCase("start"))
             getLogs(true);
         else

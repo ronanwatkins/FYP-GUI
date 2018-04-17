@@ -77,6 +77,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private ComboBox<String> mimeTypeComboBox;
     @FXML
     private ComboBox<String> componentComboBox;
+    @FXML
+    private ComboBox<String> intentTypeComboBox;
+    @FXML
+    private ComboBox<String> schemeComboBox;
 
     @FXML
     private TextArea resultTextArea;
@@ -264,6 +268,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     @FXML
     private void handleCopyButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
+        resultTextArea.setText("Getting APK file for " + appName + "...");
 
         Task<String> task = new Task<String>() {
             @Override
@@ -331,11 +336,21 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         String action = actionField.getText();
         String category = categoryField.getText();
         String component = componentField.getText();
+        String mimeType = mimeTypeField.getText();
+        String data = dataField.getText();
+        int intentType = intentTypeComboBox.getSelectionModel().getSelectedIndex();
 
-        DeviceIntent selectedIntent = intentsTableView.getSelectionModel().getSelectedItem();
-        int type = selectedIntent.getIntentType();
 
-        resultTextArea.setText(Intent.send(action, component, category, type));
+        Task<String> task = new Task<String>() {
+            @Override
+            protected String call() {
+                return Intent.send(action, component, category, mimeType, data, intentType);
+            }
+        };
+        task.setOnSucceeded(event1 -> resultTextArea.setText(task.getValue()));
+        task.setOnFailed(event1 -> resultTextArea.setText(task.getValue()));
+
+        new Thread(task).start();
     }
 
     @FXML
@@ -346,9 +361,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         selectedIntent = intentsTableView.getSelectionModel().getSelectedItem();
         actionField.setText(selectedIntent.actionProperty().get());
 
-       // mimeTypeComboBox.getItems().clear();
+        intentTypeComboBox.getSelectionModel().select(selectedIntent.getIntentType());
 
         mimeTypeComboBox.setItems(null);
+        schemeComboBox.setItems(null);
 
         String component = selectedIntent.componentProperty().get().split("\n")[0];
         if (!component.equals(componentField.getText())) {
@@ -404,6 +420,12 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
                 mimeTypeField.setText(newValue);
             }
         });
+
+        schemeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                dataField.setText(newValue);
+            }
+        });
     }
 
     private ObservableList<String> filter(String searchText, ObservableList<String> list) {
@@ -427,10 +449,21 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
             return;
 
         if(selectedIntent.takesData())
-            mimeTypeComboBox.setItems(DeviceIntent.getAssociatedMimeTypes(
+            updateSchemeComboBox();
+
+             mimeTypeComboBox.setItems(DeviceIntent.getAssociatedMimeTypes(
                     device.getSelectedApplication().getName(),
                     componentField.getText(),
                     selectedIntent.getIntentType())
             );
+    }
+
+    @FXML
+    private void updateSchemeComboBox() {
+        schemeComboBox.setItems(DeviceIntent.getAssociatedSchemes(
+                device.getSelectedApplication().getName(),
+                componentField.getText(),
+                selectedIntent.getIntentType())
+        );
     }
 }

@@ -27,6 +27,10 @@ public class DeviceIntent extends Intent {
         return ADB.getAssociatedMimeTypes(packageName, componentName, intentType);
     }
 
+    public static ObservableList<String> getAssociatedSchemes(String packageName, String componentName, int intentType) {
+        return ADB.getAssociatedSchemes(packageName, componentName, intentType);
+    }
+
     //Properties
     public StringProperty actionProperty() {
         return action;

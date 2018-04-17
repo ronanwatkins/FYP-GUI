@@ -23,6 +23,7 @@ public class ADB {
     private static final String RECEIVER_RESOLVER_TABLE = "Receiver Resolver Table:";
     private static final String FULL_MIME_TYPES = "Full MIME Types:";
     private static final String BASE_MIME_TYPES = "Base MIME Types:";
+    private static final String SCHEMES = "Schemes:";
 
     private static Device device = Device.getInstance();
 
@@ -115,13 +116,76 @@ public class ADB {
         return ADBUtil.listApplications();
     }
 
+    public static ObservableList<String> getAssociatedSchemes(String app, String component, int intentType) {
+        Log.info("Command: " + "shell dumpsys package " + app);
+        ObservableList<String> schemes = FXCollections.observableArrayList();
+
+        String details = ADBUtil.consoleCommand("shell dumpsys package " + app);
+        String temp = "";
+        //Log.info("Result: " + details);
+
+        switch (intentType) {
+            case Intent.ACTIVITY:
+                if(details.contains(ACTIVITY_RESOLVER_TABLE))
+                    temp = details;
+                break;
+            case Intent.BROADCAST:
+                if(details.contains(RECEIVER_RESOLVER_TABLE))
+                    temp = details.substring(details.indexOf(RECEIVER_RESOLVER_TABLE));
+                break;
+            case Intent.SERVICE:
+                if(details.contains(SERVICE_RESOLVER_TABLE))
+                    temp = details.substring(details.indexOf(SERVICE_RESOLVER_TABLE));
+                break;
+        }
+
+        if (temp.contains(SCHEMES)) {
+            temp = temp.substring(temp.indexOf(SCHEMES)).split("\\n {2}(?! )")[0];
+            schemes.addAll(associatedSchemes(temp, component));
+        }
+
+        Log.info("Full list: ");
+        for(String string : schemes)
+            System.out.println("Value: " + string);
+
+        return schemes;
+    }
+
+    private static ObservableList<String> associatedSchemes(String input, String component) {
+        Log.info("Component: " + component);
+        Log.info("Input: " + input);
+
+        ObservableList<String> schemes = FXCollections.observableArrayList();
+
+        String[] split = input.split("\\n {6}(?! )");
+
+        for(String string : split) {
+            if(string.isEmpty())
+                continue;
+            string = string.trim();
+
+            String[] split2 = string.split("\n");
+            String scheme = split2[0] + "//";
+
+            for(int i=1; i<split2.length; i++) {
+                split2[i] = split2[i].trim();
+                String tempComponent = split2[i].split(" ")[1];
+                if(tempComponent.equals(component))
+                    schemes.add(scheme);
+            }
+        }
+
+        FXCollections.sort(schemes);
+        return schemes;
+    }
+
     public static ObservableList<String> getAssociatedMimeTypes(String app, String component, int intentType) {
         Log.info("Command: " + "shell dumpsys package " + app);
         ObservableList<String> mimeTypes = FXCollections.observableArrayList();
 
         String details = ADBUtil.consoleCommand("shell dumpsys package " + app);
         String temp = "";
-        Log.info("Result: " + details);
+        //Log.info("Result: " + details);
 
         switch (intentType) {
             case Intent.ACTIVITY:
@@ -145,7 +209,7 @@ public class ADB {
             mimeTypes.addAll(associatedMimeTypes(temp, component));
         }
 
-        Log.info("Full map: ");
+        Log.info("Full list: ");
         for(String string : mimeTypes)
             System.out.println("Value: " + string);
 
@@ -164,16 +228,12 @@ public class ADB {
                 continue;
             string = string.trim();
 
-            Log.info("Loop 1: " + string);
             String[] split2 = string.split("\n");
             String mimeType = split2[0].replace(":", "");
-            Log.info("mimeType: " + mimeType);
 
             for(int i=1; i<split2.length; i++) {
                 split2[i] = split2[i].trim();
-                Log.info("Loop 2: " + split2[i]);
                 String tempComponent = split2[i].split(" ")[1];
-                Log.info("tempComponent: " + tempComponent);
                 if(tempComponent.equals(component))
                     mimeTypes.add(mimeType);
             }
@@ -183,7 +243,7 @@ public class ADB {
         return mimeTypes;
     }
 
-    public static String sendIntent(String action, String component, String category, int type) {
+    public static String sendIntent(String action, String component, String category, String mimeType, String data, int type) {
         StringBuilder stringBuilder = new StringBuilder("shell am ");
         switch (type) {
             case Intent.ACTIVITY:
@@ -197,11 +257,23 @@ public class ADB {
                 break;
         }
 
-        stringBuilder.append("-a ").append(action);
-        stringBuilder.append(" -c ").append(category);
-        stringBuilder.append(" -n ").append(component);
+        if(!action.isEmpty())
+            stringBuilder.append("-a ").append(action);
+        if(!category.isEmpty())
+            stringBuilder.append(" -c ").append(category);
+        if(!component.isEmpty())
+            stringBuilder.append(" -n ").append(component);
+        if(!mimeType.isEmpty())
+            stringBuilder.append(" -t ").append(mimeType.replace("*/*", "."));
+        if(!data.isEmpty())
+            stringBuilder.append(" -d ").append(data.replace("//", ""));
 
-        return ADBUtil.consoleCommand(stringBuilder.toString());
+        Log.info("Starting intent with command: " + stringBuilder.toString());
+
+        String result = ADBUtil.consoleCommand(stringBuilder.toString());
+        Log.info("Response: " + result);
+
+        return result;
     }
 
     public static Set<DeviceIntent> getIntents(String app) {

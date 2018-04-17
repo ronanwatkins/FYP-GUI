@@ -123,9 +123,9 @@ public class AndroidApplication {
 
         @Override
         public String toString() {
-            return "Ver Name: " + versionName  +
-                    "\nVer code: " + code +
-                    "\ntargetSdk: " + targetSdk;
+            return "Version Name: " + versionName  +
+                    "\nVersion Code: " + code +
+                    "\nTarget SDK: " + targetSdk;
         }
     }
 }
