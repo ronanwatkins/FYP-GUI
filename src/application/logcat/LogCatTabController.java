@@ -244,7 +244,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     }
 
     @FXML
-    private void handleSearchFieldAction(KeyEvent keyEvent) {
+    protected void handleSearchFieldAction(KeyEvent keyEvent) {
         searchTextChanged();
     }
 

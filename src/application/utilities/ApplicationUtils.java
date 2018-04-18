@@ -1,5 +1,7 @@
 package application.utilities;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -39,5 +41,20 @@ public interface ApplicationUtils {
         if(text != null) {
             button.setTooltip(new Tooltip(text));
         }
+    }
+
+    default ObservableList<String> filter(String searchText, ObservableList<String> list) {
+        ObservableList<String> newList = null;
+        if (searchText != null) {
+            newList = FXCollections.observableArrayList();
+
+            for (String s : list) {
+                if (s.contains(searchText)) {
+                    newList.add(s);
+                }
+            }
+        }
+
+        return newList;
     }
 }

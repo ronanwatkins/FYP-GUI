@@ -428,20 +428,6 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         });
     }
 
-    private ObservableList<String> filter(String searchText, ObservableList<String> list) {
-        ObservableList<String> newList = null;
-        if (searchText != null) {
-            newList = FXCollections.observableArrayList();
-
-            for (String s : list) {
-                if (s.contains(searchText)) {
-                    newList.add(s);
-                }
-            }
-        }
-
-        return newList;
-    }
 
     @FXML
     private void updateMimeTypeComboBox() {
