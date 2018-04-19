@@ -45,7 +45,7 @@
                 <Tab fx:id="logCatTab" text="LogCat">
                     <fx:include fx:id="LogCatTabPage" source="logcat/LogCatTab.fxml"/>
                 </Tab>
-                <Tab fx:id="MonitorTab" text="Monitor">
+                <Tab fx:id="monitorTab" text="Monitor">
                     <fx:include fx:id="MonitorTabPage" source="monitor/MonitorTab.fxml"/>
                 </Tab>
             </tabs>

@@ -32,3 +32,8 @@
     -fx-border-radius: 0 0 0 0;
     -fx-background-radius: 0 0 0 0;
 }
+
+.chart,
+.chart-plot-background {
+    -fx-background-color: white;
+}

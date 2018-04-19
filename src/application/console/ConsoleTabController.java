@@ -54,14 +54,14 @@ public class ConsoleTabController implements Initializable, ApplicationUtils {
             @Override
             protected Void call() throws Exception {
                 Process process = Runtime.getRuntime().exec(newCommand);
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                System.out.println("gonna read " + bufferedReader.ready());
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+               // System.out.println("gonna read " + bufferedReader.ready());
 
                // bufferedReader.read();
 
-                Stream<String> stringStream = bufferedReader.lines();
-                for(String string : (String[])stringStream.toArray())
-                    System.out.println("string: " + string);
+              //  Stream<String> stringStream = bufferedReader.lines();
+             //   for(String string : (String[])stringStream.toArray())
+               //     System.out.println("string: " + string);
 
 
                 System.out.println("read dude");
@@ -73,9 +73,14 @@ public class ConsoleTabController implements Initializable, ApplicationUtils {
                     String line;
                     StringBuilder stringBuilder = new StringBuilder();
                     while ((line = bufferedReader.readLine()) != null) {
-                        System.out.println(line);
-                        stringBuilder.append(line).append("\n");
-                        Platform.runLater(() -> resultArea.setText(stringBuilder.toString()));
+                        if(line.isEmpty())
+                            continue;
+
+                        System.out.println("line: " + line);
+                        final String newLine = line;
+                        Platform.runLater(() -> resultArea.appendText(newLine + "\n"));
+                     //   stringBuilder.append(line).append("\n");
+                     //   Platform.runLater(() -> resultArea.setText(stringBuilder.toString()));
                     }
                 }
                 return null;

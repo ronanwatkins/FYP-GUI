@@ -32,6 +32,8 @@ public class FXMLMainController implements Initializable {
     private Tab logCatTab;
     @FXML
     private Tab sensorsTab;
+    @FXML
+    private Tab monitorTab;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -39,9 +41,10 @@ public class FXMLMainController implements Initializable {
         locationTab.setGraphic(setIcon("/resources/location.jpg", 15, 15));
         phoneTab.setGraphic(setIcon("/resources/phone.png",15, 15));
         consoleTab.setGraphic(setIcon("/resources/console.png", 15, 15));
-        automationTab.setGraphic(setIcon("/resources/automation.png", 15, 15));
+        automationTab.setGraphic(setIcon("/resources/automation.png", 12, 12));
         applicationsTab.setGraphic(setIcon("/resources/application.jpg ", 15, 15));
         logCatTab.setGraphic(setIcon("/resources/logcat.png", 15, 15));
+        monitorTab.setGraphic(setIcon("/resources/monitor.png", 20, 20));
     }
 
     private ImageView setIcon(String URL, int width, int height) {

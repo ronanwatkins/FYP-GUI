@@ -13,6 +13,7 @@
 <?import javafx.scene.chart.AreaChart?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Label?>
 <AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.monitor.MonitorTabController">
 
     <VBox spacing="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -31,14 +32,31 @@
             <items>
                 <ListView fx:id="appsOnDeviceListView" minWidth="200" onMouseClicked="#handleAppsListViewClicked" />
 
-                <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="100.0">
+                <SplitPane fx:id="verticalPane"  orientation="VERTICAL" >
                     <items>
-                        <AreaChart fx:id="chart" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
+                        <Label text="CPU"/>
+                        <AreaChart fx:id="CPUChart" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
                             <xAxis>
-                                <NumberAxis fx:id="xAxis" side="BOTTOM" forceZeroInRange="false" tickLabelsVisible="false" tickMarkVisible="false" minorTickVisible="false" />
+                                <NumberAxis side="BOTTOM" forceZeroInRange="false" tickLabelsVisible="false" tickMarkVisible="false" minorTickVisible="false" />
                             </xAxis>
                             <yAxis>
-                                <NumberAxis fx:id="yAxis" side="LEFT" autoRanging="false" minorTickVisible="false" />
+                                <NumberAxis side="LEFT" autoRanging="false" minorTickVisible="false" />
+                            </yAxis>
+                        </AreaChart>
+                        <AreaChart id="MemoryChart" fx:id="MemoryChart" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
+                            <xAxis>
+                                <NumberAxis side="BOTTOM" forceZeroInRange="false" tickLabelsVisible="false" tickMarkVisible="false" minorTickVisible="false" />
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis side="LEFT" autoRanging="false" minorTickVisible="false" />
+                            </yAxis>
+                        </AreaChart>
+                        <AreaChart  fx:id="NetworkChart" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
+                            <xAxis>
+                                <NumberAxis side="BOTTOM" forceZeroInRange="false" tickLabelsVisible="false" tickMarkVisible="false" minorTickVisible="false" />
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis side="LEFT" autoRanging="false" minorTickVisible="false" />
                             </yAxis>
                         </AreaChart>
                     </items>

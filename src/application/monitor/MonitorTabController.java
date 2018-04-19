@@ -15,18 +15,22 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 import java.util.ResourceBundle;
@@ -37,17 +41,32 @@ public class MonitorTabController extends LogCatTabController implements Initial
     public Button refreshButton;
 
     @FXML
+    private SplitPane verticalPane;
+
+    @FXML
     private ListView<String> appsOnDeviceListView;
 
     @FXML
-    private AreaChart<Number, Number> chart;
+    private AreaChart<Number, Number> CPUChart;
+    @FXML
+    private AreaChart<Number, Number> MemoryChart;
+    @FXML
+    private AreaChart<Number, Number> NetworkChart;
 
-    private XYChart.Series<Number, Number> dataSeries;
-    private Timeline animation;
+    private XYChart.Series<Number, Number> CPUDataSeries;
+    private Timeline CPUAnimation;
+
+    private XYChart.Series<Number, Number> MemoryDataSeries;
+    private Timeline MemoryAnimation;
+
+    private XYChart.Series<Number, Number> NetworkDataSeries;
+    private Timeline NetworkAnimation;
 
     private int sequence = 0;
 
     private Device device = Device.getInstance();
+
+    private MonitorService monitorService = MonitorService.getInstance();
 
     private Random rand = new Random();
 
@@ -55,26 +74,77 @@ public class MonitorTabController extends LogCatTabController implements Initial
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        animation = new Timeline();
-        animation.getKeyFrames().add(new KeyFrame(Duration.millis(500), event -> {
-            dataSeries.getData().add(new XYChart.Data<>(++sequence, rand.nextInt(100)));
-            if(dataSeries.getData().size() > 10) {
-                dataSeries.getData().remove(0);
+        verticalPane.setDividerPositions(0.3333f, 0.6666f, 0.9999f);
+
+        initializeButtons();
+        initializeCPUChart();
+        initializeMemoryChart();
+        initializeNetworkChart();
+
+    }
+
+    private void initializeNetworkChart() {
+        NetworkAnimation = new Timeline();
+        NetworkAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(500), event -> {
+            NetworkDataSeries.getData().add(new XYChart.Data<>(sequence, rand.nextInt(100)));
+            if(NetworkDataSeries.getData().size() > 10) {
+                NetworkDataSeries.getData().remove(0);
             }
         }));
-        animation.setCycleCount(Animation.INDEFINITE);
+        NetworkAnimation.setCycleCount(Animation.INDEFINITE);
 
-        dataSeries = new XYChart.Series<>();
-        dataSeries.setName("");
+        NetworkDataSeries = new XYChart.Series<>();
 
-chart.setLegendVisible(false);
+        NetworkChart.setLegendVisible(false);
 
-        chart.getData().add(dataSeries);
-       // data.add(dataSeries);
+        NetworkChart.getData().add(NetworkDataSeries);
+        NetworkChart.setCreateSymbols(false);
 
+        NetworkChart.lookup(".default-color0.chart-series-area-fill").setStyle("-fx-fill: #85e085;");
+        NetworkChart.setStyle("CHART_COLOR_1: #49d049;");
+    }
 
-        chart.setCreateSymbols(false);
-        //chart.setData(data);
+    private void initializeMemoryChart() {
+        MemoryAnimation = new Timeline();
+        MemoryAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(500), event -> {
+            MemoryDataSeries.getData().add(new XYChart.Data<>(sequence, rand.nextInt(100)));
+            if(MemoryDataSeries.getData().size() > 10) {
+                MemoryDataSeries.getData().remove(0);
+            }
+        }));
+        MemoryAnimation.setCycleCount(Animation.INDEFINITE);
+
+        MemoryDataSeries = new XYChart.Series<>();
+        MemoryDataSeries.setName("");
+
+        MemoryChart.setLegendVisible(false);
+
+        MemoryChart.getData().add(MemoryDataSeries);
+        MemoryChart.setCreateSymbols(false);
+
+        MemoryChart.lookup(".default-color0.chart-series-area-fill").setStyle("-fx-fill: #99d6ff;");
+        MemoryChart.setStyle("CHART_COLOR_1: #33adff;");
+    }
+
+    private void initializeCPUChart() {
+        CPUAnimation = new Timeline();
+        CPUAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(500), event -> {
+            CPUDataSeries.getData().add(new XYChart.Data<>(++sequence, rand.nextInt(100)));
+            if(CPUDataSeries.getData().size() > 10) {
+                CPUDataSeries.getData().remove(0);
+            }
+        }));
+        CPUAnimation.setCycleCount(Animation.INDEFINITE);
+
+        CPUDataSeries = new XYChart.Series<>();
+        CPUDataSeries.setName("");
+
+        CPUChart.setLegendVisible(false);
+
+        CPUChart.getData().add(CPUDataSeries);
+        CPUChart.setCreateSymbols(false);
+
+        CPUDataSeries.getNode().setStyle("-fx-bar-fill: #4CAF50");
     }
 
     @FXML
@@ -86,63 +156,35 @@ chart.setLegendVisible(false);
             stop();
     }
 
-    private void updateCPUPercentage() {
-        Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                Process process = Runtime.getRuntime().exec(ADBUtil.getAdbPath() + " -s " + device.getName() + " shell \"top -d 1 | grep " + device.getSelectedApplication().getName() + "\"");
-
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if(stopFlag)
-                        break;
-
-                    if(line.isEmpty())
-                        continue;
-
-                    System.out.println("line before: " + line);
-                    line = line.trim().replace("   ", " ").replace("  ", " ");
-                    System.out.println("line after: " + line);
-
-                    String CPUString = line.split(" ")[2];
-                    System.out.println("CPU String before: " + CPUString);
-
-                    CPUString = CPUString.replace("%", "").trim();
-                    System.out.println("CPU String after: " + CPUString);
-
-                    CPUPercentage.set(Integer.parseInt(CPUString));
-                    System.out.println("CPU Percentage: " + CPUPercentage);
-                    System.out.println();
-                }
-                return null;
-            }
-        };
-
-        new Thread(task).start();
-    }
-
     public void play() {
         Log.info("Playing...");
 
-        Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() {
-                updateCPUPercentage();
-                return null;
-            }
-        };
-        new Thread(task).start();
+//        Task<Void> task = new Task<Void>() {
+//            @Override
+//            protected Void call() throws IOException {
+//                updateCPUPercentage();
+//                return null;
+//            }
+//        };
+//        task.setOnFailed(event -> Log.error(task.getException().getMessage(), task.getException()));
 
+//        new Thread(task).start();
+        new Thread(monitorService).start();
 
-        animation.play();
+        MemoryAnimation.play();
+        CPUAnimation.play();
+        NetworkAnimation.play();
 
         startButton.setText("Stop");
     }
 
     public void stop() {
         Log.info("Stopping...");
-        animation.pause();
+
+        MemoryAnimation.pause();
+        CPUAnimation.pause();
+        NetworkAnimation.pause();
+
         startButton.setText("Start");
     }
 
