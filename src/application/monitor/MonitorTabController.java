@@ -1,24 +1,26 @@
 package application.monitor;
 
-import application.ADBUtil;
 import application.device.AndroidApplication;
 import application.device.Device;
 import application.logcat.LogCatTabController;
+import application.monitor.model.CPUMonitor;
 import application.utilities.ADB;
 import application.utilities.ApplicationUtils;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyEvent;
@@ -26,11 +28,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 import org.apache.log4j.Logger;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 import java.util.ResourceBundle;
@@ -39,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MonitorTabController extends LogCatTabController implements Initializable, ApplicationUtils {
     private static final Logger Log = Logger.getLogger(MonitorTabController.class.getName());
     public Button refreshButton;
+    public Label cpuLabel;
 
     @FXML
     private SplitPane verticalPane;
@@ -66,11 +65,14 @@ public class MonitorTabController extends LogCatTabController implements Initial
 
     private Device device = Device.getInstance();
 
+    private Thread monitorServiceThread;
     private MonitorService monitorService = MonitorService.getInstance();
+    private CPUMonitor cpuMonitor = CPUMonitor.getInstance();
 
     private Random rand = new Random();
 
     private AtomicInteger CPUPercentage = new AtomicInteger(0);
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -169,7 +171,12 @@ public class MonitorTabController extends LogCatTabController implements Initial
 //        task.setOnFailed(event -> Log.error(task.getException().getMessage(), task.getException()));
 
 //        new Thread(task).start();
-        new Thread(monitorService).start();
+
+
+        monitorServiceThread = new Thread(monitorService);
+        monitorServiceThread.start();
+
+        bindLabels();
 
         MemoryAnimation.play();
         CPUAnimation.play();
@@ -178,8 +185,19 @@ public class MonitorTabController extends LogCatTabController implements Initial
         startButton.setText("Stop");
     }
 
+    private void bindLabels() {
+        cpuLabel.textProperty().bindBidirectional(cpuMonitor.CPUVendorProperty());
+    }
+
     public void stop() {
         Log.info("Stopping...");
+
+        Log.info("GOING TO INTERRUPT!!!!!!");
+        //monitorService.interrupt();
+        monitorServiceThread.interrupt();
+        Log.info("INTERRUPTED!!!!!!!");
+
+        //monitorServiceThread.interrupt();
 
         MemoryAnimation.pause();
         CPUAnimation.pause();

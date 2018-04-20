@@ -26,6 +26,7 @@
             <Button fx:id="refreshButton" onAction="#handleRefreshButtonClicked" prefHeight="28.0" text="Refresh" />
             <Button fx:id="startButton" minWidth="50" onMouseClicked="#handleStartButtonClicked" prefHeight="28.0" text="Start" />
             <Button fx:id="clearButton" onAction="#handleClearButtonClicked" text="Clear" prefHeight="28.0" />
+            <Label fx:id="cpuLabel"/>
         </HBox>
 
         <SplitPane dividerPositions="0.1919191919191919" layoutX="14.0" layoutY="57.0" prefHeight="800">

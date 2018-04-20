@@ -124,8 +124,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
                 }
 
                 if (!string.startsWith("-")) {
-                    string = string.replace("   ", " ");
-                    string = string.replace("  ", " ");
+                    string = string.replaceAll(" {2,3}", " ");
                     String level = string.split(" ")[4];
                     pseudoClassStateChanged(pseudoClassHashMap.get(level), true);
                 }
@@ -386,8 +385,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
             return false;
         }
 
-        s = s.replace("   ", " ");
-        s = s.replace("  ", " ");
+        s = s.replaceAll(" {2,3}", " ");
 
         String[] split = s.split(" ");
         String pid = split[2];

@@ -50,14 +50,19 @@ public class AndroidApplication {
         //System.out.println(6);
     }
 
+    //Getters
     public String getName() {
         return packageName.get();
     }
+
+    public int getUserID() { return userId.get(); }
+
 
     public boolean canOpen() {
         return intents.size() > 0;
     }
 
+    //Properties
     public StringProperty packageNameProperty() {
         return packageName;
     }
