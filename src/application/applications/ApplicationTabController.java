@@ -34,7 +34,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private final String EXTENSION = ".apk";
 
     @FXML
-    private TextField searchField;
+    protected TextField searchField;
     @FXML
     private TextField actionField;
     @FXML
@@ -110,7 +110,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     @FXML
     private ListView<String> appsOnPCListView;
     @FXML
-    private ListView<String> appsOnDeviceListView;
+    protected ListView<String> appsOnDeviceListView;
 
     private ObservableList<String> appsOnPCList;
 
@@ -173,7 +173,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         appsOnPCListView.setItems(appsOnPCList);
     }
 
-    private void updateDeviceListView() {
+    protected void updateDeviceListView() {
         try {
             appsOnDeviceListView.getItems().clear();
             device.getApplicationNames().clear();
@@ -327,7 +327,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     @FXML
-    private void handleSearchFieldAction(KeyEvent event) {
+    protected void handleSearchFieldAction(KeyEvent event) {
         appsOnDeviceListView.setItems(filter(searchField.getText(), device.getApplicationNames()));
     }
 
@@ -339,7 +339,6 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         String mimeType = mimeTypeField.getText();
         String data = dataField.getText();
         int intentType = intentTypeComboBox.getSelectionModel().getSelectedIndex();
-
 
         Task<String> task = new Task<String>() {
             @Override

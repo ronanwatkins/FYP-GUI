@@ -1,16 +1,14 @@
 package application.monitor;
 
+import application.applications.ApplicationTabController;
 import application.device.AndroidApplication;
 import application.device.Device;
-import application.logcat.LogCatTabController;
 import application.monitor.model.CPUMonitor;
 import application.utilities.ADB;
 import application.utilities.ApplicationUtils;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -34,16 +32,19 @@ import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MonitorTabController extends LogCatTabController implements Initializable, ApplicationUtils {
+public class MonitorTabController extends ApplicationTabController implements Initializable, ApplicationUtils {
     private static final Logger Log = Logger.getLogger(MonitorTabController.class.getName());
-    public Button refreshButton;
-    public Label cpuLabel;
+
+    @FXML
+    private Label cpuLabel;
+
+    @FXML
+    private Button startButton;
+    @FXML
+    private Button refreshButton;
 
     @FXML
     private SplitPane verticalPane;
-
-    @FXML
-    private ListView<String> appsOnDeviceListView;
 
     @FXML
     private AreaChart<Number, Number> CPUChart;
@@ -150,7 +151,6 @@ public class MonitorTabController extends LogCatTabController implements Initial
     }
 
     @FXML
-    @Override
     protected void handleStartButtonClicked(MouseEvent event) {
         if(startButton.getText().equals("Start"))
             play();
@@ -194,6 +194,7 @@ public class MonitorTabController extends LogCatTabController implements Initial
 
         Log.info("GOING TO INTERRUPT!!!!!!");
         //monitorService.interrupt();
+        Log.info("is cancelled? " + monitorService.cancel());
         monitorServiceThread.interrupt();
         Log.info("INTERRUPTED!!!!!!!");
 
@@ -228,35 +229,6 @@ public class MonitorTabController extends LogCatTabController implements Initial
         Log.info("");
 
         updateDeviceListView();
-    }
-
-    @Override
-    @FXML
-    protected void handleSearchFieldAction(KeyEvent event) {
-        appsOnDeviceListView.setItems(filter(searchField.getText(), device.getApplicationNames()));
-    }
-
-    private void updateDeviceListView() {
-        try {
-            appsOnDeviceListView.getItems().clear();
-            device.getApplicationNames().clear();
-
-            Task<ObservableList<String>> task = new Task<ObservableList<String>>() {
-                @Override
-                protected ObservableList<String> call() {
-                    return FXCollections.observableArrayList(ADB.listApplications());
-                }
-            };
-            task.setOnSucceeded(event1 -> {
-                Collections.sort(task.getValue());
-                appsOnDeviceListView.setItems(filter(searchField.getText(), task.getValue()));
-                device.setApplicationNames(task.getValue());
-            });
-            task.setOnFailed(event -> Log.error(task.getException().getMessage(), task.getException()));
-            new Thread(task).start();
-        } catch (NullPointerException npe) {
-            Log.error(npe.getMessage(), npe);
-        }
     }
 
     @Override

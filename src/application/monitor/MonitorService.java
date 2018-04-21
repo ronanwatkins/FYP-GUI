@@ -24,7 +24,10 @@ public class MonitorService extends Thread {
     private MemoryMonitor memoryMonitor = MemoryMonitor.getInstance();
 
     private static MonitorService instance = new MonitorService();
+    private ArrayList<Task<Void>> tasks = new ArrayList<>();
     private AtomicBoolean isRunning;
+
+    private String startOfCommand;
 
     public static MonitorService getInstance() {
         return instance;
@@ -35,201 +38,163 @@ public class MonitorService extends Thread {
 
     @Override
     public void run() {
-        //Application CPU usage
-        Task<Void> applicationCPUUsageTask = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                if(device.getSelectedApplication() == null)
-                    return null;
+        startOfCommand = ADBUtil.getAdbPath() + " -s " + device.getName();
 
-                final String newCommand = ADBUtil.getAdbPath() + " -s " + device.getName() + " shell \"top | grep " + device.getSelectedApplication().getName() + "\"";
-                BufferedReader bufferedReader = getResponse(newCommand);
+        runOnce("shell \"cat /proc/meminfo | grep MemTotal:\"",
+                "shell \"cat /proc/cpuinfo | grep Hardware\"",
+                "shell \"cat /proc/cpuinfo | grep 'CPU architecture'\"");
 
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if(line.isEmpty())
-                        continue;
-
-                    final String newLine = line.trim().replaceAll(" {2,}" , " ").split(" ")[2].replace("%", "");
-
-                    try {
-                        Platform.runLater(() -> cpuMonitor.setApplicationCPUPercentageUtilization(Integer.parseInt(newLine)));
-                        System.out.println("Application CPU Percentage Utilization: " + cpuMonitor.getApplicationCPUPercentageUtilization());
-                    } catch (NumberFormatException nfe) {
-                        Log.error(nfe.getMessage(), nfe);
-                    }
-                }
-                return null;
-            }
-        };
-        new Thread(applicationCPUUsageTask).start();
-
-        //System CPU usage
-        Task<Void> systemCPUUsageTask = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                final String newCommand = ADBUtil.getAdbPath() + " -s " + device.getName() + " shell \"top | grep System\"";
-                BufferedReader bufferedReader = getResponse(newCommand);
-
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if(line.isEmpty())
-                        continue;
-
-                    final String newLine = line.trim().split(",")[1].trim().split(" ")[1].replace("%", "");
-
-                    try {
-                        Platform.runLater(() -> cpuMonitor.setSystemCPUPercentageUtilization(Integer.parseInt(newLine)));
-                        System.out.println("System CPU Percentage Utilization:" + cpuMonitor.getSystemCPUPercentageUtilization());
-                        System.out.println("AM I INTERRUPTED??????????" + MonitorService.this.isInterrupted());
-                        System.out.println("AM I ALIVE??????????" + MonitorService.this.isAlive());
-                    } catch (NumberFormatException nfe) {
-                        Log.error(nfe.getMessage(), nfe);
-                    }
-                }
-                return null;
-            }
-        };
-        new Thread(systemCPUUsageTask).start();
-
-        //Number of running threads
-        Task<Void> runningThreadsTask = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                final String newCommand = ADBUtil.getAdbPath() + " -s " + device.getName() + " shell \"top -t\"";
-                BufferedReader bufferedReader = getResponse(newCommand);
-
-                String line;
-                int i=0;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if(line.startsWith("User") || line.isEmpty()) {
-                        continue;
-                    }
-
-                    line = line.trim();
-
-                    if(line.startsWith("PID")) {
-                        final int runningThreads = i;
-                        Platform.runLater(() -> cpuMonitor.setRunningThreads(runningThreads));
-                        i=0;
-                    } else
-                        i++;
-                }
-                return null;
-            }
-        };
-        new Thread(runningThreadsTask).start();
-
-        ArrayList<Task<Void>> tasks = new ArrayList<>();
-        tasks.add(applicationCPUUsageTask);
-        tasks.add(systemCPUUsageTask);
-        tasks.add(runningThreadsTask);
-
-        try {
-            runContinuously();
-        } catch (InterruptedException ie) {
-            for(Task<Void> task : tasks)
-                task.cancel();
-
-            System.out.println("THEY ARE ALL DEAD HAHAHAHAHAHA");
+        if(device.getSelectedApplication() != null) {
+            tasks.add(new CPUUsageTask(startOfCommand + " shell \"top | grep " + device.getSelectedApplication().getName() + "\"", TaskType.APPLICATION_CPU_USAGE));
+            tasks.add(new memoryUsageTask("shell \"cat /proc/meminfo | grep MemFree:\"",
+                    "shell \"dumpsys meminfo " + device.getSelectedApplication().getName() + " | grep TOTAL\""));
+            tasks.add(new updateNetworkStatsTask("shell cat /proc/net/xt_qtaguid/stats | grep " + device.getSelectedApplication().getUserID() + " | grep wlan0"));
         }
+
+        tasks.add(new CPUUsageTask(startOfCommand + " -s " + device.getName() + " shell \"top | grep System\"", TaskType.SYSTEM_CPU_USAGE));
+        tasks.add(new runningThreadsTask(startOfCommand + " -s " + device.getName() + " shell \"top -t\""));
+        tasks.add(new updateCPUStatsTask("shell ps | /system/xbin/busybox wc -l",
+                "shell cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"));
+
+        for(Task<Void> task : tasks)
+            new Thread(task).start();
     }
 
-    private void runOnce() {
-        /////MEMORY/////
-        String command = "shell \"cat /proc/meminfo | grep MemTotal:\"";
-        String totalMemory = getResponseLine(command).replaceAll("[a-zA-Z]" ,"").replace(":", "").trim();
-        try {
-            Platform.runLater(() -> memoryMonitor.setTotalMemory(Integer.parseInt(totalMemory)));
-            System.out.println("Total Memory: " + memoryMonitor.getTotalMemory());
-        } catch (NumberFormatException nfe) {
-            Log.error(nfe.getMessage(), nfe);
-        }
+    public boolean cancel() {
+        boolean result = true;
 
-        /////CPU/////
-        //CPU Vendor name
-        final String newCommand = "shell \"cat /proc/cpuinfo | grep Hardware\"";
+        Log.info("Cancelling all tasks...");
+        for(Task<Void> task : tasks)
+            result = task.cancel();
 
-        Platform.runLater(() -> cpuMonitor.setCPUVendor(getResponseLine(newCommand).replace("Hardware", "").replace(":", "").trim()));
-        System.out.println("Vendor: " + cpuMonitor.getCPUVendor());
+        Log.info("All tasks " + (result ? "cancelled" : "not cancelled"));
 
-        //Number of cores
-        int numberOfCores = 8;
-        command = "shell \"cat /proc/cpuinfo | grep 'CPU architecture'\"";
-        try {
-            numberOfCores = Integer.parseInt(getResponseLine(command).replaceAll("[a-zA-Z]" ,"").replace(":", "").trim());
-        } catch (NumberFormatException nfe) {
-            Log.error(nfe.getMessage(), nfe);
-        }
-        final int newNumberOfCores = numberOfCores;
-        Platform.runLater(() -> cpuMonitor.setNumberOfCores(newNumberOfCores));
-        System.out.println("Number of cores: " + cpuMonitor.getNumberOfCores());
+        return result;
     }
 
-    private void runContinuously() throws InterruptedException {
-        String command;
-
-        //Run continuously
-        while (true) {
+    private void runOnce(String totalMemoryCommand, String CPUVendorCommand, String numberOfCoresCommand) {
+        try {
             /////MEMORY/////
-            //Total system free memory
-            try {
+            String totalMemory = getResponseLine(totalMemoryCommand).replaceAll("[a-zA-Z]", "").replace(":", "").trim();
+            Platform.runLater(() -> memoryMonitor.setTotalMemory(Integer.parseInt(totalMemory)));
 
-                command = "shell \"cat /proc/meminfo | grep MemFree:\"";
-                String freeMemory = getResponseLine(command).replaceAll("[a-zA-Z]", "").replace(":", "").trim();
+            /////CPU/////
+            //CPU Vendor name
+            String CPUVendor = getResponseLine(CPUVendorCommand).replace("Hardware", "").replace(":", "").trim();
+            Platform.runLater(() -> cpuMonitor.setCPUVendor(CPUVendor));
 
-                //Total application memory usage
-                String applicationMemoryUsage = "0";
-                if (device.getSelectedApplication() != null) {
-                    command = "shell \"dumpsys meminfo " + device.getSelectedApplication().getName() + " | grep TOTAL\"";
-                    Log.info("Command: " + command);
-                    String response = getResponseLine(command);
-                    Log.info("response 1: " + response);
-                    response = response != null ? response.trim().replaceAll(" {2,}", " ") : "0 0";
-                    Log.info("Response: " + response);
-                    applicationMemoryUsage = response.split(" ")[1];
+            //Number of cores
+            String numberOfCores = getResponseLine(numberOfCoresCommand).replaceAll("[a-zA-Z]", "").replace(":", "").trim();
+            Platform.runLater(() -> cpuMonitor.setNumberOfCores(Integer.parseInt(numberOfCores)));
+        } catch (NullPointerException | NumberFormatException e) {
+            Log.error(e.getMessage(), e);
+        }
+    }
+
+    private class runningThreadsTask extends Task<Void> {
+        private String command;
+
+        private runningThreadsTask(String command) {
+            this.command = command;
+        }
+
+        @Override
+        protected Void call() throws Exception {
+            BufferedReader bufferedReader = getResponse(command);
+
+            String line;
+            int i = 0;
+            while ((line = bufferedReader.readLine()) != null) {
+                if (isCancelled())
+                    break;
+
+                if (line.startsWith("User") || line.isEmpty()) {
+                    continue;
                 }
-                final String newApplicationMemoryUsage = applicationMemoryUsage;
 
-                /////CPU/////
-                //Number of running processes
-                command = "shell ps | /system/xbin/busybox wc -l";
-                String runningProcesses = getResponseLine(command).trim();
-                Log.info("response: " + runningProcesses);
+                line = line.trim();
 
-                command = "shell cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq";
-                String currentFrequency = getResponseLine(command).trim();
+                if (line.startsWith("PID")) {
+                    final int runningThreads = i;
+                    Platform.runLater(() -> cpuMonitor.setRunningThreads(runningThreads));
+                    i = 0;
+                } else
+                    i++;
+            }
+            return null;
+        }
+    }
 
-                /////NETWORK/////
-                String receivedBytes = "0";
-                String receivedPackets = "0";
-                String sentBytes = "0";
-                String sentPackets = "0";
+    private class CPUUsageTask extends Task<Void> {
+        String command;
+        TaskType taskType;
 
-                if (device.getSelectedApplication() != null) {
-                    command = "shell cat /proc/net/xt_qtaguid/stats | grep " + device.getSelectedApplication().getUserID() + " | grep wlan0";
-                    Log.info("Command: " + command);
-                    String response = ADBUtil.consoleCommand(command).split("\n")[1];//.split("\n")[0];
-                    String[] split = response.split(" ");
-                    Log.info("Response: " + response);
-                    receivedBytes = split[5];
-                    receivedPackets = split[6];
-                    sentBytes = split[7];
-                    sentPackets = split[8];
-                }
+        private CPUUsageTask(String command, TaskType taskType) {
+            this.command = command;
+            this.taskType = taskType;
+        }
+
+        @Override
+        protected Void call() throws Exception {
+            BufferedReader bufferedReader = getResponse(command);
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                if(isCancelled())
+                    break;
+
+                if(line.isEmpty())
+                    continue;
 
                 try {
-                    Platform.runLater(() -> memoryMonitor.setFreeMemory(Integer.parseInt(freeMemory)));
-                    System.out.println("Free Memory: " + memoryMonitor.getTotalMemory());
+                    switch (taskType) {
+                        case APPLICATION_CPU_USAGE:
+                            final String newLine = line.trim().replaceAll(" {2,}" , " ").split(" ")[2].replace("%", "");
+                            Platform.runLater(() -> cpuMonitor.setApplicationCPUPercentageUtilization(Integer.parseInt(newLine)));
+                            System.out.println("Application CPU Percentage Utilization: " + cpuMonitor.getApplicationCPUPercentageUtilization());
+                            break;
+                        case SYSTEM_CPU_USAGE:
+                            String s = line.trim().split(",")[1].trim().split(" ")[1].replace("%", "");
+                            Platform.runLater(() -> cpuMonitor.setSystemCPUPercentageUtilization(Integer.parseInt(s)));
+                            System.out.println("System CPU Percentage Utilization: " + cpuMonitor.getSystemCPUPercentageUtilization());
+                            break;
+                    }
+                } catch (NumberFormatException nfe) {
+                    Log.error(nfe.getMessage(), nfe);
+                }
+            }
+            return null;
+        }
+    }
 
-                    Platform.runLater(() -> memoryMonitor.setApplicationMemoryUsage(Integer.parseInt(newApplicationMemoryUsage)));
-                    System.out.println("Total application memory usage " + memoryMonitor.getApplicationMemoryUsage());
+    private class updateNetworkStatsTask extends Task<Void> {
+        private String command;
 
-                    Platform.runLater(() -> cpuMonitor.setRunningProcesses(Integer.parseInt(runningProcesses)));
-                    System.out.println("Running processes: " + cpuMonitor.getRunningProcesses());
+        private updateNetworkStatsTask(String command) {
+            this.command = command;
+        }
 
-                    Platform.runLater(() -> cpuMonitor.setCurrentFrequency(Integer.parseInt(currentFrequency)));
-                    System.out.println("Current frequency: " + cpuMonitor.getCurrentFrequency());
+        @Override
+        protected Void call() throws Exception {
+            while(true) {
+                if(isCancelled())
+                    return null;
+
+                try {
+                    String receivedBytes = "0";
+                    String receivedPackets = "0";
+                    String sentBytes = "0";
+                    String sentPackets = "0";
+
+                    if (device.getSelectedApplication() != null) {
+                        String response = ADBUtil.consoleCommand(command).split("\n")[1];//.split("\n")[0];
+                        String[] split = response.split(" ");
+
+                        receivedBytes = split[5];
+                        receivedPackets = split[6];
+                        sentBytes = split[7];
+                        sentPackets = split[8];
+                    }
 
                     final String newReceivedBytes = receivedBytes;
                     Platform.runLater(() -> networkMonitor.setApplicationReceivedBytes(Integer.parseInt(newReceivedBytes)));
@@ -247,21 +212,104 @@ public class MonitorService extends Thread {
                     Platform.runLater(() -> networkMonitor.setApplicationSentPackets(Integer.parseInt(newSentPackets)));
                     System.out.println("Sent packets: " + networkMonitor.getApplicationSentPackets());
 
+                } catch (IndexOutOfBoundsException ee) {
+                    Log.error(ee.getMessage(), ee);
+                    return null;
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                    Log.error(ie.getMessage(), ie);
+                    throw new InterruptedException();
+                }
+            }
+        }
+    }
+
+    private class memoryUsageTask extends Task<Void> {
+        private String freeMemoryCommand;
+        private String applicationMemoryUsageCommand;
+
+        private memoryUsageTask(String freeMemoryCommand, String applicationMemoryUsageCommand) {
+            this.freeMemoryCommand = freeMemoryCommand;
+            this.applicationMemoryUsageCommand = applicationMemoryUsageCommand;
+        }
+
+        @Override
+        protected Void call() throws Exception {
+            while (true) {
+                if(isCancelled())
+                    return null;
+
+                String freeMemory = getResponseLine(freeMemoryCommand).replaceAll("[a-zA-Z]", "").replace(":", "").trim();
+
+                //Total application memory usage
+                String applicationMemoryUsage = "0";
+                if (device.getSelectedApplication() != null) {
+                    String response = getResponseLine(applicationMemoryUsageCommand);
+                    Log.info("response 1: " + response);
+                    response = response != null ? response.trim().replaceAll(" {2,}", " ") : "0 0";
+                    Log.info("Response: " + response);
+                    applicationMemoryUsage = response.split(" ")[1];
+                }
+                final String newApplicationMemoryUsage = applicationMemoryUsage;
+
+
+                try {
+                    Platform.runLater(() -> memoryMonitor.setFreeMemory(Integer.parseInt(freeMemory)));
+                    System.out.println("Free Memory: " + memoryMonitor.getTotalMemory());
+
+                    Platform.runLater(() -> memoryMonitor.setApplicationMemoryUsage(Integer.parseInt(newApplicationMemoryUsage)));
+                    System.out.println("Total application memory usage " + memoryMonitor.getApplicationMemoryUsage());
                 } catch (NumberFormatException nfe) {
                     Log.error(nfe.getMessage(), nfe);
                 }
 
-
-
-            } catch (Exception ee) { //Catch any exception that may occur to avoid loop breaking
-                Log.error(ee.getMessage(), ee);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                    Log.error(ie.getMessage(), ie);
+                    throw new InterruptedException();
+                }
             }
+        }
+    }
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ie) {
-                Log.error(ie.getMessage(), ie);
-                throw new InterruptedException();
+    private class updateCPUStatsTask extends Task<Void> {
+        private String runningProcessesCommand;
+        private String currentFrequencyCommand;
+
+        private updateCPUStatsTask(String runningProcessesCommand, String currentFrequencyCommand) {
+            this.runningProcessesCommand = runningProcessesCommand;
+            this.currentFrequencyCommand = currentFrequencyCommand;
+        }
+
+        @Override
+        protected Void call() throws Exception {
+            while (true) {
+                if(isCancelled())
+                    return null;
+
+                String runningProcesses = getResponseLine(runningProcessesCommand).trim();
+                String currentFrequency = getResponseLine(currentFrequencyCommand).trim();
+
+                try {
+                    Platform.runLater(() -> cpuMonitor.setRunningProcesses(Integer.parseInt(runningProcesses)));
+                    System.out.println("Running processes: " + cpuMonitor.getRunningProcesses());
+
+                    Platform.runLater(() -> cpuMonitor.setCurrentFrequency(Integer.parseInt(currentFrequency)));
+                    System.out.println("Current frequency: " + cpuMonitor.getCurrentFrequency());
+                } catch (NumberFormatException nfe) {
+                    Log.error(nfe.getMessage(), nfe);
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                    Log.error(ie.getMessage(), ie);
+                    throw new InterruptedException();
+                }
             }
         }
     }
@@ -272,16 +320,22 @@ public class MonitorService extends Thread {
     }
 
     private String getResponseLine(String input) {
-        Log.info("input: " + input);
+        //Log.info("input: " + input);
+        //Log.info("full command: " + startOfCommand + " " + input);
         String response = "";
 
         try {
-            Process process = Runtime.getRuntime().exec(ADBUtil.getAdbPath() + " -s " + device.getName() + " " + input);
+            Process process = Runtime.getRuntime().exec(startOfCommand + " " + input);
             response = new BufferedReader(new InputStreamReader(process.getInputStream())).readLine();
         } catch (IOException ioe) {
             Log.error(ioe.getMessage(), ioe);
         }
 
         return response;
+    }
+
+    private enum TaskType {
+        APPLICATION_CPU_USAGE,
+        SYSTEM_CPU_USAGE,
     }
 }

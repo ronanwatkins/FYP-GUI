@@ -25,7 +25,6 @@
             <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" prefWidth="320" prefHeight="28.0" promptText="Search" />
             <Button fx:id="refreshButton" onAction="#handleRefreshButtonClicked" prefHeight="28.0" text="Refresh" />
             <Button fx:id="startButton" minWidth="50" onMouseClicked="#handleStartButtonClicked" prefHeight="28.0" text="Start" />
-            <Button fx:id="clearButton" onAction="#handleClearButtonClicked" text="Clear" prefHeight="28.0" />
             <Label fx:id="cpuLabel"/>
         </HBox>
 
