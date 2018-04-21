@@ -60,7 +60,7 @@ public class NetworkMonitor {
         this.systemReceivedPackets.set(systemReceivedPackets);
     }
 
-    public void setsystemSentPackets(int systemSentPackets) {
+    public void setSystemSentPackets(int systemSentPackets) {
         this.systemSentPackets.set(systemSentPackets);
     }
 

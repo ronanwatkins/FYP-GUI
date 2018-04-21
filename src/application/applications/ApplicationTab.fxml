@@ -28,7 +28,7 @@
         </padding>
 
         <HBox spacing="20">
-            <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" prefWidth="200" prefHeight="28" promptText="Search" />
+            <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" prefWidth="320" prefHeight="28" promptText="Search" />
             <Button fx:id="refreshButton" onAction="#handleRefreshButtonClicked" prefHeight="28.0" text="Refresh" />
             <Button fx:id="openButton" onAction="#handleOpenButtonClicked" prefHeight="28.0" prefWidth="46.0" text="Open" />
             <Button fx:id="uninstallButton" onAction="#handleUninstallButtonClicked" prefHeight="28.0" text="Uninstall" />

@@ -36,4 +36,5 @@
 .chart,
 .chart-plot-background {
     -fx-background-color: white;
+    -fx-stroke-dash-array: black;
 }

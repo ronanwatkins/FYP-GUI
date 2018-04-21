@@ -19,10 +19,10 @@
         </padding>
 
         <HBox spacing="20">
-            <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" promptText="Search" prefWidth="320" />
-            <Button fx:id="startButton" onMouseClicked="#handleStartButtonClicked" text="Start" minWidth="50"/>
-            <Button fx:id="clearButton" onAction="#handleClearButtonClicked" text="Clear"/>
-            <ComboBox fx:id="logLevelComboBox" onAction="#handleLogLevelComboBoxPressed" promptText="Log Level">
+            <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" promptText="Search" prefWidth="320" prefHeight="28" />
+            <Button fx:id="startButton" onMouseClicked="#handleStartButtonClicked" text="Start" minWidth="50" prefHeight="28"/>
+            <Button fx:id="clearButton" onAction="#handleClearButtonClicked" text="Clear" prefHeight="28"/>
+            <ComboBox fx:id="logLevelComboBox" onAction="#handleLogLevelComboBoxPressed" promptText="Log Level" prefHeight="28">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
                         <String fx:value="verbose"/>
@@ -35,11 +35,11 @@
                     </FXCollections>
                 </items>
             </ComboBox>
-            <Button fx:id="saveButton" onAction="#handleSaveButtonClicked"/>
-            <ComboBox fx:id="filtersComboBox" onAction="#handleFiltersComboBoxPressed" prefWidth="100"/>
-            <Button fx:id="addFilterButton" onAction="#handleAddFilterButtonClicked"/>
-            <Button fx:id="deleteFilterButton" onAction="#handleDeleteFilterButtonClicked"/>
-            <Button fx:id="editFilterButton" onAction="#handleEditFilterButtonClicked"/>
+            <Button fx:id="saveButton" onAction="#handleSaveButtonClicked" prefHeight="28"/>
+            <ComboBox fx:id="filtersComboBox" onAction="#handleFiltersComboBoxPressed" prefWidth="100" prefHeight="28"/>
+            <Button fx:id="addFilterButton" onAction="#handleAddFilterButtonClicked" prefHeight="28"/>
+            <Button fx:id="deleteFilterButton" onAction="#handleDeleteFilterButtonClicked" prefHeight="28"/>
+            <Button fx:id="editFilterButton" onAction="#handleEditFilterButtonClicked" prefHeight="28"/>
         </HBox>
 
         <ListView fx:id="logCatListView" prefWidth="900" prefHeight="1000"/>

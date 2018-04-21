@@ -34,7 +34,6 @@
 
                 <SplitPane fx:id="verticalPane"  orientation="VERTICAL" >
                     <items>
-                        <Label text="CPU"/>
                         <AreaChart fx:id="CPUChart" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
                             <xAxis>
                                 <NumberAxis side="BOTTOM" forceZeroInRange="false" tickLabelsVisible="false" tickMarkVisible="false" minorTickVisible="false" />

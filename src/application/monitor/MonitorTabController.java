@@ -4,13 +4,16 @@ import application.applications.ApplicationTabController;
 import application.device.AndroidApplication;
 import application.device.Device;
 import application.monitor.model.CPUMonitor;
-import application.utilities.ADB;
+import application.monitor.model.MemoryMonitor;
+import application.monitor.model.NetworkMonitor;
 import application.utilities.ApplicationUtils;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -19,15 +22,12 @@ import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 import org.apache.log4j.Logger;
 
 import java.net.URL;
-import java.util.Collections;
 import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -59,7 +59,8 @@ public class MonitorTabController extends ApplicationTabController implements In
     private XYChart.Series<Number, Number> MemoryDataSeries;
     private Timeline MemoryAnimation;
 
-    private XYChart.Series<Number, Number> NetworkDataSeries;
+    private XYChart.Series<Number, Number> NetworkDataSeriesSent;
+    private XYChart.Series<Number, Number> NetworkDataSeriesReceived;
     private Timeline NetworkAnimation;
 
     private int sequence = 0;
@@ -69,11 +70,21 @@ public class MonitorTabController extends ApplicationTabController implements In
     private Thread monitorServiceThread;
     private MonitorService monitorService = MonitorService.getInstance();
     private CPUMonitor cpuMonitor = CPUMonitor.getInstance();
+    private MemoryMonitor memoryMonitor = MemoryMonitor.getInstance();
+    private NetworkMonitor networkMonitor = NetworkMonitor.getInstance();
 
     private Random rand = new Random();
 
-    private AtomicInteger CPUPercentage = new AtomicInteger(0);
+    private IntegerProperty CPUPercentage = new SimpleIntegerProperty();
+    private IntegerProperty totalMemory = new SimpleIntegerProperty();
+    private IntegerProperty freeMemory = new SimpleIntegerProperty();
+    private LongProperty sentBytes = new SimpleLongProperty();
+    private LongProperty receivedBytes = new SimpleLongProperty();
 
+    private long lastSentKiloBits;
+    private long lastReceivedKiloBits;
+
+    private double usedMemoryPercentage;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -88,20 +99,46 @@ public class MonitorTabController extends ApplicationTabController implements In
 
     private void initializeNetworkChart() {
         NetworkAnimation = new Timeline();
-        NetworkAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(500), event -> {
-            NetworkDataSeries.getData().add(new XYChart.Data<>(sequence, rand.nextInt(100)));
-            if(NetworkDataSeries.getData().size() > 10) {
-                NetworkDataSeries.getData().remove(0);
+        NetworkAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
+
+            System.out.println("Sent bytes: " + sentBytes.get());
+            long sentKiloBits = (sentBytes.get() * 8)/1000;
+            double sentDifference = (double)((sentKiloBits - lastSentKiloBits)/1000);
+            System.out.println("Sent kilo bits: " + sentKiloBits);
+            System.out.printf("sent difference: %.1f", sentDifference);
+            lastSentKiloBits = sentKiloBits;
+
+            System.out.println("\nReceived bytes: " + receivedBytes.get());
+            long receivedKiloBits = (receivedBytes.get() * 8)/1000;
+            double receivedDifference = (double)((receivedKiloBits - lastReceivedKiloBits)/1000);
+            System.out.println("Received kilo bits: " + receivedKiloBits);
+            System.out.printf("received difference: %.1f", receivedDifference);
+            lastReceivedKiloBits = receivedKiloBits;
+
+            System.out.println("\n");
+
+            NetworkDataSeriesSent.getData().add(new XYChart.Data<>(sequence, sentDifference));
+            if(NetworkDataSeriesSent.getData().size() > 10) {
+                NetworkDataSeriesSent.getData().remove(0);
+            }
+
+            NetworkDataSeriesReceived.getData().add(new XYChart.Data<>(sequence, receivedDifference));
+            if(NetworkDataSeriesReceived.getData().size() > 10) {
+                NetworkDataSeriesReceived.getData().remove(0);
             }
         }));
         NetworkAnimation.setCycleCount(Animation.INDEFINITE);
 
-        NetworkDataSeries = new XYChart.Series<>();
+        NetworkDataSeriesSent = new XYChart.Series<>();
+        NetworkDataSeriesReceived = new XYChart.Series<>();
 
         NetworkChart.setLegendVisible(false);
 
-        NetworkChart.getData().add(NetworkDataSeries);
+        NetworkChart.getData().add(NetworkDataSeriesSent);
+        NetworkChart.getData().add(NetworkDataSeriesReceived);
         NetworkChart.setCreateSymbols(false);
+
+        NetworkDataSeriesSent.nodeProperty().get().setStyle("-fx-stroke-width: 1px;");
 
         NetworkChart.lookup(".default-color0.chart-series-area-fill").setStyle("-fx-fill: #85e085;");
         NetworkChart.setStyle("CHART_COLOR_1: #49d049;");
@@ -109,8 +146,14 @@ public class MonitorTabController extends ApplicationTabController implements In
 
     private void initializeMemoryChart() {
         MemoryAnimation = new Timeline();
-        MemoryAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(500), event -> {
-            MemoryDataSeries.getData().add(new XYChart.Data<>(sequence, rand.nextInt(100)));
+        MemoryAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
+
+            double usedMemory = totalMemory.get() - freeMemory.get();
+            double totalMem = totalMemory.get();
+
+            usedMemoryPercentage = ((usedMemory / totalMem)*100);
+
+            MemoryDataSeries.getData().add(new XYChart.Data<>(sequence, usedMemoryPercentage));
             if(MemoryDataSeries.getData().size() > 10) {
                 MemoryDataSeries.getData().remove(0);
             }
@@ -131,8 +174,8 @@ public class MonitorTabController extends ApplicationTabController implements In
 
     private void initializeCPUChart() {
         CPUAnimation = new Timeline();
-        CPUAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(500), event -> {
-            CPUDataSeries.getData().add(new XYChart.Data<>(++sequence, rand.nextInt(100)));
+        CPUAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
+            CPUDataSeries.getData().add(new XYChart.Data<>(++sequence, CPUPercentage.get()));
             if(CPUDataSeries.getData().size() > 10) {
                 CPUDataSeries.getData().remove(0);
             }
@@ -161,18 +204,6 @@ public class MonitorTabController extends ApplicationTabController implements In
     public void play() {
         Log.info("Playing...");
 
-//        Task<Void> task = new Task<Void>() {
-//            @Override
-//            protected Void call() throws IOException {
-//                updateCPUPercentage();
-//                return null;
-//            }
-//        };
-//        task.setOnFailed(event -> Log.error(task.getException().getMessage(), task.getException()));
-
-//        new Thread(task).start();
-
-
         monitorServiceThread = new Thread(monitorService);
         monitorServiceThread.start();
 
@@ -186,6 +217,13 @@ public class MonitorTabController extends ApplicationTabController implements In
     }
 
     private void bindLabels() {
+        CPUPercentage.bindBidirectional(cpuMonitor.systemCPUPercentageUtilizationProperty());
+        freeMemory.bindBidirectional(memoryMonitor.freeMemoryProperty());
+        totalMemory.bindBidirectional(memoryMonitor.totalMemoryProperty());
+
+        sentBytes.bindBidirectional(networkMonitor.systemSentBytesProperty());
+        receivedBytes.bindBidirectional(networkMonitor.systemReceivedBytesProperty());
+
         cpuLabel.textProperty().bindBidirectional(cpuMonitor.CPUVendorProperty());
     }
 
