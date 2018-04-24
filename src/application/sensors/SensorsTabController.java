@@ -8,6 +8,7 @@ import application.sensors.model.GyroscopeModel;
 import application.sensors.model.MagneticFieldModel;
 import application.sensors.server.HTTPServer;
 import application.utilities.ThreeDimensionalVector;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -402,24 +403,35 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
             loggerLabel.setTextFill(Color.GREEN);
             loggerLabel.setText("Connect your app to " + server.getIPAddress() + " Port " + server.getPORT());
 
-            Task<Void> task = new Task<Void>() {
+            Task<Boolean> task = new Task<Boolean>() {
                 @Override
-                protected Void call() throws Exception {
-                    server.listen();
-                    while (true) {
-                        if (isConnected) {
-                            Platform.runLater(() -> {
-                                loggerLabel.setText("Connected");
-                                listenBox.setVisible(true);
-                                listenBox.setSelected(true);
-                            });
-                            break;
-                        }
-                    }
-                    return null;
+                protected Boolean call() throws Exception {
+                    return server.listen();
+//                    while (true) {
+//                        if (isConnected) {
+//                            Platform.runLater(() -> {
+//                                loggerLabel.setText("Connected");
+//                                listenBox.setVisible(true);
+//                                listenBox.setSelected(true);
+//                            });
+//                            break;
+//                        }
+//                    }
+//                    return null;
                 }
             };
-            new Thread(task).start();
+
+            task.setOnSucceeded(event1 -> {
+                isConnected = true;
+                listenBox.setVisible(true);
+                listenBox.setSelected(true);
+
+                loggerLabel.setTextFill(Color.GREEN);
+                loggerLabel.setText("Connected");
+
+                System.out.println("Connected bai");
+
+            });
 
             task.setOnFailed(event1 -> {
                 loggerLabel.setTextFill(Color.RED);
@@ -427,6 +439,10 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
                 listenBox.setVisible(false);
                 listenBox.setSelected(false);
             });
+
+            new Thread(task).start();
+
+
 
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -442,6 +458,9 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         humiditySlider.valueProperty().addListener((observable, oldvalue, newvalue) -> sendSensorValues(HUMIDITY, newvalue.doubleValue()));
         yawSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
+
+            System.out.println("yaw moved");
+
             yawValue = newvalue.intValue();
             sensorValues.put(YAW, (double) yawValue);
 
@@ -452,6 +471,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
         pitchSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
+            System.out.println("pitch moved");
             pitchBeforeValue = pitchValue = newvalue.intValue();
 
             if(playbackThread != null) {
@@ -474,6 +494,8 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
         rollSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
+            System.out.println("roll moved");
+
             if(!isPhoneDragged)
                 rollBeforeValue = rollValue = newvalue.intValue() * -1;
             else
@@ -526,8 +548,8 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
     private void initializePhone() {
         PhongMaterial redMaterial = new PhongMaterial();
-        redMaterial.setSpecularColor(Color.LIGHTGREEN);
-        redMaterial.setDiffuseColor(Color.GREEN);
+        redMaterial.setSpecularColor(Color.ORANGE);
+        redMaterial.setDiffuseColor(Color.RED);
 
         phone.setMaterial(redMaterial);
         phone.getTransforms().addAll(rotateZ, rotateY, rotateX);
@@ -535,7 +557,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
         HBox phonePaneHBox = new HBox();
 
-        phone.setLayoutX(175);
+        phone.setLayoutX(240);
         phone.setLayoutY(100);
         phonePaneHBox.getChildren().add(phone);
 

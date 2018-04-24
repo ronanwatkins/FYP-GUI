@@ -36,5 +36,32 @@
 .chart,
 .chart-plot-background {
     -fx-background-color: white;
-    -fx-stroke-dash-array: black;
+}
+
+.chart {
+    -fx-stroke-dash-array: 0.1 5.0;
+}
+
+.heading {
+    -fx-font-size: 10px;
+    -fx-text-fill: #808080;
+}
+
+.body {
+    -fx-font-size: 14px;
+    -fx-text-fill: black;
+}
+
+.big {
+    -fx-font-size: 16px;
+    -fx-text-fill: black;
+}
+
+.small {
+    -fx-font-size: 9px;
+    -fx-text-fill: #808080;
+}
+
+.split-pane > .split-pane-divider {
+    -fx-padding: 0 0.1em 0 0.1em;
 }

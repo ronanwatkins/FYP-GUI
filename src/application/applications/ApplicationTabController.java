@@ -94,13 +94,13 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     @FXML
     private Button installButton;
     @FXML
-    private Button openButton;
+    protected Button openButton;
     @FXML
     private Button uninstallButton;
     @FXML
     private Button copyButton;
     @FXML
-    private Button closeButton;
+    protected Button closeButton;
     @FXML
     private Button sendIntentButton;
 
@@ -253,7 +253,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     @FXML
-    private void handleOpenButtonClicked(ActionEvent event) {
+    protected void handleOpenButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
         resultTextArea.setText(openApp(appName));
     }
@@ -285,7 +285,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     @FXML
-    private void handleCloseButtonClicked(ActionEvent event) {
+    protected void handleCloseButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
         resultTextArea.setText(closeApp(appName));
     }
@@ -306,7 +306,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     @FXML
-    private void handleRefreshButtonClicked(ActionEvent event) {
+    protected void handleRefreshButtonClicked(ActionEvent event) {
         Log.info("");
 
         applicationTableView.getItems().clear();

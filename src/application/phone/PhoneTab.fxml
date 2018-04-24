@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.phone.PhoneTabController">
-    <GridPane gridLinesVisible="true" hgap="60.0" prefHeight="333.0" prefWidth="604.0" AnchorPane.bottomAnchor="167.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="96.0" AnchorPane.topAnchor="0.0">
+    <GridPane gridLinesVisible="false" hgap="60.0" prefHeight="333.0" prefWidth="604.0" AnchorPane.bottomAnchor="167.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="96.0" AnchorPane.topAnchor="0.0">
         <padding>
             <Insets bottom="20" left="20" right="20" top="20" />
         </padding>

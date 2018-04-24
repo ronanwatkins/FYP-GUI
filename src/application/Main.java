@@ -47,6 +47,8 @@ public class Main extends Application {
         stage.setMaxWidth(primaryScreenBounds.getWidth());
         stage.setMaxHeight(primaryScreenBounds.getHeight());
 
+       // stage.setOnShowing(event -> System.out.println("SHOWING"));
+
         stage.show();
 
         ADBUtil.initADB();

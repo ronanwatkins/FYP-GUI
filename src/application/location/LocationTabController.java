@@ -72,6 +72,8 @@ public class LocationTabController extends AutomationTabController implements In
 
     private ObservableList<KML> commandsList;
 
+    private final int INTERVAL = 3000;
+
     //private File KMLFile;
     String fileName;
 
@@ -284,7 +286,7 @@ public class LocationTabController extends AutomationTabController implements In
                             KMLTableView.getSelectionModel().select(newIndex);
                         });
                         try {
-                            Thread.sleep(2000);
+                            Thread.sleep(INTERVAL);
                         } catch (InterruptedException ie) {
                             return null;
                         }

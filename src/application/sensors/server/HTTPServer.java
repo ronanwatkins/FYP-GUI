@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class HTTPServer {
     private SensorsTabController controller;
     private ServerSocket serverSocket;
+
     private final int PORT = 1338;
     private String IPAddress;
 
@@ -35,88 +36,98 @@ public class HTTPServer {
         IPAddress = getIPAddress();
         System.out.println(IPAddress);
 
-        try {
+        //try {
             serverSocket.bind(new InetSocketAddress(IPAddress, PORT));
-        } catch (BindException be) {
+        //} catch (BindException be) {
             //NOOP
-        }
+       // }
 
         initialYawValue = 0;
     }
 
-    public void listen() throws IOException {
-        Task<Void> task = new Task<Void>() {
+    private class ReceiveJSONTask extends Task<Void> {
+        private Socket socket;
+        private boolean isFirstRun = true;
 
-            @Override public Void call() {
-                try {
-                    while(true) {
-                        Socket socket = serverSocket.accept();
-                        if(!isConnected) {
-                            isConnected = true;
-                            controller.setConnected(isConnected);
-//                            Platform.runLater(() -> {
-//
-//                            });
+        private ReceiveJSONTask(Socket socket) {
+            this.socket = socket;
+        }
+
+        @Override
+        protected Void call() {
+            try {
+                while(true) {
+                    if(isFirstRun)
+                        isFirstRun = false;
+                    else
+                        socket = serverSocket.accept();
+
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                    String request;
+                    String clString = "";
+
+                    String method = null;
+                    do {
+                        request = bufferedReader.readLine();
+                        if(method == null) {
+                            if(request.startsWith("POST")) {
+                                method = "POST";
+                            }
                         }
 
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                        String request;
-                        String clString = "";
-
-                        String method = null;
-                        do {
-                            request = bufferedReader.readLine();
-                            if(method == null) {
-                                if(request.startsWith("POST")) {
-                                    method = "POST";
-                                }
-                            }
-
-                            if (request.toLowerCase().startsWith("content-length")) {
-                                clString = request;
-                            }
-                            if (request.isEmpty()) break;
-                        } while (true);
-
-                        if(method !=  null) {
-                            int contentLength = Integer.parseInt(clString.substring(16));
-                            final char[] contents = new char[contentLength + 2];
-                            bufferedReader.read(contents);
-                            String POSTContent = URLDecoder.decode(new String(contents), "UTF-8");
-
-                            displayAndSendData(POSTContent.substring(POSTContent.indexOf('{')));
+                        if (request.toLowerCase().startsWith("content-length")) {
+                            clString = request;
                         }
+                        if (request.isEmpty()) break;
+                    } while (true);
 
-                        OutputStream os = socket.getOutputStream();
-                        PrintWriter pw = new PrintWriter(os);
-                        pw.print("HTTP/1.1 200 OK\n" +
-                                "Content-Type: text/html\n" +
-                                "Connection: keep-alive\n\n" +
-                                "OK");
+                    if(method !=  null) {
+                        int contentLength = Integer.parseInt(clString.substring(16));
+                        final char[] contents = new char[contentLength + 2];
+                        bufferedReader.read(contents);
+                        String POSTContent = URLDecoder.decode(new String(contents), "UTF-8");
 
-                        pw.close();
-                        os.close();
-                        socket.close();
+                        displayAndSendData(POSTContent.substring(POSTContent.indexOf('{')));
                     }
 
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
-                } catch (JSONException jse) {
-                    jse.printStackTrace();
-                }
-                return null;
-            }
-        };
+                    OutputStream os = socket.getOutputStream();
+                    PrintWriter pw = new PrintWriter(os);
+                    pw.print("HTTP/1.1 200 OK\n" +
+                            "Content-Type: text/html\n" +
+                            "Connection: keep-alive\n\n" +
+                            "OK");
 
-        new Thread(task).start();
+                    pw.close();
+                    os.close();
+                    socket.close();
+                }
+
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+
+            return null;
+        }
+    }
+
+    public boolean listen() throws IOException {
+        final Socket socket;
+
+        socket = serverSocket.accept();
+
+        Thread thread = new Thread(new ReceiveJSONTask(socket));
+        thread.setDaemon(true);
+        thread.start();
+
+        return true;
     }
 
     public void setIsListening(boolean flag) {
         isListening.set(flag);
     }
 
-    private synchronized void displayAndSendData(String jsonString) throws JSONException {
+    private void displayAndSendData(String jsonString) {
         if(isListening.get()) {
             try {
                 JSONObject jsonObject = new JSONObject(jsonString);

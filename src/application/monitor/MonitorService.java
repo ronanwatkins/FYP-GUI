@@ -29,6 +29,10 @@ public class MonitorService extends Thread {
 
     private String startOfCommand;
 
+    private boolean isFirstRun = true;
+    private long lastSentKiloBytes;
+    private long lastReceivedKiloBytes;
+
     public static MonitorService getInstance() {
         return instance;
     }
@@ -42,12 +46,13 @@ public class MonitorService extends Thread {
 
         runOnce("shell \"cat /proc/meminfo | grep MemTotal:\"",
                 "shell \"cat /proc/cpuinfo | grep Hardware\"",
+                "shell cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies",
                 "shell \"cat /proc/cpuinfo | grep 'CPU architecture'\"");
 
         if(device.getSelectedApplication() != null) {
             tasks.add(new CPUUsageTask(startOfCommand + " shell \"top | grep " + device.getSelectedApplication().getName() + "\"", TaskType.APPLICATION));
             tasks.add(new memoryUsageTask("shell \"dumpsys meminfo " + device.getSelectedApplication().getName() + " | grep TOTAL\"", TaskType.APPLICATION));
-            tasks.add(new updateNetworkStatsTask("shell cat /proc/net/xt_qtaguid/stats | grep " + device.getSelectedApplication().getUserID() + " | grep wlan0", TaskType.APPLICATION));
+         //   tasks.add(new updateNetworkStatsTask("shell cat /proc/net/xt_qtaguid/stats | grep " + device.getSelectedApplication().getUserID() + " | grep wlan0", TaskType.APPLICATION));
         }
 
         tasks.add(new memoryUsageTask("shell \"cat /proc/meminfo | grep -E 'MemFree:|Buffers:|Cached:|SwapFree:'\"", TaskType.SYSTEM));
@@ -66,23 +71,36 @@ public class MonitorService extends Thread {
 
         Log.info("Cancelling all tasks...");
         for(Task<Void> task : tasks)
-            result = task.cancel();
+            if(!task.cancel()) result = false;
 
         Log.info("All tasks " + (result ? "cancelled" : "not cancelled"));
 
         return result;
     }
 
-    private void runOnce(String totalMemoryCommand, String CPUVendorCommand, String numberOfCoresCommand) {
+    private void runOnce(String totalMemoryCommand, String CPUVendorCommand, String rangeOfFrequenciesCommand, String numberOfCoresCommand) {
         try {
             /////MEMORY/////
             String totalMemory = getResponseLine(totalMemoryCommand).replaceAll("[a-zA-Z]", "").replace(":", "").trim();
             Platform.runLater(() -> memoryMonitor.setTotalMemory(Integer.parseInt(totalMemory)));
 
             /////CPU/////
+            //CPU Range of frequencies
+            String[] availableFrequencies = getResponseLine(rangeOfFrequenciesCommand).trim().split(" ");
+            final double minimumFrequency = Double.parseDouble(availableFrequencies[0])/1000000;
+            final double maximumFrequency = Double.parseDouble(availableFrequencies[availableFrequencies.length-1])/1000000;
+            final double rangeOfFrequencies = maximumFrequency - minimumFrequency;
+            Platform.runLater(() -> {
+                cpuMonitor.setMinimumFrequency(minimumFrequency);
+                cpuMonitor.setMaximumFrequency(maximumFrequency);
+                cpuMonitor.setRangeOfFrequencies(rangeOfFrequencies);
+            });
+
             //CPU Vendor name
             String CPUVendor = getResponseLine(CPUVendorCommand).replace("Hardware", "").replace(":", "").trim();
-            Platform.runLater(() -> cpuMonitor.setCPUVendor(CPUVendor));
+            CPUVendor = CPUVendor.split(",")[0].replace(",", "").trim();
+            final String newCPUVendor = CPUVendor;
+            Platform.runLater(() -> cpuMonitor.setCPUVendor(newCPUVendor));
 
             //Number of cores
             String numberOfCores = getResponseLine(numberOfCoresCommand).replaceAll("[a-zA-Z]", "").replace(":", "").trim();
@@ -127,8 +145,8 @@ public class MonitorService extends Thread {
     }
 
     private class CPUUsageTask extends Task<Void> {
-        String command;
-        TaskType taskType;
+        protected String command;
+        protected TaskType taskType;
 
         private CPUUsageTask(String command, TaskType taskType) {
             this.command = command;
@@ -168,11 +186,10 @@ public class MonitorService extends Thread {
         }
     }
 
-    private class updateNetworkStatsTask extends Task<Void> {
-        private String command;
-        private TaskType taskType;
+    private class updateNetworkStatsTask extends CPUUsageTask {
 
         private updateNetworkStatsTask(String command, TaskType taskType) {
+            super(command, taskType);
             this.command = command;
             this.taskType = taskType;
         }
@@ -212,42 +229,49 @@ public class MonitorService extends Thread {
                             break;
                     }
 
-                    //System.out.println("response: " + response);
+                    long sentKiloBytes = ((Long.parseLong(sentBytes)))/1000;
+                    double sentKBps = (isFirstRun ? 0 : ((double)((sentKiloBytes - lastSentKiloBytes)/1000)));
+                    lastSentKiloBytes = sentKiloBytes;
 
+                    long receivedKiloBytes = (Long.parseLong(receivedBytes))/1000;
+                    double receivedKBps = (isFirstRun ? 0 : ((double)((receivedKiloBytes - lastReceivedKiloBytes)/1000)));
+                    lastReceivedKiloBytes = receivedKiloBytes;
 
+                    if(isFirstRun)
+                        isFirstRun = false;
 
+                    System.out.println(taskType + " receivedKBps: " + receivedKBps);
+                    System.out.println(taskType + " lastReceivedKiloBytes: " + lastReceivedKiloBytes);
+                    System.out.println(taskType + " sentKBps: " + sentKBps);
+                    System.out.println(taskType + " lastSentKiloBytes: " + lastSentKiloBytes);
 
                     final String newReceivedBytes = receivedBytes;
-                    //System.out.println(taskType + " Received bytes: " + newReceivedBytes);
-
                     final String newReceivedPackets = receivedPackets;
-                    //System.out.println(taskType + " Received packets: " + newReceivedPackets);
-
                     final String newSentBytes = sentBytes;
-                    //System.out.println(taskType + " Sent bytes: " + newSentBytes);
-
                     final String newSentPackets = sentPackets;
-                    //System.out.println(taskType + " Sent packets: " + newSentPackets);
-                    
+
                     switch (taskType) {
                         case APPLICATION:
                             Platform.runLater(() -> {
                                 networkMonitor.setApplicationReceivedBytes(Integer.parseInt(newReceivedBytes));
                                 networkMonitor.setApplicationReceivedPackets(Integer.parseInt(newReceivedPackets));
+                                networkMonitor.setApplicationReceivedKBps(receivedKBps);
                                 networkMonitor.setApplicationSentBytes(Integer.parseInt(newSentBytes));
                                 networkMonitor.setApplicationSentPackets(Integer.parseInt(newSentPackets));
+                                networkMonitor.setApplicationSentKBps(sentKBps);
                             });
                             break;
                         case SYSTEM:
                             Platform.runLater(() -> {
                                 networkMonitor.setSystemReceivedBytes(Integer.parseInt(newReceivedBytes));
                                 networkMonitor.setSystemReceivedPackets(Integer.parseInt(newReceivedPackets));
+                                networkMonitor.setSystemReceivedKBps(receivedKBps);
                                 networkMonitor.setSystemSentBytes(Integer.parseInt(newSentBytes));
                                 networkMonitor.setSystemSentPackets(Integer.parseInt(newSentPackets));
+                                networkMonitor.setSystemSentKBps(sentKBps);
                             });
                             break;
                     }
-                    
 
                 } catch (Exception ee) {
                     Log.error(ee.getMessage(), ee);
@@ -264,11 +288,10 @@ public class MonitorService extends Thread {
         }
     }
 
-    private class memoryUsageTask extends Task<Void> {
-        private String command;
-        private TaskType taskType;
+    private class memoryUsageTask extends CPUUsageTask {
 
         private memoryUsageTask(String command, TaskType taskType) {
+            super(command, taskType);
             this.command = command;
             this.taskType = taskType;
         }
@@ -346,7 +369,7 @@ public class MonitorService extends Thread {
                 try {
                     Platform.runLater(() -> {
                         cpuMonitor.setRunningProcesses(Integer.parseInt(runningProcesses));
-                        cpuMonitor.setCurrentFrequency(Integer.parseInt(currentFrequency));
+                        cpuMonitor.setCurrentFrequency(Double.parseDouble(currentFrequency)/1000000);
                     });
                 } catch (NumberFormatException nfe) {
                     Log.error(nfe.getMessage(), nfe);

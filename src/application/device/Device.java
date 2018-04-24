@@ -69,6 +69,7 @@ public class Device {
         resolutionY = Double.parseDouble(size[1]);
 
         response = consoleCommand("shell \"getevent -il | grep ABS_MT_POSITION\"").split("\n");
+        //Log.info("response: " + response);
 
         for(String res : response) {
             if(res.contains("ABS_MT_POSITION_X")) {

@@ -1,9 +1,6 @@
 package application.monitor.model;
 
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 
 public class CPUMonitor {
     private static CPUMonitor instance = new CPUMonitor();
@@ -12,10 +9,10 @@ public class CPUMonitor {
     private IntegerProperty systemCPUPercentageUtilization;
     private IntegerProperty runningProcesses;
     private IntegerProperty runningThreads;
-    private IntegerProperty rangeOfFrequencies;
-    private IntegerProperty minimumFrequency;
-    private IntegerProperty maximumFrequency;
-    private IntegerProperty currentFrequency;
+    private DoubleProperty rangeOfFrequencies;
+    private DoubleProperty minimumFrequency;
+    private DoubleProperty maximumFrequency;
+    private DoubleProperty currentFrequency;
     private IntegerProperty numberOfCores;
     private StringProperty CPUVendor;
 
@@ -28,10 +25,10 @@ public class CPUMonitor {
         if(systemCPUPercentageUtilization == null) systemCPUPercentageUtilization = new SimpleIntegerProperty();
         if(runningProcesses == null) runningProcesses = new SimpleIntegerProperty();
         if(runningThreads == null) runningThreads = new SimpleIntegerProperty();
-        if(rangeOfFrequencies == null) rangeOfFrequencies = new SimpleIntegerProperty();
-        if(currentFrequency == null) currentFrequency = new SimpleIntegerProperty();
-        if(minimumFrequency == null) minimumFrequency = new SimpleIntegerProperty();
-        if(maximumFrequency == null) maximumFrequency = new SimpleIntegerProperty();
+        if(rangeOfFrequencies == null) rangeOfFrequencies = new SimpleDoubleProperty();
+        if(currentFrequency == null) currentFrequency = new SimpleDoubleProperty();
+        if(minimumFrequency == null) minimumFrequency = new SimpleDoubleProperty();
+        if(maximumFrequency == null) maximumFrequency = new SimpleDoubleProperty();
         if(numberOfCores == null) numberOfCores = new SimpleIntegerProperty();
         if(CPUVendor == null) CPUVendor = new SimpleStringProperty();
     }
@@ -53,15 +50,15 @@ public class CPUMonitor {
         this.runningThreads.set(runningThreads);
     }
 
-    public void setRangeOfFrequencies(int rangeOfFrequencies) {
+    public void setRangeOfFrequencies(double rangeOfFrequencies) {
         this.rangeOfFrequencies.set(rangeOfFrequencies);
     }
 
-    public void setMaximumFrequency(int maximumFrequency) {
+    public void setMaximumFrequency(double maximumFrequency) {
         this.maximumFrequency.setValue(maximumFrequency);
     }
 
-    public void setMinimumFrequency(int minimumFrequency) {
+    public void setMinimumFrequency(double minimumFrequency) {
         this.minimumFrequency.setValue(minimumFrequency);
     }
 
@@ -73,7 +70,7 @@ public class CPUMonitor {
         this.numberOfCores.setValue(numberOfCores);
     }
 
-    public void setCurrentFrequency(int currentFrequency) {
+    public void setCurrentFrequency(double currentFrequency) {
         this.currentFrequency.setValue(currentFrequency);
     }
 
@@ -86,15 +83,15 @@ public class CPUMonitor {
         return systemCPUPercentageUtilization.get();
     }
 
-    public int getRangeOfFrequencies() {
+    public double getRangeOfFrequencies() {
         return rangeOfFrequencies.get();
     }
 
-    public int getMaximumFrequency() {
+    public double getMaximumFrequency() {
         return maximumFrequency.get();
     }
 
-    public int getMinimumFrequency() {
+    public double getMinimumFrequency() {
         return minimumFrequency.get();
     }
 
@@ -114,7 +111,7 @@ public class CPUMonitor {
         return numberOfCores.get();
     }
 
-    public int getCurrentFrequency() {
+    public double getCurrentFrequency() {
         return currentFrequency.get();
     }
 
@@ -123,7 +120,7 @@ public class CPUMonitor {
         return CPUVendor;
     }
 
-    public IntegerProperty rangeOfFrequenciesProperty() {
+    public DoubleProperty rangeOfFrequenciesProperty() {
         return rangeOfFrequencies;
     }
 
@@ -139,15 +136,15 @@ public class CPUMonitor {
         return runningThreads;
     }
 
-    public IntegerProperty currentFrequencyProperty() {
+    public DoubleProperty currentFrequencyProperty() {
         return currentFrequency;
     }
 
-    public IntegerProperty maximumFrequencyProperty() {
+    public DoubleProperty maximumFrequencyProperty() {
         return maximumFrequency;
     }
 
-    public IntegerProperty minimumFrequencyProperty() {
+    public DoubleProperty minimumFrequencyProperty() {
         return minimumFrequency;
     }
 
