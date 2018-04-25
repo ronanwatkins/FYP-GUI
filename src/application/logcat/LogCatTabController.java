@@ -3,6 +3,7 @@ package application.logcat;
 import application.ADBUtil;
 import application.Main;
 import application.applications.ApplicationTabController;
+import application.monitor.MonitorTabController;
 import application.utilities.ApplicationUtils;
 import application.device.Device;
 import application.utilities.Showable;
@@ -74,6 +75,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     private LogLevel logLevel;
 
     private ApplicationTabController applicationTabController;
+    //private MonitorTabController monitorTabController;
 
     private int selectedFilterIndex;
 
@@ -95,7 +97,8 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         if(resources != null) {
             searchField.setText(resources.toString());
             getLogs(true);
-        }
+        } else
+            searchField.setText("");
 
         filter = new Filter(searchField.getText(), logLevel);
 
@@ -130,6 +133,34 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
                 }
             }
         });
+    }
+
+    @Override
+    public Initializable newWindow(Initializable controller, Object object) throws IOException {
+        applicationTabController = (ApplicationTabController) controller;
+
+        FXMLLoader fxmlLoader = new FXMLLoader(LogCatTabController.class.getClass().getResource("/application/logcat/LogCatTab.fxml"));
+        Bundle bundle = new Bundle(applicationTabController.getApplicationName());
+
+        Log.info(applicationTabController.getApplicationName());
+
+        fxmlLoader.setResources(bundle);
+
+        Parent root = fxmlLoader.load();
+
+        LogCatTabController logCatTabController = fxmlLoader.getController();
+        root.getStylesheets().add("/application/global.css");
+
+        Stage stage = new Stage();
+        stage.initModality(Modality.NONE);
+        stage.setTitle("LogCat");
+        stage.setScene(new Scene(root,950, 600));
+
+        stage.setOnCloseRequest(event -> applicationTabController.setLogCatTabController(null));
+
+        stage.show();
+
+        return logCatTabController;
     }
 
     public void setSearchField(String text) {
@@ -197,31 +228,6 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
             getLogs(true);
         else
             getLogs(false);
-    }
-
-    @Override
-    public Initializable newWindow(Initializable controller, Object object) throws IOException {
-        if(controller instanceof ApplicationTabController) {
-            applicationTabController = (ApplicationTabController) controller;
-        }
-
-        FXMLLoader fxmlLoader = new FXMLLoader(applicationTabController.getClass().getResource("/application/logcat/LogCatTab.fxml"));
-        Bundle bundle = new Bundle(applicationTabController.getApplicationName());
-        fxmlLoader.setResources(bundle);
-
-        Parent root = fxmlLoader.load();
-        LogCatTabController logCatTabController = fxmlLoader.getController();
-        root.getStylesheets().add("/application/global.css");
-
-        Stage stage = new Stage();
-        stage.initModality(Modality.NONE);
-        stage.setTitle("LogCat");
-        stage.setScene(new Scene(root,950, 600));
-        stage.setOnCloseRequest(event -> applicationTabController.setLogCatTabController(null));
-
-        stage.show();
-
-        return logCatTabController;
     }
 
     @FXML

@@ -15,15 +15,19 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 import org.apache.log4j.Logger;
 
+import java.awt.*;
 import java.net.URL;
 import java.util.Random;
 import java.util.ResourceBundle;
@@ -32,7 +36,12 @@ public class MonitorTabController extends ApplicationTabController implements In
     private static final Logger Log = Logger.getLogger(MonitorTabController.class.getName());
 
     @FXML
-    private Label CPUUtilizationPercentageLabel;
+    private NumberAxis xAxis;
+
+    @FXML
+    private Label CPUSystemUtilizationPercentageLabel;
+    @FXML
+    private Label CPUApplicationUtilizationPercentageLabel;
     @FXML
     private Label CPUProcessesLabel;
     @FXML
@@ -60,12 +69,14 @@ public class MonitorTabController extends ApplicationTabController implements In
     @FXML
     private Label memoryTotalLabel;
     @FXML
-    private Label NetworkSentKBps;
+    private Label NetworkSystemSentKBps;
     @FXML
-    private Label NetworkReceivedKBps;
+    private Label NetworkSystemReceivedKBps;
+    @FXML
+    private Label NetworkApplicationSentKBps;
+    @FXML
+    private Label NetworkApplicationReceivedKBps;
 
-    @FXML
-    private Button startButton;
     @FXML
     private Button refreshButton;
 
@@ -79,17 +90,25 @@ public class MonitorTabController extends ApplicationTabController implements In
     @FXML
     private AreaChart<Number, Number> NetworkChart;
 
-    private XYChart.Series<Number, Number> CPUDataSeries;
+    private XYChart.Series<Number, Number> CPUDataSeriesSystem;
+    private XYChart.Series<Number, Number> CPUDataSeriesApplication;
     private Timeline CPUAnimation;
 
-    private XYChart.Series<Number, Number> MemoryDataSeries;
+    private XYChart.Series<Number, Number> MemoryDataSeriesSystem;
+    private XYChart.Series<Number, Number> MemoryDataSeriesApplication;
     private Timeline MemoryAnimation;
 
-    private XYChart.Series<Number, Number> NetworkDataSeriesSent;
-    private XYChart.Series<Number, Number> NetworkDataSeriesReceived;
+    private XYChart.Series<Number, Number> NetworkDataSeriesSentSystem;
+    private XYChart.Series<Number, Number> NetworkDataSeriesReceivedSystem;
+    private XYChart.Series<Number, Number> NetworkDataSeriesSentApplication;
+    private XYChart.Series<Number, Number> NetworkDataSeriesReceivedApplication;
     private Timeline NetworkAnimation;
 
-    private int sequence = 0;
+    private Timeline sequenceMangementAnimation;
+
+    private final int Y_AXIS_LENGTH = 60;
+    private double sequence = 0;
+    private boolean showChartForSystem = true;
 
     private Device device = Device.getInstance();
 
@@ -99,15 +118,19 @@ public class MonitorTabController extends ApplicationTabController implements In
     private MemoryMonitor memoryMonitor = MemoryMonitor.getInstance();
     private NetworkMonitor networkMonitor = NetworkMonitor.getInstance();
 
-    private IntegerProperty CPUPercentage = new SimpleIntegerProperty();
     private IntegerProperty totalMemory = new SimpleIntegerProperty();
     private IntegerProperty freeMemory = new SimpleIntegerProperty();
-    private DoubleProperty receivedKBps = new SimpleDoubleProperty();
-    private DoubleProperty sentKBps = new SimpleDoubleProperty();
+
+    private DoubleProperty receivedKBpsSystem = new SimpleDoubleProperty();
+    private DoubleProperty sentKBpsSystem = new SimpleDoubleProperty();
+    private DoubleProperty receivedKBpsApplication = new SimpleDoubleProperty();
+    private DoubleProperty sentKBpsApplication = new SimpleDoubleProperty();
 
     private DoubleProperty usedMemoryPercentageSystem = new SimpleDoubleProperty();
     private DoubleProperty usedMemoryGBSystem = new SimpleDoubleProperty();
     private DoubleProperty usedMemoryPercentageApplication = new SimpleDoubleProperty();
+
+    private static MonitorTabController monitorTabController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -117,53 +140,69 @@ public class MonitorTabController extends ApplicationTabController implements In
         initializeCPUChart();
         initializeMemoryChart();
         initializeNetworkChart();
+        runSequenceManagementAnimation();
 
+        monitorTabController = this;
     }
 
-    private Random random = new Random();
+    public static MonitorTabController getController() {
+        return monitorTabController;
+    }
+
+    private void runSequenceManagementAnimation() {
+        sequenceMangementAnimation = new Timeline();
+        sequenceMangementAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
+            sequence++;
+
+            if (sequence > Y_AXIS_LENGTH) {
+                CPUDataSeriesSystem.getData().remove(0);
+                CPUDataSeriesApplication.getData().remove(0);
+
+                NetworkDataSeriesReceivedApplication.getData().remove(0);
+                NetworkDataSeriesReceivedSystem.getData().remove(0);
+                NetworkDataSeriesSentApplication.getData().remove(0);
+                NetworkDataSeriesSentSystem.getData().remove(0);
+
+                MemoryDataSeriesSystem.getData().remove(0);
+                MemoryDataSeriesApplication.getData().remove(0);
+            }
+
+            if (sequence > Y_AXIS_LENGTH - 1) {
+                xAxis.setLowerBound(xAxis.getLowerBound() + 1);
+                xAxis.setUpperBound(xAxis.getUpperBound() + 1);
+            }
+
+        }));
+        sequenceMangementAnimation.setCycleCount(Animation.INDEFINITE);
+    }
 
     private void initializeNetworkChart() {
         NetworkAnimation = new Timeline();
         NetworkAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
-            NetworkDataSeriesSent.getData().add(new XYChart.Data<>(sequence, receivedKBps.get()));
-//            NetworkDataSeriesSent.getData().add(new XYChart.Data<>(sequence, random.nextInt(100)));
-            if(NetworkDataSeriesSent.getData().size() > 10) {
-                NetworkDataSeriesSent.getData().remove(0);
-            }
-
-            NetworkDataSeriesReceived.getData().add(new XYChart.Data<>(sequence, receivedKBps.get()));
-//            NetworkDataSeriesReceived.getData().add(new XYChart.Data<>(sequence, random.nextInt(100)));
-            if(NetworkDataSeriesReceived.getData().size() > 10) {
-                NetworkDataSeriesReceived.getData().remove(0);
-            }
+            NetworkDataSeriesSentSystem.getData().add(new XYChart.Data<>(sequence, sentKBpsSystem.get()));
+            NetworkDataSeriesReceivedSystem.getData().add(new XYChart.Data<>(sequence, receivedKBpsSystem.get()));
+            NetworkDataSeriesSentApplication.getData().add(new XYChart.Data<>(sequence, sentKBpsApplication.get()));
+            NetworkDataSeriesReceivedApplication.getData().add(new XYChart.Data<>(sequence, receivedKBpsApplication.get()));
         }));
         NetworkAnimation.setCycleCount(Animation.INDEFINITE);
 
-        NetworkDataSeriesSent = new XYChart.Series<>();
-        NetworkDataSeriesReceived = new XYChart.Series<>();
+        NetworkDataSeriesReceivedSystem = new XYChart.Series<>();
+        NetworkChart.getData().add(NetworkDataSeriesReceivedSystem);
+        styleSeries(NetworkDataSeriesReceivedSystem, Color.BLUE, false);
 
-        NetworkChart.setLegendVisible(false);
+        NetworkDataSeriesSentSystem = new XYChart.Series<>();
+        NetworkChart.getData().add(NetworkDataSeriesSentSystem);
+        Color lightBlue = Color.BLUE.brighter().brighter().brighter().brighter().brighter();
+        styleSeries(NetworkDataSeriesSentSystem, lightBlue, true);
 
-        //NetworkChart.getData().add(NetworkDataSeriesSent);
-        NetworkChart.getData().add(NetworkDataSeriesReceived);
-        NetworkChart.setCreateSymbols(false);
+        NetworkDataSeriesReceivedApplication = new XYChart.Series<>();
+        NetworkChart.getData().add(NetworkDataSeriesReceivedApplication);
+        styleSeries(NetworkDataSeriesReceivedApplication, Color.RED, false);
 
-
-        //NetworkChart.setStyle("-fx-stroke-width: 10; -fx-stroke: #00FF00; -fx-stroke-dash-array: 2 12 12 2;");
-        //NetworkDataSeriesSent.nodeProperty().get().setStyle("-fx-stroke-dash-array: 2d;");
-        //NetworkDataSeriesSent.nodeProperty().get().setStyle("-fx-stroke: #80ff80;");
-
-        //NetworkDataSeriesReceived.nodeProperty().get().setStyle("-fx-stroke: #00cc00;");
-
-//        NetworkChart.lookup(".default-color0.chart-series-area-fill").setStyle("-fx-stroke: #00cc00;");
-//        NetworkChart.lookup(".default-color1.chart-series-area-fill").setStyle("-fx-stroke: red;");
-      //  NetworkChart.setStyle("-fx-stroke-dash-array: 0.1 5.0;");
-//        NetworkChart.setStyle("CHART_COLOR_2: black;");
-//        NetworkChart.setStyle("CHART_COLOR_3: brown;");
-//        NetworkChart.setStyle("CHART_COLOR_0: red;");
-
-        NetworkChart.lookup(".default-color0.chart-series-area-fill").setStyle("-fx-fill: #80ff80;");
-        NetworkChart.setStyle("CHART_COLOR_1: #1aff1a;");
+        NetworkDataSeriesSentApplication = new XYChart.Series<>();
+        NetworkChart.getData().add(NetworkDataSeriesSentApplication);
+        Color lightRed = Color.RED.brighter().brighter().brighter().brighter().brighter();
+        styleSeries(NetworkDataSeriesSentApplication, lightRed, true);
     }
 
     private void initializeMemoryChart() {
@@ -178,52 +217,35 @@ public class MonitorTabController extends ApplicationTabController implements In
             usedMemoryPercentageSystem.setValue((usedMemory / totalMem)*100);
             usedMemoryPercentageApplication.setValue((memoryMonitor.applicationMemoryUsageProperty().getValue() / totalMem)*100);
 
-            MemoryDataSeries.getData().add(new XYChart.Data<>(sequence, usedMemoryPercentageSystem.get()));
-            if(MemoryDataSeries.getData().size() > 10) {
-                MemoryDataSeries.getData().remove(0);
-            }
+            MemoryDataSeriesSystem.getData().add(new XYChart.Data<>(sequence, usedMemoryPercentageSystem.get()));
+            MemoryDataSeriesApplication.getData().add(new XYChart.Data<>(sequence, usedMemoryPercentageApplication.get()));
         }));
         MemoryAnimation.setCycleCount(Animation.INDEFINITE);
 
-        MemoryDataSeries = new XYChart.Series<>();
-        MemoryDataSeries.setName("");
+        MemoryDataSeriesSystem = new XYChart.Series<>();
+        MemoryChart.getData().add(MemoryDataSeriesSystem);
+        styleSeries(MemoryDataSeriesSystem, Color.BLUE, false);
 
-        MemoryChart.setLegendVisible(false);
-
-        MemoryChart.getData().add(MemoryDataSeries);
-        MemoryChart.setCreateSymbols(false);
-
-        MemoryChart.lookup(".default-color0.chart-series-area-fill").setStyle("-fx-fill: #99d6ff;");
-        MemoryChart.setStyle("CHART_COLOR_1: #33adff;");
+        MemoryDataSeriesApplication = new XYChart.Series<>();
+        MemoryChart.getData().add(MemoryDataSeriesApplication);
+        styleSeries(MemoryDataSeriesApplication, Color.MAGENTA, false);
     }
 
     private void initializeCPUChart() {
         CPUAnimation = new Timeline();
         CPUAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
-            CPUDataSeries.getData().add(new XYChart.Data<>(++sequence, CPUPercentage.get()));
-            if(CPUDataSeries.getData().size() > 10) {
-                CPUDataSeries.getData().remove(0);
-            }
+            CPUDataSeriesSystem.getData().add(new XYChart.Data<>(sequence, cpuMonitor.systemCPUPercentageUtilizationProperty().get()));
+            CPUDataSeriesApplication.getData().add(new XYChart.Data<>(sequence, cpuMonitor.applicationCPUPercentageUtilizationProperty().get()));
         }));
         CPUAnimation.setCycleCount(Animation.INDEFINITE);
 
-        CPUDataSeries = new XYChart.Series<>();
-        CPUDataSeries.setName("");
+        CPUDataSeriesSystem = new XYChart.Series<>();
+        CPUChart.getData().add(CPUDataSeriesSystem);
+        styleSeries(CPUDataSeriesSystem, Color.RED, false);
 
-        CPUChart.setLegendVisible(false);
-
-        CPUChart.getData().add(CPUDataSeries);
-        CPUChart.setCreateSymbols(false);
-
-        CPUDataSeries.getNode().setStyle("-fx-bar-fill: #4CAF50");
-    }
-
-    @FXML
-    protected void handleStartButtonClicked(ActionEvent event) {
-        if(startButton.getText().equals("Start"))
-            play();
-        else
-            stop();
+        CPUDataSeriesApplication = new XYChart.Series<>();
+        CPUChart.getData().add(CPUDataSeriesApplication);
+        styleSeries(CPUDataSeriesApplication, Color.ORANGE.darker().darker().darker(), false);
     }
 
     public void play() {
@@ -234,26 +256,27 @@ public class MonitorTabController extends ApplicationTabController implements In
 
         bindLabels();
 
+        sequenceMangementAnimation.play();
         MemoryAnimation.play();
         CPUAnimation.play();
         NetworkAnimation.play();
-
-        startButton.setText("Stop");
     }
 
     private void bindLabels() {
-        CPUPercentage.bind(cpuMonitor.systemCPUPercentageUtilizationProperty());
+        sentKBpsSystem.bind(networkMonitor.systemSentKBpsProperty());
+        receivedKBpsSystem.bind(networkMonitor.systemReceivedKBpsProperty());
+        sentKBpsApplication.bind(networkMonitor.applicationSentKBpsProperty());
+        receivedKBpsApplication.bind(networkMonitor.applicationReceivedKBpsProperty());
+
         freeMemory.bind(memoryMonitor.freeMemoryProperty());
         totalMemory.bind(memoryMonitor.totalMemoryProperty());
 
-        sentKBps.bind(networkMonitor.systemSentKBpsProperty());
-        receivedKBps.bind(networkMonitor.systemReceivedKBpsProperty());
-
         CPUVendorLabel.textProperty().bind(cpuMonitor.CPUVendorProperty());
         CPUMaximumSpeedLabel.textProperty().bind(cpuMonitor.maximumFrequencyProperty().asString("%.1f").concat(" GHz"));
-        CPUUtilizationPercentageLabel.textProperty().bind(cpuMonitor.systemCPUPercentageUtilizationProperty().asString().concat("%"));
+        CPUSystemUtilizationPercentageLabel.textProperty().bind(cpuMonitor.systemCPUPercentageUtilizationProperty().asString().concat("%"));
+        CPUApplicationUtilizationPercentageLabel.textProperty().bind(cpuMonitor.applicationCPUPercentageUtilizationProperty().asString().concat("%"));
         CPUProcessesLabel.textProperty().bind(cpuMonitor.runningProcessesProperty().asString());
-        //CPUUptimeLabel.textProperty().bind(cpuMonitor.systemUptimeProperty());
+        CPUUptimeLabel.textProperty().bind(cpuMonitor.upTimeProperty());
         CPUSpeedLabel.textProperty().bind(cpuMonitor.currentFrequencyProperty().asString("%.1f").concat(" GHz"));
         CPUThreadsLabel.textProperty().bind(cpuMonitor.runningThreadsProperty().asString());
         CPUVendorLabel.textProperty().bind(cpuMonitor.CPUVendorProperty());
@@ -266,32 +289,33 @@ public class MonitorTabController extends ApplicationTabController implements In
         memoryAvailableLabel.textProperty().bind(memoryMonitor.freeMemoryProperty().divide(1000000.0).asString("%.1f").concat(" GB"));
         memoryTotalLabel.textProperty().bind(memoryMonitor.totalMemoryProperty().divide(1000000.0).asString("%.1f").concat(" GB"));
 
-        NetworkSentKBps.textProperty().bind(sentKBps.asString("%.1f").concat(" KBps"));
-        NetworkReceivedKBps.textProperty().bind(receivedKBps.asString("%.1f").concat(" KBps"));
+        NetworkSystemSentKBps.textProperty().bind(sentKBpsSystem.asString("%.1f").concat(" KBps"));
+        NetworkSystemReceivedKBps.textProperty().bind(receivedKBpsSystem.asString("%.1f").concat(" KBps"));
+
+        NetworkApplicationSentKBps.textProperty().bind(networkMonitor.applicationSentKBpsProperty().asString("%.1f").concat(" KBps"));
+        NetworkApplicationReceivedKBps.textProperty().bind(networkMonitor.applicationReceivedKBpsProperty().asString("%.1f").concat(" KBps"));
     }
 
-    public void stop() {
-        Log.info("Stopping...");
+    private void styleSeries(XYChart.Series<Number, Number> series, Color color, boolean dashed) {
+        String dash = "";
+        if(dashed)
+            dash = " -fx-stroke-dash-array: 2 4;";
 
-        Log.info("GOING TO INTERRUPT!!!!!!");
-        //monitorService.interrupt();
-        Log.info("is cancelled? " + monitorService.cancel());
-        monitorServiceThread.interrupt();
-        Log.info("INTERRUPTED!!!!!!!");
+        Node fill = series.getNode().lookup(".chart-series-area-fill");
+        Node line = series.getNode().lookup(".chart-series-area-line");
 
-        //monitorServiceThread.interrupt();
+        String rgb = String.format("%d, %d, %d", (color.getRed() * 255), (color.getGreen() * 255), (color.getBlue() * 255));
 
-        MemoryAnimation.pause();
-        CPUAnimation.pause();
-        NetworkAnimation.pause();
-
-        startButton.setText("Start");
+        fill.setStyle("-fx-fill: rgba(" + rgb + ", 0.15);");
+        line.setStyle("-fx-stroke: rgba(" + rgb + ", 1.0);" + dash);
     }
 
     @FXML
     private void handleAppsListViewClicked(MouseEvent mouseEvent) {
         Log.info("is cancelled? " + monitorService.cancel());
-        monitorServiceThread.interrupt();
+
+        if(monitorServiceThread != null)
+            monitorServiceThread.interrupt();
 
         String applicationName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
 
@@ -315,13 +339,12 @@ public class MonitorTabController extends ApplicationTabController implements In
     @Override
     @FXML
     protected void handleRefreshButtonClicked(ActionEvent event) {
-        Log.info("");
-
         updateDeviceListView();
     }
 
     @Override
     public void initializeButtons() {
         setImage("/resources/refresh.png", null, refreshButton);
+        setImage("/resources/pop_out.png", null, showLogCatButton);
     }
 }

@@ -15,6 +15,7 @@ public class CPUMonitor {
     private DoubleProperty currentFrequency;
     private IntegerProperty numberOfCores;
     private StringProperty CPUVendor;
+    private StringProperty upTime;
 
     public static CPUMonitor getInstance() {
         return instance;
@@ -31,6 +32,7 @@ public class CPUMonitor {
         if(maximumFrequency == null) maximumFrequency = new SimpleDoubleProperty();
         if(numberOfCores == null) numberOfCores = new SimpleIntegerProperty();
         if(CPUVendor == null) CPUVendor = new SimpleStringProperty();
+        if(upTime == null) upTime = new SimpleStringProperty();
     }
 
     //Setters
@@ -72,6 +74,10 @@ public class CPUMonitor {
 
     public void setCurrentFrequency(double currentFrequency) {
         this.currentFrequency.setValue(currentFrequency);
+    }
+
+    public void setUpTime(String upTime) {
+        this.upTime.set(upTime);
     }
 
     //Getters
@@ -154,5 +160,9 @@ public class CPUMonitor {
 
     public IntegerProperty systemCPUPercentageUtilizationProperty() {
         return systemCPUPercentageUtilization;
+    }
+
+    public StringProperty upTimeProperty() {
+        return upTime;
     }
 }

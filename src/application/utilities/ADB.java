@@ -2,13 +2,11 @@ package application.utilities;
 
 import application.ADBUtil;
 import application.device.Device;
-import application.device.DeviceIntent;
 import application.device.Intent;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import org.apache.log4j.Logger;
 
 import java.util.*;
@@ -276,34 +274,23 @@ public class ADB {
         return result;
     }
 
-    public static Set<DeviceIntent> getIntents(String app) {
-        //if(device.isEmulator()) return getEmulatorIntents(app);
-        //else
-            return getDeviceIntents(app);
-    }
-
-    private static Set<DeviceIntent> getDeviceIntents(String app) {
-  //      Log.info("Command: " + "shell dumpsys package " + app);
-        Set<DeviceIntent> set = new TreeSet<>();
+    public static Set<Intent> getIntents(String app) {
+        Set<Intent> set = new TreeSet<>();
 
         String packageDetails = ADBUtil.consoleCommand("shell dumpsys package " + app);
-       // System.out.println("PACKAGE DETAILS: " + packageDetails);
 
         if(packageDetails.contains(ACTIVITY_RESOLVER_TABLE))
-            set.addAll(deviceIntents(packageDetails, Intent.ACTIVITY));
+            set.addAll(intents(packageDetails, Intent.ACTIVITY));
         if(packageDetails.contains(RECEIVER_RESOLVER_TABLE))
-            set.addAll(deviceIntents(packageDetails, Intent.BROADCAST));
+            set.addAll(intents(packageDetails, Intent.BROADCAST));
         if(packageDetails.contains(SERVICE_RESOLVER_TABLE))
-            set.addAll(deviceIntents(packageDetails, Intent.SERVICE));
-
-     //   for(DeviceIntent deviceIntent : set)
-       //     System.out.println("FINISHED: " + deviceIntent);
+            set.addAll(intents(packageDetails, Intent.SERVICE));
 
         return set;
     }
 
-    private static Set<DeviceIntent> deviceIntents(String input, int intentType) {
-        Set<DeviceIntent> intents = new TreeSet<>();
+    private static Set<Intent> intents(String input, int intentType) {
+        Set<Intent> intents = new TreeSet<>();
 
         String data = "";
         int position = 0;
@@ -371,9 +358,9 @@ public class ADB {
         return intents;
     }
 
-    private static Set<DeviceIntent> intents(String input, int intentType, boolean isMimeTyped) {
+    private static Set<Intent> intents(String input, int intentType, boolean isMimeTyped) {
         boolean canBreak = false;
-        Set<DeviceIntent> intents = new TreeSet<>();
+        Set<Intent> intents = new TreeSet<>();
 
         String[] split = input.trim().split("\\n {6}(?! )");
         for (String string : split) {
@@ -393,54 +380,15 @@ public class ADB {
                 }
 
                 String component = temp[i].trim().split(" ")[1].trim();
-            //    System.out.println("COMPONENT: " + component);
                 components.add(new SimpleStringProperty(component));
             }
 
             if(canBreak)
                 break;
 
-            intents.add(new DeviceIntent(action, components, intentType, isMimeTyped));
+            intents.add(new Intent(action, components, intentType, isMimeTyped));
         }
-
-     //   for(DeviceIntent intent : intents)
-     //       System.out.println("RESULT:\t" + intent);
 
         return intents;
-    }
-
-    private static Set<Intent> getEmulatorIntents(String app) {
-        String[] temp = ADBUtil.consoleCommand("shell \"dumpsys package " + app + " | egrep ' filter|Action:|Category:|Type:' | sed '/[a-zA-Z0-9] com/i \\nDIVISIONHERE' | sed 's/^[ \\t]*//;s/[ \\t]*$//'\"").split("DIVISIONHERE");
-
-        Set<Intent> set = new TreeSet<>();
-        for(String s : temp) {
-            if(s.isEmpty())
-                continue;
-
-            System.out.println(s);
-
-            ArrayList<StringProperty> actions = new ArrayList<>();
-            ArrayList<StringProperty> categories = new ArrayList<>();
-            ArrayList<StringProperty> types = new ArrayList<>();
-            String[] temp2 = s.trim().split("\n");
-
-            StringProperty component = new SimpleStringProperty(temp2[0].split(" ")[1]);
-
-            for(String temp3 : temp2) {
-                if(temp3.startsWith("Action: ")) {
-                    actions.add(new SimpleStringProperty(temp3.replace("Action: ", "").replace("\"", "")));
-                }
-                else if(temp3.startsWith("Category: ")) {
-                    categories.add(new SimpleStringProperty(temp3.replace("Category: ", "").replace("\"", "")));
-                }
-                else if(temp3.startsWith("Type: ")) {
-                    types.add(new SimpleStringProperty(temp3.replace("Type: ", "").replace("\"", "")));
-                }
-            }
-
-            set.add(new Intent(component, actions, categories, types, true));
-        }
-
-        return set;
     }
 }

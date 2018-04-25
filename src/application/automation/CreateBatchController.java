@@ -4,7 +4,6 @@ import application.ADBUtil;
 import application.utilities.ApplicationUtils;
 import application.utilities.XMLUtil;
 import application.automation.extras.GetTouchPositionController;
-import application.automation.extras.RecordInputsController;
 import application.utilities.Showable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -484,16 +483,6 @@ public class CreateBatchController implements Initializable, Showable<Automation
             GetTouchPositionController getTouchPositionController = new GetTouchPositionController();
             getTouchPositionController.newWindow(this, null);
             //GetTouchPositionController.newWindow(this);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void handleRecordInputsClicked(ActionEvent event) {
-        try {
-            RecordInputsController recordInputsController = new RecordInputsController();
-            recordInputsController.newWindow(this, null);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -2,7 +2,10 @@ package application.device;
 
 import application.ADBUtil;
 import application.TelnetServer;
+import application.applications.ApplicationTabController;
 import application.automation.extras.GetTouchPositionController;
+import application.monitor.MonitorTabController;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -48,6 +51,13 @@ public class Device {
 
     public void setName(String name) {
         this.name = name;
+
+        Log.info("playinh................");
+        Platform.runLater(() -> {
+            ApplicationTabController.getApplicationTabController().updateDeviceListView();
+            MonitorTabController.getController().play();
+            MonitorTabController.getController().updateDeviceListView();
+        });
 
         if(name.contains("emulator")) {
             isEmulator = true;

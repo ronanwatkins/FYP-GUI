@@ -1,5 +1,6 @@
 package application;
 
+import application.monitor.MonitorTabController;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -46,8 +47,6 @@ public class Main extends Application {
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
         stage.setMaxWidth(primaryScreenBounds.getWidth());
         stage.setMaxHeight(primaryScreenBounds.getHeight());
-
-       // stage.setOnShowing(event -> System.out.println("SHOWING"));
 
         stage.show();
 

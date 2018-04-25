@@ -1,24 +1,24 @@
 package application.monitor.model;
 
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 
 public class NetworkMonitor {
     private static NetworkMonitor instance = new NetworkMonitor();
 
-    private IntegerProperty applicationReceivedBytes;
-    private IntegerProperty applicationSentBytes;
-    private IntegerProperty applicationReceivedPackets;
-    private IntegerProperty applicationSentPackets;
+    private LongProperty applicationReceivedBytes;
+    private LongProperty applicationSentBytes;
+    private LongProperty applicationReceivedPackets;
+    private LongProperty applicationSentPackets;
     private DoubleProperty applicationSentKBps;
     private DoubleProperty applicationReceivedKBps;
 
-    private IntegerProperty systemReceivedBytes;
-    private IntegerProperty systemSentBytes;
-    private IntegerProperty systemReceivedPackets;
-    private IntegerProperty systemSentPackets;
+    private LongProperty systemReceivedBytes;
+    private LongProperty systemSentBytes;
+    private LongProperty systemReceivedPackets;
+    private LongProperty systemSentPackets;
     private DoubleProperty systemSentKBps;
     private DoubleProperty systemReceivedKBps;
 
@@ -27,35 +27,35 @@ public class NetworkMonitor {
     }
 
     private NetworkMonitor() {
-        if(applicationReceivedBytes == null) applicationReceivedBytes = new SimpleIntegerProperty();
-        if(applicationSentBytes == null) applicationSentBytes = new SimpleIntegerProperty();
-        if(applicationReceivedPackets == null) applicationReceivedPackets = new SimpleIntegerProperty();
-        if(applicationSentPackets == null) applicationSentPackets = new SimpleIntegerProperty();
+        if(applicationReceivedBytes == null) applicationReceivedBytes = new SimpleLongProperty();
+        if(applicationSentBytes == null) applicationSentBytes = new SimpleLongProperty();
+        if(applicationReceivedPackets == null) applicationReceivedPackets = new SimpleLongProperty();
+        if(applicationSentPackets == null) applicationSentPackets = new SimpleLongProperty();
         if(applicationSentKBps == null) applicationSentKBps = new SimpleDoubleProperty();
         if(applicationReceivedKBps == null) applicationReceivedKBps = new SimpleDoubleProperty();
 
-        if(systemReceivedBytes == null) systemReceivedBytes = new SimpleIntegerProperty();
-        if(systemSentBytes == null) systemSentBytes = new SimpleIntegerProperty();
-        if(systemReceivedPackets == null) systemReceivedPackets = new SimpleIntegerProperty();
-        if(systemSentPackets == null) systemSentPackets = new SimpleIntegerProperty();
+        if(systemReceivedBytes == null) systemReceivedBytes = new SimpleLongProperty();
+        if(systemSentBytes == null) systemSentBytes = new SimpleLongProperty();
+        if(systemReceivedPackets == null) systemReceivedPackets = new SimpleLongProperty();
+        if(systemSentPackets == null) systemSentPackets = new SimpleLongProperty();
         if(systemSentKBps == null) systemSentKBps = new SimpleDoubleProperty();
         if(systemReceivedKBps == null) systemReceivedKBps = new SimpleDoubleProperty();
     }
 
     //Setters
-    public void setApplicationReceivedBytes(int applicationReceivedBytes) {
+    public void setApplicationReceivedBytes(long applicationReceivedBytes) {
         this.applicationReceivedBytes.set(applicationReceivedBytes);
     }
 
-    public void setApplicationSentBytes(int applicationSentBytes) {
+    public void setApplicationSentBytes(long applicationSentBytes) {
         this.applicationSentBytes.set(applicationSentBytes);
     }
 
-    public void setApplicationReceivedPackets(int applicationReceivedPackets) {
+    public void setApplicationReceivedPackets(long applicationReceivedPackets) {
         this.applicationReceivedPackets.set(applicationReceivedPackets);
     }
 
-    public void setApplicationSentPackets(int applicationSentPackets) {
+    public void setApplicationSentPackets(long applicationSentPackets) {
         this.applicationSentPackets.set(applicationSentPackets);
     }
 
@@ -67,19 +67,19 @@ public class NetworkMonitor {
         this.applicationReceivedKBps.set(applicationReceivedKBps);
     }
 
-    public void setSystemReceivedBytes(int systemReceivedBytes) {
+    public void setSystemReceivedBytes(long systemReceivedBytes) {
         this.systemReceivedBytes.set(systemReceivedBytes);
     }
 
-    public void setSystemSentBytes(int systemSentBytes) {
+    public void setSystemSentBytes(long systemSentBytes) {
         this.systemSentBytes.set(systemSentBytes);
     }
 
-    public void setSystemReceivedPackets(int systemReceivedPackets) {
+    public void setSystemReceivedPackets(long systemReceivedPackets) {
         this.systemReceivedPackets.set(systemReceivedPackets);
     }
 
-    public void setSystemSentPackets(int systemSentPackets) {
+    public void setSystemSentPackets(long systemSentPackets) {
         this.systemSentPackets.set(systemSentPackets);
     }
 
@@ -92,19 +92,19 @@ public class NetworkMonitor {
     }
 
     //Getters
-    public int getApplicationReceivedBytes() {
+    public long getApplicationReceivedBytes() {
         return applicationReceivedBytes.get();
     }
 
-    public int getApplicationSentBytes() {
+    public long getApplicationSentBytes() {
         return applicationSentBytes.get();
     }
 
-    public int getApplicationReceivedPackets() {
+    public long getApplicationReceivedPackets() {
         return applicationReceivedPackets.get();
     }
 
-    public int getApplicationSentPackets() {
+    public long getApplicationSentPackets() {
         return applicationSentPackets.get();
     }
 
@@ -116,19 +116,19 @@ public class NetworkMonitor {
         return applicationReceivedKBps.get();
     }
 
-    public int getSystemReceivedBytes() {
+    public long getSystemReceivedBytes() {
         return systemReceivedBytes.get();
     }
 
-    public int getSystemSentBytes() {
+    public long getSystemSentBytes() {
         return systemSentBytes.get();
     }
 
-    public int getSystemReceivedPackets() {
+    public long getSystemReceivedPackets() {
         return systemReceivedPackets.get();
     }
 
-    public int getSystemSentPackets() {
+    public long getSystemSentPackets() {
         return systemSentPackets.get();
     }
 
@@ -141,19 +141,19 @@ public class NetworkMonitor {
     }
 
     //Properties
-    public IntegerProperty applicationReceivedBytesProperty() {
+    public LongProperty applicationReceivedBytesProperty() {
         return applicationReceivedBytes;
     }
 
-    public IntegerProperty applicationSentBytesProperty() {
+    public LongProperty applicationSentBytesProperty() {
         return applicationSentBytes;
     }
 
-    public IntegerProperty applicationReceivedPacketsProperty() {
+    public LongProperty applicationReceivedPacketsProperty() {
         return applicationReceivedPackets;
     }
 
-    public IntegerProperty applicationSentPacketsProperty() {
+    public LongProperty applicationSentPacketsProperty() {
         return applicationSentPackets;
     }
 
@@ -165,19 +165,19 @@ public class NetworkMonitor {
         return applicationSentKBps;
     }
 
-    public IntegerProperty systemReceivedBytesProperty() {
+    public LongProperty systemReceivedBytesProperty() {
         return systemReceivedBytes;
     }
 
-    public IntegerProperty systemSentBytesProperty() {
+    public LongProperty systemSentBytesProperty() {
         return systemSentBytes;
     }
 
-    public IntegerProperty systemReceivedPacketsProperty() {
+    public LongProperty systemReceivedPacketsProperty() {
         return systemReceivedPackets;
     }
 
-    public IntegerProperty systemSentPacketsProperty() {
+    public LongProperty systemSentPacketsProperty() {
         return systemSentPackets;
     }
 

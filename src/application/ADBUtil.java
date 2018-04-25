@@ -1,6 +1,5 @@
 package application;
 
-import application.automation.extras.RecordInputsController;
 import application.utilities.ADBConnectionController;
 import application.device.Device;
 import javafx.application.Platform;
@@ -108,44 +107,12 @@ public class ADBUtil {
         }
     }
 
-    public static void recordInputValues(RecordInputsController controller) throws Exception{
-        System.out.println("Recording....");
-        sendEventBuilder = new StringBuilder();
-        try {
-
-            recordValuesTask = new Task() {
-                @Override
-                protected Object call() throws Exception {
-                    Process process = Runtime.getRuntime().exec(adbPath + " -s " + device.getName() + " shell getevent -t");
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-                    String line;
-                    while ((line = bufferedReader.readLine()) != null) {
-                        if(line.contains("/dev/input/") && line.startsWith("[")) {
-                            line = line.substring(line.indexOf("]")+1, line.length()).replace(":", "").trim();
-                            String[] lineSplit = line.split(" ");
-                            line = lineSplit[0] + " " + Integer.parseInt(lineSplit[1],16) + " " + Integer.parseInt(lineSplit[2],16) + " " + Long.parseLong(lineSplit[3],16);
-
-                            sendEventBuilder.append(line).append("\n");
-                        }
-                    }
-
-                    bufferedReader.close();
-                    process.waitFor();
-
-                    return null;
-                }
-            };
-            new Thread(recordValuesTask).start();
-
-        } catch (Exception ee) {
-            ee.printStackTrace();
-        }
-    }
-
     private static void checkDevices() {
         while(true) {
             String[] result = connectedDevices();
+
+            if(!result[0].startsWith("List"))
+                continue;
 
             if(result.length == 2 && isFirstRun.get()) {
                 device.setName(result[1].replace("device", "").trim());

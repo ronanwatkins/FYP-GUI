@@ -2,7 +2,6 @@ package application.applications;
 
 import application.device.AndroidApplication;
 import application.device.Device;
-import application.device.DeviceIntent;
 import application.device.Intent;
 import application.logcat.LogCatTabController;
 import application.utilities.ADB;
@@ -61,17 +60,17 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private TableColumn<AndroidApplication, String> dataDirColumn;
 
     @FXML
-    private TableView<DeviceIntent> intentsTableView;
+    private TableView<Intent> intentsTableView;
     @FXML
-    private TableColumn<DeviceIntent, String> actionColumn;
+    private TableColumn<Intent, String> actionColumn;
     @FXML
-    private TableColumn<DeviceIntent, String> componentColumn;
+    private TableColumn<Intent, String> componentColumn;
     @FXML
-    private TableColumn<DeviceIntent, String> categoryColumn;
+    private TableColumn<Intent, String> categoryColumn;
     @FXML
-    private TableColumn<DeviceIntent, String> intentTypeColumn;
+    private TableColumn<Intent, String> intentTypeColumn;
     @FXML
-    private TableColumn<DeviceIntent, String> mimeTypeColumn;
+    private TableColumn<Intent, String> mimeTypeColumn;
 
     @FXML
     private ComboBox<String> mimeTypeComboBox;
@@ -86,7 +85,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private TextArea resultTextArea;
 
     @FXML
-    private Button showLogCatButton;
+    protected Button showLogCatButton;
     @FXML
     private Button refreshButton;
     @FXML
@@ -116,10 +115,12 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     private File directory;
 
-    private LogCatTabController logCatTabController;
+    protected LogCatTabController logCatTabController;
 
     private Device device = Device.getInstance();
-    private DeviceIntent selectedIntent;
+    private Intent selectedIntent;
+
+    private static ApplicationTabController applicationTabController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -130,6 +131,12 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         initializeComboBoxes();
         initializeButtons();
         updatePCListView();
+
+        applicationTabController = this;
+    }
+
+    public static ApplicationTabController getApplicationTabController() {
+        return applicationTabController;
     }
 
     private void initializeApplicationTableView() {
@@ -173,7 +180,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         appsOnPCListView.setItems(appsOnPCList);
     }
 
-    protected void updateDeviceListView() {
+    public void updateDeviceListView() {
         try {
             appsOnDeviceListView.getItems().clear();
             device.getApplicationNames().clear();
@@ -291,7 +298,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     }
 
     @FXML
-    private void handleLogCatButtonClicked(ActionEvent event) {
+    protected void handleLogCatButtonClicked(ActionEvent event) {
         if (logCatTabController == null) {
             logCatTabController = new LogCatTabController();
             try {
@@ -436,7 +443,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         if(selectedIntent.takesData())
             updateSchemeComboBox();
 
-             mimeTypeComboBox.setItems(DeviceIntent.getAssociatedMimeTypes(
+             mimeTypeComboBox.setItems(Intent.getAssociatedMimeTypes(
                     device.getSelectedApplication().getName(),
                     componentField.getText(),
                     selectedIntent.getIntentType())
@@ -445,7 +452,7 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     @FXML
     private void updateSchemeComboBox() {
-        schemeComboBox.setItems(DeviceIntent.getAssociatedSchemes(
+        schemeComboBox.setItems(Intent.getAssociatedSchemes(
                 device.getSelectedApplication().getName(),
                 componentField.getText(),
                 selectedIntent.getIntentType())

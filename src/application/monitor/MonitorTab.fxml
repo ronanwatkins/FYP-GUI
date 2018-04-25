@@ -18,6 +18,9 @@
 <?import javafx.scene.shape.Line?>
 
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ComboBox?>
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
 <AnchorPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.monitor.MonitorTabController">
 
     <VBox spacing="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -28,9 +31,9 @@
         <HBox spacing="20">
             <TextField fx:id="searchField" onKeyReleased="#handleSearchFieldAction" prefHeight="28.0" prefWidth="320" promptText="Search" />
             <Button fx:id="refreshButton" onAction="#handleRefreshButtonClicked" prefHeight="28.0" text="Refresh" />
-            <Button fx:id="startButton" minWidth="50" onAction="#handleStartButtonClicked" prefHeight="28.0" text="Start" />
             <Button fx:id="openButton" minWidth="50" onAction="#handleOpenButtonClicked" prefHeight="28.0" text="Open" />
             <Button fx:id="closeButton" minWidth="50" onAction="#handleCloseButtonClicked" prefHeight="28.0" text="Close" />
+            <Button fx:id="showLogCatButton" onAction="#handleLogCatButtonClicked" prefHeight="28.0" text="Show LogCat" />
         </HBox>
 
         <SplitPane dividerPositions="0.1919191919191919" layoutX="14.0" layoutY="57.0" prefHeight="800">
@@ -40,9 +43,9 @@
                 <SplitPane fx:id="verticalPane" dividerPositions="0.5, 0.5" orientation="VERTICAL">
                     <items>
                         <StackPane>
-                            <AreaChart fx:id="CPUChart" maxWidth="775" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
+                            <AreaChart fx:id="CPUChart" legendVisible="false" createSymbols="false" maxWidth="775" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
                                 <xAxis>
-                                    <NumberAxis forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
+                                    <NumberAxis fx:id="xAxis" forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
                                 </xAxis>
                                 <yAxis>
                                     <NumberAxis autoRanging="false" minorTickVisible="false" side="LEFT" />
@@ -67,34 +70,38 @@
                                     </rowConstraints>
 
                                     <!--Column 0-->
+                                    <Line id="solid-line" endY="10.0" startY="-10.0" stroke="#ff0000" GridPane.rowIndex="1" />
+                                    <Line id="solid-line" endY="10.0" startY="-10.0" stroke="#ffe100" GridPane.rowIndex="2" />
                                     <Label styleClass="small" text="\% Utilization" GridPane.halignment="LEFT" GridPane.valignment="TOP" />
-                                    <Label styleClass="big" text="CPU" GridPane.halignment="CENTER" GridPane.valignment="BOTTOM" />
-                                    <Label styleClass="heading" text="Utilization" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-                                    <Label fx:id="CPUUtilizationPercentageLabel" styleClass="body" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
-                                    <Label styleClass="heading" text="Processes" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP" />
-                                    <Label fx:id="CPUProcessesLabel" styleClass="body" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="BOTTOM" />
+                                    <Label styleClass="big" text="CPU" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                                    <Label styleClass="heading" text="System: Utilization" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+                                    <Label fx:id="CPUSystemUtilizationPercentageLabel" styleClass="body" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                    <Label styleClass="heading" text="Application: Utilization" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+                                    <Label fx:id="CPUApplicationUtilizationPercentageLabel" styleClass="body" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                    <Label styleClass="heading" text="Uptime" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+                                    <Label fx:id="CPUUptimeLabel" styleClass="body" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
 
                                     <!--Column 1-->
                                     <Label styleClass="heading" text="Maximum Speed" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="TOP" />
-                                    <Label fx:id="CPUMaximumSpeedLabel" styleClass="body" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="BOTTOM" />
+                                    <Label fx:id="CPUMaximumSpeedLabel" styleClass="body" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
                                     <Label styleClass="heading" text="Current Speed" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-                                    <Label fx:id="CPUSpeedLabel" styleClass="body" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
+                                    <Label fx:id="CPUSpeedLabel" styleClass="body" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
                                     <Label styleClass="heading" text="Threads" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP" />
-                                    <Label fx:id="CPUThreadsLabel" styleClass="body" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="BOTTOM" />
+                                    <Label fx:id="CPUThreadsLabel" styleClass="body" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                                    <Label styleClass="heading" text="Processes" GridPane.halignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+                                    <Label fx:id="CPUProcessesLabel" styleClass="body" GridPane.halignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
 
                                     <!--Column 2-->
                                     <Label styleClass="heading" text="Vendor" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="TOP" />
-                                    <Label fx:id="CPUVendorLabel" styleClass="big" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="BOTTOM" />
+                                    <Label fx:id="CPUVendorLabel" styleClass="big" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
                                     <Label styleClass="heading" text="Cores" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-                                    <Label fx:id="CPUCoresLabel" styleClass="body" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
-                                    <Label styleClass="heading" text="Uptime" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP" />
-                                    <Label fx:id="CPUUptimeLabel" styleClass="body" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="BOTTOM" />
+                                    <Label fx:id="CPUCoresLabel" styleClass="body" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
 
                                 </GridPane>
                         </StackPane>
 
                         <StackPane>
-                            <AreaChart id="MemoryChart" fx:id="MemoryChart" maxWidth="775" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
+                            <AreaChart id="MemoryChart" fx:id="MemoryChart" legendVisible="false" createSymbols="false" maxWidth="775" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
                                 <xAxis>
                                     <NumberAxis forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
                                 </xAxis>
@@ -121,39 +128,39 @@
                                 </rowConstraints>
 
                                 <!--Column 0-->
+                                <Line id="solid-line" endY="10.0" startY="-10.0" stroke="#0014f2" GridPane.rowIndex="1" />
+                                <Line id="solid-line" endY="10.0" startY="-10.0" stroke="#f10099" GridPane.rowIndex="2" />
                                 <Label styleClass="small" text="\% Utilization" GridPane.halignment="LEFT" GridPane.valignment="TOP" />
-                                <Label styleClass="big" text="Memory" GridPane.halignment="CENTER" GridPane.valignment="BOTTOM" />
-                                <Label styleClass="heading" text="In use (System)" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-                                <Label fx:id="memoryUsageSystemTotal" styleClass="body" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM">
+                                <Label styleClass="big" text="Memory" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                                <Label styleClass="heading" text="System: In use" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+                                <Label fx:id="memoryUsageSystemTotal" styleClass="body" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="CENTER">
                                 <GridPane.margin>
                                     <Insets left="5" />
                                 </GridPane.margin></Label>
-                                <Label fx:id="memoryUsageSystemPercentage" styleClass="body" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
-                                <Label styleClass="heading" text="In use (Application)" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP" />
-                                <Label fx:id="memoryUsageApplicationTotal" styleClass="body" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="BOTTOM">
+                                <Label fx:id="memoryUsageSystemPercentage" styleClass="body" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                <Label styleClass="heading" text="Application: In use" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+                                <Label fx:id="memoryUsageApplicationTotal" styleClass="body" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                                 <GridPane.margin>
                                     <Insets left="5" />
                                 </GridPane.margin></Label>
-                                <Label fx:id="memoryUsageApplicationPercentage" styleClass="body" GridPane.halignment="RIGHT" GridPane.rowIndex="2" GridPane.valignment="BOTTOM" />
+                                <Label fx:id="memoryUsageApplicationPercentage" styleClass="body" GridPane.halignment="RIGHT" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
 
                                 <!--Column 1-->
                                 <Label styleClass="heading" text="Available" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-                                <Label fx:id="memoryAvailableLabel" styleClass="body" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
-
-                                <!--Column 2-->
-                                <Label styleClass="heading" text="Total RAM" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="TOP" />
-                                <Label fx:id="memoryTotalLabel" styleClass="big" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="BOTTOM" />
+                                <Label fx:id="memoryAvailableLabel" styleClass="body" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                <Label styleClass="heading" text="Total RAM" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="TOP" />
+                                <Label fx:id="memoryTotalLabel" styleClass="big" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
 
                             </GridPane>
                         </StackPane>
 
                         <StackPane>
-                            <AreaChart fx:id="NetworkChart" maxWidth="775" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
+                            <AreaChart fx:id="NetworkChart" maxWidth="775" legendVisible="false" createSymbols="false" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
                                 <xAxis>
                                     <NumberAxis forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
                                 </xAxis>
                                 <yAxis>
-                                    <NumberAxis autoRanging="false" minorTickVisible="false" side="LEFT" />
+                                    <NumberAxis autoRanging="false" minorTickVisible="false" side="LEFT" upperBound="1000" tickMarkVisible="false" />
                                 </yAxis>
                             </AreaChart>
                             <GridPane gridLinesVisible="false" maxWidth="450" style="-fx-background-color: white" StackPane.alignment="TOP_RIGHT">
@@ -175,14 +182,24 @@
                                 </rowConstraints>
 
                                 <!--Column 0-->
+                                <Line id="dashed-line" endY="10.0" stroke="#06ace8" startY="-10.0" strokeDashArray="2d" GridPane.rowIndex="1" />
+                                <Line id="solid-line" endY="10.0" startY="-10.0" stroke="#063ae8" GridPane.rowIndex="2" />
+
                                 <Label styleClass="small" text="KBps" GridPane.halignment="LEFT" GridPane.valignment="TOP" />
-                                <Label styleClass="big" text="WiFi" GridPane.halignment="CENTER" GridPane.valignment="BOTTOM" />
-                                <Line id="dashed-line" endY="10.0" stroke="#80ff80" startY="-10.0" strokeDashArray="2d" GridPane.rowIndex="1" />
-                                <Label styleClass="heading" text="Send" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-                                <Label fx:id="NetworkSentKBps" styleClass="body" text="0 KBps" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
-                                <Line id="solid-line" endY="10.0" startY="-10.0" stroke="#00cc00" GridPane.rowIndex="2" />
-                                <Label styleClass="heading" text="Receive" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP" />
-                                <Label fx:id="NetworkReceivedKBps" styleClass="body" text="0 KBps" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="BOTTOM" />
+                                <Label styleClass="big" text="WiFi" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                                <Label styleClass="heading" text="System: Sent" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+                                <Label fx:id="NetworkSystemSentKBps" styleClass="body" text="0 KBps" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                                <Label styleClass="heading" text="Application: Sent" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+                                <Label fx:id="NetworkApplicationSentKBps" styleClass="body" text="0 KBps" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+
+                                <!--Column 1-->
+                                <Line id="dashed-line" endY="10.0" stroke="#e8400d" startY="-10.0" strokeDashArray="2d" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                                <Line id="solid-line" endY="10.0" startY="-10.0" stroke="#e80606" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+
+                                <Label styleClass="heading" text="Received" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.valignment="TOP" />
+                                <Label fx:id="NetworkSystemReceivedKBps" styleClass="body" text="0 KBps" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.valignment="CENTER" />
+                                <Label styleClass="heading" text="Received" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.valignment="TOP" />
+                                <Label fx:id="NetworkApplicationReceivedKBps" styleClass="body" text="0 KBps" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
 
                             </GridPane>
                         </StackPane>

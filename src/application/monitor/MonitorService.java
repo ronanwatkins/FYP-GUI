@@ -13,6 +13,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Formatter;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MonitorService extends Thread {
@@ -29,9 +33,8 @@ public class MonitorService extends Thread {
 
     private String startOfCommand;
 
-    private boolean isFirstRun = true;
-    private long lastSentKiloBytes;
-    private long lastReceivedKiloBytes;
+    private LastBytes system = new LastBytes();
+    private LastBytes application = new LastBytes();
 
     public static MonitorService getInstance() {
         return instance;
@@ -49,12 +52,20 @@ public class MonitorService extends Thread {
                 "shell cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies",
                 "shell \"cat /proc/cpuinfo | grep 'CPU architecture'\"");
 
+        system.isFirstRun = true;
+        system.lastReceivedKiloBytes = 0;
+        system.lastSentKiloBytes = 0;
+        application.isFirstRun = true;
+        application.lastReceivedKiloBytes = 0;
+        application.lastSentKiloBytes = 0;
+
         if(device.getSelectedApplication() != null) {
             tasks.add(new CPUUsageTask(startOfCommand + " shell \"top | grep " + device.getSelectedApplication().getName() + "\"", TaskType.APPLICATION));
             tasks.add(new memoryUsageTask("shell \"dumpsys meminfo " + device.getSelectedApplication().getName() + " | grep TOTAL\"", TaskType.APPLICATION));
-         //   tasks.add(new updateNetworkStatsTask("shell cat /proc/net/xt_qtaguid/stats | grep " + device.getSelectedApplication().getUserID() + " | grep wlan0", TaskType.APPLICATION));
+            tasks.add(new updateNetworkStatsTask("shell cat /proc/net/xt_qtaguid/stats | grep " + device.getSelectedApplication().getUserID() + " | grep wlan0", TaskType.APPLICATION));
         }
 
+        tasks.add(new CPUUptimeTask("shell cat /proc/uptime"));
         tasks.add(new memoryUsageTask("shell \"cat /proc/meminfo | grep -E 'MemFree:|Buffers:|Cached:|SwapFree:'\"", TaskType.SYSTEM));
         tasks.add(new CPUUsageTask(startOfCommand + " -s " + device.getName() + " shell \"top | grep System\"", TaskType.SYSTEM));
         tasks.add(new runningThreadsTask(startOfCommand + " -s " + device.getName() + " shell \"top -t\""));
@@ -111,9 +122,9 @@ public class MonitorService extends Thread {
     }
 
     private class runningThreadsTask extends Task<Void> {
-        private String command;
+        protected String command;
 
-        private runningThreadsTask(String command) {
+        protected runningThreadsTask(String command) {
             this.command = command;
         }
 
@@ -141,6 +152,60 @@ public class MonitorService extends Thread {
                     i++;
             }
             return null;
+        }
+    }
+
+    private class CPUUptimeTask extends runningThreadsTask {
+
+        private CPUUptimeTask(String command) {
+            super(command);
+        }
+
+        private String formatTime(long totalSeconds) {
+            long days = 0;
+            long hours = 0;
+            long minutes = 0;
+            long seconds = 0;
+            if (totalSeconds >= 3600) {
+                hours = totalSeconds / 3600;
+                totalSeconds -= hours * 3600;
+            }
+            if (totalSeconds >= 60) {
+                minutes = totalSeconds / 60;
+                totalSeconds -= minutes * 60;
+            }
+            if(hours >= 24) {
+                days = hours / 24;
+                hours -= days * 24;
+            }
+            seconds = totalSeconds;
+
+            return String.format("%02d:%02d:%02d:%02d", days, hours, minutes, seconds);
+        }
+
+        @Override
+        protected Void call() throws Exception {
+            while(true) {
+                if(isCancelled())
+                    return null;
+
+                try {
+                    String response = getResponseLine(command).split(" ")[0].split("\\.")[0];
+                    long totalSeconds = Long.parseLong(response.trim());
+
+                    Platform.runLater(() -> cpuMonitor.setUpTime(formatTime(totalSeconds)));
+
+                } catch (Exception ee) {
+                    Log.error(ee.getMessage(), ee);
+                    return null;
+                }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ie) {
+                    throw new InterruptedException();
+                }
+            }
         }
     }
 
@@ -173,7 +238,7 @@ public class MonitorService extends Thread {
                             //System.out.println("Application CPU Percentage Utilization: " + cpuMonitor.getApplicationCPUPercentageUtilization());
                             break;
                         case SYSTEM:
-                            String s = line.trim().split(",")[1].trim().split(" ")[1].replace("%", "");
+                            String s = line.trim().split(",")[0].trim().split(" ")[1].replace("%", "");
                             Platform.runLater(() -> cpuMonitor.setSystemCPUPercentageUtilization(Integer.parseInt(s)));
                             //System.out.println("System CPU Percentage Utilization: " + cpuMonitor.getSystemCPUPercentageUtilization());
                             break;
@@ -208,80 +273,101 @@ public class MonitorService extends Thread {
 
                     String response = "";
 
+                    double sentKiloBytes = 0;
+                    double sentKBps = 0;
+                    double receivedKiloBytes = 0;
+                    double receivedKBps = 0;
+
                     switch (taskType) {
                         case APPLICATION:
                             response = ADBUtil.consoleCommand(command).split("\n")[1];//.split("\n")[0];
+
                             String[] split = response.split(" ");
 
                             receivedBytes = split[5];
                             receivedPackets = split[6];
                             sentBytes = split[7];
                             sentPackets = split[8];
+
+                            sentKiloBytes = ((Double.parseDouble(sentBytes)))/100;
+                            sentKBps = (application.isFirstRun ? 0 : (((sentKiloBytes - application.lastSentKiloBytes)/100)));
+                            application.lastSentKiloBytes = sentKiloBytes;
+
+                            receivedKiloBytes = (Double.parseDouble(receivedBytes))/100;
+                            receivedKBps = (application.isFirstRun ? 0 : (((receivedKiloBytes - application.lastReceivedKiloBytes)/100)));
+                            application.lastReceivedKiloBytes = receivedKiloBytes;
                             break;
                         case SYSTEM:
                             response = getResponseLine(command).replaceAll(" {2,}", " ").trim();
+
                             split = response.split(" ");
 
                             receivedBytes = split[1];
                             receivedPackets = split[2];
                             sentBytes = split[9];
                             sentPackets = split[10];
+
+                            sentKiloBytes = ((Double.parseDouble(sentBytes)))/100;
+                            sentKBps = (system.isFirstRun ? 0 : (((sentKiloBytes - system.lastSentKiloBytes)/100)));
+                            system.lastSentKiloBytes = sentKiloBytes;
+
+                            receivedKiloBytes = (Double.parseDouble(receivedBytes))/100;
+                            receivedKBps = (system.isFirstRun ? 0 : (((receivedKiloBytes - system.lastReceivedKiloBytes)/100)));
+                            system.lastReceivedKiloBytes = receivedKiloBytes;
                             break;
                     }
-
-                    long sentKiloBytes = ((Long.parseLong(sentBytes)))/1000;
-                    double sentKBps = (isFirstRun ? 0 : ((double)((sentKiloBytes - lastSentKiloBytes)/1000)));
-                    lastSentKiloBytes = sentKiloBytes;
-
-                    long receivedKiloBytes = (Long.parseLong(receivedBytes))/1000;
-                    double receivedKBps = (isFirstRun ? 0 : ((double)((receivedKiloBytes - lastReceivedKiloBytes)/1000)));
-                    lastReceivedKiloBytes = receivedKiloBytes;
-
-                    if(isFirstRun)
-                        isFirstRun = false;
-
-                    System.out.println(taskType + " receivedKBps: " + receivedKBps);
-                    System.out.println(taskType + " lastReceivedKiloBytes: " + lastReceivedKiloBytes);
-                    System.out.println(taskType + " sentKBps: " + sentKBps);
-                    System.out.println(taskType + " lastSentKiloBytes: " + lastSentKiloBytes);
 
                     final String newReceivedBytes = receivedBytes;
                     final String newReceivedPackets = receivedPackets;
                     final String newSentBytes = sentBytes;
                     final String newSentPackets = sentPackets;
 
+                    final double newReceivedKBps = receivedKBps;
+                    final double newSentKBps = sentKBps;
+
+                    if(application.isFirstRun) {
+                        application.isFirstRun = false;
+                        continue;
+                    }
+
+                    if(system.isFirstRun) {
+                        system.isFirstRun = false;
+                        continue;
+                    }
+
                     switch (taskType) {
                         case APPLICATION:
                             Platform.runLater(() -> {
-                                networkMonitor.setApplicationReceivedBytes(Integer.parseInt(newReceivedBytes));
-                                networkMonitor.setApplicationReceivedPackets(Integer.parseInt(newReceivedPackets));
-                                networkMonitor.setApplicationReceivedKBps(receivedKBps);
-                                networkMonitor.setApplicationSentBytes(Integer.parseInt(newSentBytes));
-                                networkMonitor.setApplicationSentPackets(Integer.parseInt(newSentPackets));
-                                networkMonitor.setApplicationSentKBps(sentKBps);
+                                networkMonitor.setApplicationReceivedBytes(Long.parseLong(newReceivedBytes));
+                                networkMonitor.setApplicationReceivedPackets(Long.parseLong(newReceivedPackets));
+                                networkMonitor.setApplicationReceivedKBps(newReceivedKBps);
+                                networkMonitor.setApplicationSentBytes(Long.parseLong(newSentBytes));
+                                networkMonitor.setApplicationSentPackets(Long.parseLong(newSentPackets));
+                                networkMonitor.setApplicationSentKBps(newSentKBps);
                             });
                             break;
                         case SYSTEM:
                             Platform.runLater(() -> {
-                                networkMonitor.setSystemReceivedBytes(Integer.parseInt(newReceivedBytes));
-                                networkMonitor.setSystemReceivedPackets(Integer.parseInt(newReceivedPackets));
-                                networkMonitor.setSystemReceivedKBps(receivedKBps);
-                                networkMonitor.setSystemSentBytes(Integer.parseInt(newSentBytes));
-                                networkMonitor.setSystemSentPackets(Integer.parseInt(newSentPackets));
-                                networkMonitor.setSystemSentKBps(sentKBps);
+                                networkMonitor.setSystemReceivedBytes(Long.parseLong(newReceivedBytes));
+                                networkMonitor.setSystemReceivedPackets(Long.parseLong(newReceivedPackets));
+                                networkMonitor.setSystemReceivedKBps(newReceivedKBps);
+                                networkMonitor.setSystemSentBytes(Long.parseLong(newSentBytes));
+                                networkMonitor.setSystemSentPackets(Long.parseLong(newSentPackets));
+                                networkMonitor.setSystemSentKBps(newSentKBps);
                             });
                             break;
                     }
 
-                } catch (Exception ee) {
+                } catch (NumberFormatException ee) {
                     Log.error(ee.getMessage(), ee);
-                    return null;
+                    continue;
+                } catch (ArrayIndexOutOfBoundsException ee) {
+                    continue;
                 }
 
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ie) {
-                    Log.error(ie.getMessage(), ie);
                     throw new InterruptedException();
                 }
             }
@@ -336,12 +422,12 @@ public class MonitorService extends Thread {
                     }
                 } catch (NumberFormatException nfe) {
                     Log.error(nfe.getMessage(), nfe);
+                    continue;
                 }
 
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ie) {
-                    Log.error(ie.getMessage(), ie);
                     throw new InterruptedException();
                 }
             }
@@ -378,7 +464,6 @@ public class MonitorService extends Thread {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ie) {
-                    Log.error(ie.getMessage(), ie);
                     throw new InterruptedException();
                 }
             }
@@ -409,4 +494,11 @@ public class MonitorService extends Thread {
         APPLICATION,
         SYSTEM
     }
+
+    private class LastBytes {
+        private boolean isFirstRun;
+        private double lastSentKiloBytes;
+        private double lastReceivedKiloBytes;
+    }
+
 }
