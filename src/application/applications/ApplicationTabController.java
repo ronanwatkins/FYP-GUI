@@ -122,6 +122,13 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
 
     private static ApplicationTabController applicationTabController;
 
+    /**
+     * Called to initialize a controller after its root element has been
+     * completely processed.
+     *
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         directory = new File(DIRECTORY);
@@ -399,6 +406,14 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         copyButton.setDisable(false);
     }
 
+    /**
+     * Initialize the buttons
+     * Can do any of the following:
+     * Set tooltip text
+     * Set image
+     * Set disabled / enabled
+     * Set visible / invisible
+     */
     @Override
     public void initializeButtons() {
         showLogCatButton.setDisable(true);

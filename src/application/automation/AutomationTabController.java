@@ -1,6 +1,9 @@
 package application.automation;
 
 import application.ADBUtil;
+import application.applications.ApplicationTabController;
+import application.logcat.LogCatTabController;
+import application.monitor.MonitorTabController;
 import application.utilities.ApplicationUtils;
 import application.utilities.XMLUtil;
 import javafx.application.Platform;
@@ -22,7 +25,7 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class AutomationTabController implements Initializable, ApplicationUtils {
+public class AutomationTabController extends ApplicationTabController implements Initializable, ApplicationUtils {
 
     private static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\automation";
     protected final String EXTENSION = ".xml";
@@ -44,6 +47,8 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
     protected Button playButton;
     @FXML
     protected Button stopButton;
+    @FXML
+    private Button showMonitorButton;
 
     @FXML
     protected ComboBox<String> runTypeComboBox;
@@ -52,6 +57,9 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
     private CheckBox stopOnFailureCheckBox;
 
     private CreateBatchController createBatchController;
+    private LogCatTabController logCatTabController;
+
+    MonitorTabController monitorTabController = null;
 
     protected Task<Void> runCommandsTask;
     protected Thread runCommandsThread;
@@ -64,6 +72,13 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
     protected AtomicBoolean pauseFlag = new AtomicBoolean(false);
     protected AtomicBoolean wasPaused = new AtomicBoolean(false);
 
+    /**
+     * Called to initialize a controller after its root element has been
+     * completely processed.
+     *
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
@@ -252,6 +267,39 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
     }
 
     @FXML
+    private void handleShowMonitorButtonClicked(ActionEvent event) {
+        if (monitorTabController == null) {
+            monitorTabController = new MonitorTabController();
+            try {
+                monitorTabController = (MonitorTabController) monitorTabController.newWindow(this, null);
+                monitorTabController.play();
+            } catch (IOException ioe) {
+                Log.error(ioe.getMessage(), ioe);
+            }
+        }
+    }
+
+    public void setMonitorTabController(MonitorTabController monitorTabController) {
+        this.monitorTabController = monitorTabController;
+    }
+
+    public void handleShowLogCatButtonClicked(ActionEvent event) {
+        if (logCatTabController == null) {
+            logCatTabController = new LogCatTabController();
+            try {
+                logCatTabController = (LogCatTabController) logCatTabController.newWindow(this, null);
+                logCatTabController.getLogs(true);
+            } catch (IOException ioe) {
+                Log.error(ioe.getMessage(), ioe);
+            }
+        }
+    }
+
+    public void setLogCatTabController(LogCatTabController logCatTabController) {
+        this.logCatTabController = logCatTabController;
+    }
+
+    @FXML
     protected void handleNewButtonClicked(ActionEvent event) {
         try {
             createBatchController.newWindow(this, null);
@@ -322,10 +370,20 @@ public class AutomationTabController implements Initializable, ApplicationUtils 
         return (input.startsWith("Failure") || input.startsWith("Error") || input.startsWith("error") || input.startsWith("** No activities found"));
     }
 
+    /**
+     * Initialize the buttons
+     * Can do any of the following:
+     * Set tooltip text
+     * Set image
+     * Set disabled / enabled
+     * Set visible / invisible
+     */
     @Override
     public void initializeButtons() {
         setImage("/resources/play.png","Run batch commands", playButton);
         setImage("/resources/stop.png", "Stop batch commands", stopButton);
+        setImage("/resources/pop_out.png", null, showMonitorButton);
+        setImage("/resources/pop_out.png", null, showLogCatButton);
 
         setImage("/resources/new.png", "Create new batch",newButton);
         setImage("/resources/edit.png", "Edit selected batch",editButton);

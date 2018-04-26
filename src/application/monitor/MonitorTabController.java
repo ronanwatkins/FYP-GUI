@@ -1,12 +1,16 @@
 package application.monitor;
 
 import application.applications.ApplicationTabController;
+import application.automation.AutomationTabController;
 import application.device.AndroidApplication;
 import application.device.Device;
+import application.logcat.Bundle;
+import application.logcat.LogCatTabController;
 import application.monitor.model.CPUMonitor;
 import application.monitor.model.MemoryMonitor;
 import application.monitor.model.NetworkMonitor;
 import application.utilities.ApplicationUtils;
+import application.utilities.Showable;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -14,8 +18,13 @@ import javafx.beans.property.*;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Bounds;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -24,15 +33,20 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Modality;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.apache.log4j.Logger;
 
 import java.awt.*;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Random;
 import java.util.ResourceBundle;
 
-public class MonitorTabController extends ApplicationTabController implements Initializable, ApplicationUtils {
+public class MonitorTabController extends ApplicationTabController implements Showable<Initializable>, Initializable, ApplicationUtils {
     private static final Logger Log = Logger.getLogger(MonitorTabController.class.getName());
 
     @FXML
@@ -90,6 +104,9 @@ public class MonitorTabController extends ApplicationTabController implements In
     @FXML
     private AreaChart<Number, Number> NetworkChart;
 
+    @FXML
+    private StackPane CPUChartStackPane;
+
     private XYChart.Series<Number, Number> CPUDataSeriesSystem;
     private XYChart.Series<Number, Number> CPUDataSeriesApplication;
     private Timeline CPUAnimation;
@@ -132,9 +149,20 @@ public class MonitorTabController extends ApplicationTabController implements In
 
     private static MonitorTabController monitorTabController;
 
+    private AutomationTabController automationTabController;
+
+    /**
+     * Called to initialize a controller after its root element has been
+     * completely processed.
+     *
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         verticalPane.setDividerPositions(0.3333f, 0.6666f, 0.9999f);
+
+        //CPUChart
 
         initializeButtons();
         initializeCPUChart();
@@ -143,6 +171,50 @@ public class MonitorTabController extends ApplicationTabController implements In
         runSequenceManagementAnimation();
 
         monitorTabController = this;
+    }
+
+    @Override
+    public Initializable newWindow(Initializable controller, Object object) throws IOException {
+        automationTabController = (AutomationTabController) controller;
+
+        FXMLLoader fxmlLoader = new FXMLLoader(LogCatTabController.class.getClass().getResource("/application/monitor/MonitorTab.fxml"));
+
+        Parent root = fxmlLoader.load();
+
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add("/application/global.css");
+
+        MonitorTabController monitorTabController = fxmlLoader.getController();
+
+
+        Stage stage = new Stage();
+        stage.initModality(Modality.NONE);
+        stage.setTitle("Monitor");
+
+        stage.setScene(scene);
+        stage.setMaximized(true);
+
+        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+        stage.setMaxWidth(primaryScreenBounds.getWidth());
+        stage.setMaxHeight(primaryScreenBounds.getHeight());
+
+      //  stage.setMaximized(true);
+  //      Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+    //    stage.setMaxWidth(primaryScreenBounds.getWidth());
+      //  stage.setMaxHeight(primaryScreenBounds.getHeight());
+
+stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController(null));
+
+//        stage.setOnShowing(event -> {
+//            play();
+//            return;
+//        });
+
+        stage.show();
+
+        monitorTabController.updateDeviceListView();
+
+        return monitorTabController;
     }
 
     public static MonitorTabController getController() {
@@ -245,7 +317,8 @@ public class MonitorTabController extends ApplicationTabController implements In
 
         CPUDataSeriesApplication = new XYChart.Series<>();
         CPUChart.getData().add(CPUDataSeriesApplication);
-        styleSeries(CPUDataSeriesApplication, Color.ORANGE.darker().darker().darker(), false);
+        Color orange = Color.ORANGE.darker().darker().darker();
+        styleSeries(CPUDataSeriesApplication, Color.GREEN, false);
     }
 
     public void play() {
@@ -342,6 +415,14 @@ public class MonitorTabController extends ApplicationTabController implements In
         updateDeviceListView();
     }
 
+    /**
+     * Initialize the buttons
+     * Can do any of the following:
+     * Set tooltip text
+     * Set image
+     * Set disabled / enabled
+     * Set visible / invisible
+     */
     @Override
     public void initializeButtons() {
         setImage("/resources/refresh.png", null, refreshButton);

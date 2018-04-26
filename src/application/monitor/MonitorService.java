@@ -5,8 +5,10 @@ import application.device.Device;
 import application.monitor.model.CPUMonitor;
 import application.monitor.model.MemoryMonitor;
 import application.monitor.model.NetworkMonitor;
+import application.utilities.Showable;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.fxml.Initializable;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;

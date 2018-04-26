@@ -52,6 +52,13 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
     private static LogCatTabController controller;
     private Filter filter;
 
+    /**
+     * Called to initialize a controller after its root element has been
+     * completely processed.
+     *
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
@@ -161,6 +168,14 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
         }
     }
 
+    /**
+     * Initialize the buttons
+     * Can do any of the following:
+     * Set tooltip text
+     * Set image
+     * Set disabled / enabled
+     * Set visible / invisible
+     */
     @Override
     public void initializeButtons() {
         saveButton.setDisable(true);

@@ -36,6 +36,8 @@
             <HBox.margin>
                <Insets top="5.0" />
             </HBox.margin></CheckBox>
+            <Button fx:id="showMonitorButton" text="Show Monitor" onAction="#handleShowMonitorButtonClicked" />
+            <Button fx:id="showLogCatButton" text="Show LogCat" onAction="#handleShowLogCatButtonClicked" />
         </HBox>
 
         <GridPane hgap="20"  vgap="20">

@@ -14,6 +14,8 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Bounds;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -31,6 +33,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @author Ronan Watkins
+ */
 public class SensorsTabController implements Initializable, ApplicationUtils {
     //region fields
     private final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\sensors";
@@ -126,7 +131,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     private CheckBox listenBox;
 
     @FXML
-    private AnchorPane phonePane;
+    private GridPane phonePane;
 
     @FXML
     private Box phone;
@@ -196,11 +201,24 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     private boolean startNewTimerTask = true;
     private boolean isLoaded = false;
     private boolean wasPaused = false;
+
+    Bounds phonePaneLayoutBounds;
     //endregion
 
+    private static SensorsTabController sensorsTabController;
+
+    /**
+     * Called to initialize a controller after its root element has been
+     * completely processed.
+     *
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        initializePhone();
+        phonePaneLayoutBounds = phonePane.getLayoutBounds();
+
+        //initializePhone();
         initializeButtons();
         initHashMap();
 
@@ -241,8 +259,28 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
         updateSliderValues();
         //endregion
+
+
+        sensorsTabController = this;
     }
 
+    /**
+     * Getter to return instance of self
+     * This instance has access to all controls in the attached FXML view
+     * @return instance of self
+     */
+    public static SensorsTabController getSensorsTabController() {
+        return sensorsTabController;
+    }
+
+    /**
+     * Initialize the buttons
+     * Can do any of the following:
+     * Set tooltip text
+     * Set image
+     * Set disabled / enabled
+     * Set visible / invisible
+     */
     @Override
     public void initializeButtons() {
         rotateRadioButton.setSelected(true);
@@ -262,6 +300,11 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     }
 
     //region buttonHandlers
+    /**
+     * Stops recording the slider values into the hashMap
+     * Displays file chooser dialog to save the hashMap values into an XML file
+     * @param event
+     */
     @FXML
     private void handleStopRecordingButtonPressed(ActionEvent event) {
         isRecording = false;
@@ -293,6 +336,12 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         startNewTimerTask = true;
     }
 
+    /**
+     * Displays a file chooser dialog to load an XML file containing slider values
+     * Creates a new {@link SensorsTabController#playbackThread} if a file is loaded
+     * Displays all Nodes related to playing the data
+     * @param event
+     */
     @FXML
     private void handleLoadButtonClicked(ActionEvent event) {
         isRecording = false;
@@ -338,6 +387,11 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         }
     }
 
+    /**
+     * Starts adding the hashMap values to the XML file at interval of {@link SensorsTabController#RECORDING_PERIOD}
+     * If button is pressed while it is recording, recording is paused
+     * @param event
+     */
     @FXML
     private void handleRecordButtonClicked(ActionEvent event) {
         isRecording = !isRecording;
@@ -369,6 +423,12 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         loadButton.setDisable(isRecording);
     }
 
+    /**
+     * starts the {@link #playbackThread} if it wasn't running
+     * resumes the {@link #playbackThread} if it was paused
+     * pauses the {@link #playbackThread} if it was running
+     * @param event
+     */
     @FXML
     private void handlePlayButtonClicked(ActionEvent event) {
         if (playbackThread.isPaused()) {
@@ -395,6 +455,11 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         }
     }
 
+    /**
+     * Creates the new instance of the {@link HTTPServer} class
+     * Tells the server to start listening to connections from the Android Application
+     * @param event
+     */
     @FXML
     private void handleConnectButtonClicked(ActionEvent event) {
         try {
@@ -407,17 +472,6 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
                 @Override
                 protected Boolean call() throws Exception {
                     return server.listen();
-//                    while (true) {
-//                        if (isConnected) {
-//                            Platform.runLater(() -> {
-//                                loggerLabel.setText("Connected");
-//                                listenBox.setVisible(true);
-//                                listenBox.setSelected(true);
-//                            });
-//                            break;
-//                        }
-//                    }
-//                    return null;
                 }
             };
 
@@ -428,9 +482,6 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
                 loggerLabel.setTextFill(Color.GREEN);
                 loggerLabel.setText("Connected");
-
-                System.out.println("Connected bai");
-
             });
 
             task.setOnFailed(event1 -> {
@@ -442,14 +493,18 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
             new Thread(task).start();
 
-
-
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            Log.error(ioe.getMessage(), ioe);
         }
     }
     //endregion
 
+    /**
+     * Handle all slider events
+     * Sends sensor values to emulator
+     * Adds sensor values to hashmap
+     * Rotates phone in case of rotation sliders
+     */
     private void handleSliderEvents() {
         lightSlider.valueProperty().addListener((observable, oldvalue, newvalue) -> sendSensorValues(LIGHT, newvalue.doubleValue()));
         temperatureSlider.valueProperty().addListener((observable, oldvalue, newvalue) -> sendSensorValues(TEMPERATURE, newvalue.doubleValue()));
@@ -546,25 +601,36 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         });
     }
 
-    private void initializePhone() {
+    /**
+     * Initialises the 3D phone shape
+     */
+    public void initializePhone() {
         PhongMaterial redMaterial = new PhongMaterial();
         redMaterial.setSpecularColor(Color.ORANGE);
         redMaterial.setDiffuseColor(Color.RED);
 
         phone.setMaterial(redMaterial);
         phone.getTransforms().addAll(rotateZ, rotateY, rotateX);
-        phone.setManaged(false);
 
-        HBox phonePaneHBox = new HBox();
-
-        phone.setLayoutX(240);
-        phone.setLayoutY(100);
-        phonePaneHBox.getChildren().add(phone);
-
-        phonePane.getChildren().addAll(phonePaneHBox);
         phonePane.setStyle("-fx-background-color: gray;");
+
+        alterPhoneLayout();
     }
 
+    /**
+     * Keeps the 3D phone shape in the middle of the phonePane
+     */
+    public void alterPhoneLayout() {
+        phonePaneLayoutBounds = phonePane.getLayoutBounds();
+        phone.setLayoutX(phonePaneLayoutBounds.getMaxX()/2);
+        phone.setLayoutY(phonePaneLayoutBounds.getMaxY()/2);
+    }
+
+    /**
+     * Handles mouse click and drag events
+     * handles mouse clicks on the listenBox and radio buttons
+     * handles mouse drag events on the phonePane to facilitate moving an rotating the phone
+     */
     private void handleMouseEvents() {
         listenBox.setOnMouseClicked(event -> server.setIsListening(listenBox.isSelected()));
 
@@ -643,26 +709,15 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
                 mousePosX = mouseEvent.getSceneX();
                 mousePosY = mouseEvent.getSceneY();
             } else {
-                if(mouseEvent.getX() > 0 && mouseEvent.getX() < 250)
+                phonePaneLayoutBounds = phonePane.getLayoutBounds();
+
+                if(mouseEvent.getX() > phonePaneLayoutBounds.getMinX() && mouseEvent.getX() < phonePaneLayoutBounds.getMaxX())
                     phone.setLayoutX(mouseEvent.getX());
-                if(mouseEvent.getY() > 0 && mouseEvent.getY() < 250)
+                if(mouseEvent.getY() > phonePaneLayoutBounds.getMinY() && mouseEvent.getY() < phonePaneLayoutBounds.getMaxY())
                     phone.setLayoutY(mouseEvent.getY());
 
-                //int newMoveX = (int) ((mouseMoveX - (mouseEvent.getX() - mousePosX))*1.2);
                 int newMoveX = (int) ((mouseMoveX - (mouseEvent.getX() - mousePosX)));
                 int newMoveZ = (int) ((mouseMoveZ - (mouseEvent.getY() - mousePosY)) / 2) - 40;
-
-                System.out.println("\n****X*****");
-                System.out.println("mouseMoveX: " + mouseMoveX);
-                System.out.println("mouseEvent.getx: " + mouseEvent.getX());
-                System.out.println("mousePosX: " + mousePosX);
-                System.out.println("newMoveX: " + newMoveX);
-
-                System.out.println("\n****Y*****");
-                System.out.println("mouseMoveY: " + mouseMoveZ);
-                System.out.println("mouseEvent.gety: " + mouseEvent.getY());
-                System.out.println("mousePosY: " + mousePosY);
-                System.out.println("newMoveY: " + newMoveZ);
 
                 accelerometerModel.setMoveX(newMoveX);
                 accelerometerModel.setMoveZ(newMoveZ);
@@ -672,6 +727,13 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         });
     }
 
+    /**
+     * Sends sensor values from each of the environment sliders
+     * Adds the value to the hashmap
+     * Updates the label corresponding to the slider
+     * @param sensor
+     * @param value
+     */
     private void sendSensorValues(String sensor, double value) {
         sensorValues.put(sensor, value);
         TelnetServer.setSensor(sensor + " " + String.format("%.2f",value));
@@ -695,6 +757,14 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         }
     }
 
+    /**
+     * Sends sensor values from each of the rotation sliders
+     * Updates the label corresponding to the slider
+     * @param sensor
+     * @param X
+     * @param Y
+     * @param Z
+     */
     private void sendSensorValues(String sensor, double X, double Y, double Z) {
         TelnetServer.setSensor(sensor + " " + TWO_DECIMAL_FORMAT.format(X)
                 + ":"
@@ -727,6 +797,11 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         }
     }
 
+    /**
+     * Adjusts the angle from the 3D phone cube to the value required for the slider and emulator
+     * @param angle
+     * @return the angle required for the slider and emulator
+     */
     private int adjustValue(double angle) {
         int result = 0;
 
@@ -741,7 +816,13 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         return result;
     }
 
-    protected void updateSliderValues() {
+    /**
+     * Adjusts the rotation slider values when the sliders are moved, keeps them fixed inside the required parameters
+     * Updates the MagneticField and Accelerometer model
+     * Sets the orientationLabel text to the updated slider values and sends it to the emulator
+     * Updates the labels corresponding to each of the rotation sliders
+     */
+    private void updateSliderValues() {
         // Restrict pitch value to -90 and +90
         if (pitchValue < -90) {
             pitchValue = -180 - pitchValue;
@@ -778,6 +859,12 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         rollLabel.setText(rollValue + "");
     }
 
+    /**
+     * This function runs in a background thread
+     * Loops constantly while application is running at intervals of 10 milli seconds
+     * Updates the values of the rotation sensors according to the rotation sliders
+     * If the values change for any of the rotation sensors, the updated values are sent to the emulator and added to the hashmap
+     */
     private void updateSensorValues() {
         while(true) {
             gyroscopeModel.refreshAngularSpeed(10, pitchValue, yawValue, rollValue);
@@ -818,10 +905,17 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         }
     }
 
+    /**
+     * Used to tell the application it is connected to the Android Application over WiFi
+     * @param flag
+     */
     public void setConnected(boolean flag) {
-        isConnected = true;
+        isConnected = flag;
     }
 
+    /**
+     * Updates the MagneticField values based on the rollValue, pitchValue, and yawValue
+     */
     private void updateMagneticFieldData() {
         ThreeDimensionalVector magneticFieldVector = new ThreeDimensionalVector(MAGNETIC_EAST, MAGNETIC_NORTH, -MAGNETIC_VERTICAL);
         magneticFieldVector.scale(0.001); // convert from nT (nano-Tesla) to uT
@@ -831,6 +925,9 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         magneticFieldModel.setCompass(magneticFieldVector);
     }
 
+    /**
+     * Updates the Accelerometer values based on the rollValue, pitchValue, and yawValue
+     */
     private void updateAccelerometerData() {
         // get component vectors (gravity + linear_acceleration)
         ThreeDimensionalVector gravityVec = getGravityVector();
@@ -845,6 +942,12 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         accelerometerModel.limitate(limit);
     }
 
+    /**
+     * Calculates the linear Acceleration Vector based on the x and z values in the {@link AccelerometerModel}
+     * and the rollValue, pitchValue, and yawValue
+     * @param accModel
+     * @return linear Acceleration Vector
+     */
     private ThreeDimensionalVector getLinearAccVector(AccelerometerModel accModel) {
         double meterPerPixel = 1. / 3000;
         double dt = 0.001 * 1; // from ms to s
@@ -863,6 +966,11 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         return vec;
     }
 
+    /**
+     * Calculates the gravity Acceleration Vector based on the {@link SensorsTabController#GRAVITY_CONSTANT}
+     * and the rollValue, pitchValue, and yawValue
+     * @return linear Acceleration Vector
+     */
     private ThreeDimensionalVector getGravityVector() {
         // apply orientation
         // we reverse roll, pitch, and yawDegree,
@@ -873,10 +981,16 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         return gravityVec;
     }
 
+    /**
+     * Restarts the playback thread
+     */
     private void restartThread() {
         playbackThread.run();
     }
 
+    /**
+     * Initialises the hashmap with 0 values for all sliders
+     */
     private void initHashMap() {
         sensorValues.put(LIGHT, 0.0);
         sensorValues.put(HUMIDITY, 0.0);
@@ -888,19 +1002,29 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         sensorValues.put(ROLL, 0.0);
     }
 
+    /**
+     * Private inner class operating as a background thread to read the sensor values loaded from the XML file
+     * Updates the slider values as it reads them from the loadedValues hashMap
+     */
     private class playbackThread extends Thread {
         private final AtomicBoolean pauseFlag = new AtomicBoolean(false);
         private final AtomicBoolean stopFlag = new AtomicBoolean(false);
 
         private HashMap<Integer, HashMap<String, Double>> loadedValues;
 
+        /**
+         * One argument constructor
+         * @param loadedValues
+         */
         private playbackThread(HashMap<Integer, HashMap<String, Double>> loadedValues) {
             this.loadedValues = loadedValues;
         }
 
+        /**
+         * Stops the thread
+         * Unsets the pause flag if set
+         */
         private void stopThread() {
-            System.out.println("StopThread called");
-
             pauseFlag.set(false);
             synchronized (pauseFlag) {
                 pauseFlag.notify();
@@ -908,10 +1032,16 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
             stopFlag.set(true);
         }
 
+        /**
+         * Pauses the thread
+         */
         private void pause() {
             pauseFlag.set(true);
         }
 
+        /**
+         * Runs the thread
+         */
         private void play() {
             pauseFlag.set(false);
             synchronized (pauseFlag) {
@@ -919,10 +1049,16 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
             }
         }
 
+        /**
+         * @return flag indicating if the thread is paused
+         */
         private boolean isPaused() {
             return pauseFlag.get();
         }
 
+        /**
+         * @return boolean indicating if the thread is running or stopped
+         */
         private boolean isRunning() {
             return !(pauseFlag.get() || stopFlag.get());
         }

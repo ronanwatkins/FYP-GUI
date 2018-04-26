@@ -410,6 +410,14 @@ public class LocationTabController extends AutomationTabController implements In
         longitude = Double.parseDouble(longitudeField.getText());
     }
 
+    /**
+     * Initialize the buttons
+     * Can do any of the following:
+     * Set tooltip text
+     * Set image
+     * Set disabled / enabled
+     * Set visible / invisible
+     */
     @Override
     public void initializeButtons() {
         runTypeComboBox.getSelectionModel().select(0);

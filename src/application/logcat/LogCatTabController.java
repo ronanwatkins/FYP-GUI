@@ -3,6 +3,7 @@ package application.logcat;
 import application.ADBUtil;
 import application.Main;
 import application.applications.ApplicationTabController;
+import application.automation.AutomationTabController;
 import application.monitor.MonitorTabController;
 import application.utilities.ApplicationUtils;
 import application.device.Device;
@@ -87,6 +88,13 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
 
     private Device device = Device.getInstance();
 
+    /**
+     * Called to initialize a controller after its root element has been
+     * completely processed.
+     *
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
@@ -140,11 +148,12 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         applicationTabController = (ApplicationTabController) controller;
 
         FXMLLoader fxmlLoader = new FXMLLoader(LogCatTabController.class.getClass().getResource("/application/logcat/LogCatTab.fxml"));
-        Bundle bundle = new Bundle(applicationTabController.getApplicationName());
 
-        Log.info(applicationTabController.getApplicationName());
-
-        fxmlLoader.setResources(bundle);
+        if(!(controller instanceof AutomationTabController)) {
+            Bundle bundle = new Bundle(applicationTabController.getApplicationName());
+            Log.info(applicationTabController.getApplicationName());
+            fxmlLoader.setResources(bundle);
+        }
 
         Parent root = fxmlLoader.load();
 
@@ -181,7 +190,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         } catch (NullPointerException ignored) {}
     }
 
-    private void getLogs(boolean flag) {
+    public void getLogs(boolean flag) {
         if(flag) {
             Log.info(ADBUtil.getAdbPath() + " -s " + device.getName() + " logcat -v threadtime");
 
@@ -238,6 +247,14 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         logCatListView.getItems().clear();
     }
 
+    /**
+     * Initialize the buttons
+     * Can do any of the following:
+     * Set tooltip text
+     * Set image
+     * Set disabled / enabled
+     * Set visible / invisible
+     */
     @Override
     public void initializeButtons() {
         deleteFilterButton.setDisable(true);

@@ -2,6 +2,7 @@ package application.automation.extras;
 
 import application.automation.CreateBatchController;
 import application.device.Device;
+import application.utilities.ApplicationUtils;
 import application.utilities.Showable;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -57,31 +58,41 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
 
     private static CreateBatchController controller;
 
+    private GetTouchPositionController getTouchPositionController;
+
     private Device device = Device.getInstance();
     
+    /**
+     * Called to initialize a controller after its root element has been
+     * completely processed.
+     *
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
+        System.out.println("System.out " + System.out);
+
+        getTouchPositionController = this;
+        Log.info("getTouchPositionController: " + getTouchPositionController);
 
         tapRadioButton.setSelected(true);
         if(tapRadioButton.isSelected()) {
             try {
-                device.getCursorPosition(this);
+                device.getCursorPosition(getTouchPositionController);
             } catch (Exception ee) {
                 ee.printStackTrace();
             }
         }
 
-        durationField.setVisible(false);
-        durationLabel.setVisible(false);
-        xEndLabel.setVisible(false);
-        yEndLabel.setVisible(false);
-        xEndField.setVisible(false);
-        yEndField.setVisible(false);
+        showFields(false);
     }
 
     @Override
     public Initializable newWindow(CreateBatchController createBatchController, Object object) throws IOException {
         controller = createBatchController;
+        Log.info("newWindow ");
 
         FXMLLoader fxmlLoader = new FXMLLoader(createBatchController.getClass().getResource("/application/automation/extras/GetTouchPosition.fxml"));
         Parent root = fxmlLoader.load();
@@ -92,6 +103,9 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setTitle("Get Cursor Location");
         stage.setScene(new Scene(root));
+
+        stage.setOnCloseRequest(event -> device.stopGettingCursorPosition());
+
         stage.show();
 
         return getTouchPositionController;
@@ -123,7 +137,6 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
             text += durationField.getText();
         }
 
-        System.out.println("Text: " + text);
         controller.setCommandText(text);
 
         xField.setText("");
@@ -132,6 +145,7 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         yEndField.setText("");
         durationField.setText("");
         device.setSwipeFlag(false);
+        device.stopGettingCursorPosition();
 
         ((Stage) OKButton.getScene().getWindow()).close();
     }
@@ -141,12 +155,7 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         if(tapRadioButton.isSelected()) {
             swipeRadioButton.setSelected(false);
 
-            durationField.setVisible(false);
-            durationLabel.setVisible(false);
-            xEndLabel.setVisible(false);
-            yEndLabel.setVisible(false);
-            xEndField.setVisible(false);
-            yEndField.setVisible(false);
+            showFields(false);
 
             durationField.setText("");
             xField.setText("");
@@ -163,12 +172,7 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         if(swipeRadioButton.isSelected()) {
             tapRadioButton.setSelected(false);
 
-            durationField.setVisible(true);
-            durationLabel.setVisible(true);
-            xEndLabel.setVisible(true);
-            yEndLabel.setVisible(true);
-            xEndField.setVisible(true);
-            yEndField.setVisible(true);
+            showFields(true);
 
             xField.setText("");
             yField.setText("");
@@ -176,6 +180,16 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
             getCursorPositionSwipe();
         }
     }
+
+    private void showFields(boolean flag) {
+        durationField.setVisible(flag);
+        durationLabel.setVisible(flag);
+        xEndLabel.setVisible(flag);
+        yEndLabel.setVisible(flag);
+        xEndField.setVisible(flag);
+        yEndField.setVisible(flag);
+    }
+
 
     public void setYField(double value) {
         Platform.runLater(() -> yField.setText(String.format("%.2f", value)));

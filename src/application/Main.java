@@ -1,9 +1,14 @@
 package application;
 
 import application.monitor.MonitorTabController;
+import application.sensors.SensorsTabController;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -47,6 +52,14 @@ public class Main extends Application {
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
         stage.setMaxWidth(primaryScreenBounds.getWidth());
         stage.setMaxHeight(primaryScreenBounds.getHeight());
+
+        stage.setOnShowing(event -> Platform.runLater(() -> SensorsTabController.getSensorsTabController().initializePhone()));
+        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            SensorsTabController.getSensorsTabController().alterPhoneLayout();
+        });
+        stage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            SensorsTabController.getSensorsTabController().alterPhoneLayout();
+        });
 
         stage.show();
 

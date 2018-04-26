@@ -195,11 +195,21 @@ public class Device {
         }
     }
 
+    private AtomicBoolean stopFlag = new AtomicBoolean(false);
+
+    public void stopGettingCursorPosition() {
+        stopFlag.set(true);
+    }
+
+    private GetTouchPositionController getTouchPositionController;
+
     public void getCursorPosition(GetTouchPositionController controller) {
+        this.getTouchPositionController = controller;
+
         try {
-            Task task = new Task() {
+            Task<Void> task = new Task<Void>() {
                 @Override
-                protected Object call() throws Exception {
+                protected Void call() throws Exception {
                     String lineGlobal;
                     Integer decimal;
                     Process process = Runtime.getRuntime().exec(ADBUtil.getAdbPath() + " -s " + name + " shell getevent -lt");
@@ -207,6 +217,11 @@ public class Device {
                     long startTime = 0;
                     String line;
                     while ((line = bufferedReader.readLine()) != null) {
+                        if(stopFlag.get()) {
+                            stopFlag.set(false);
+                            return null;
+                        }
+
                         if(line.contains("ABS_MT_POSITION")) {
                             lineGlobal = line;
                             String position = line.substring(line.trim().length()-8).trim();
@@ -218,7 +233,6 @@ public class Device {
                             }
 
                             try {
-
                                 if(lineGlobal.contains("ABS_MT_POSITION_X")) {
                                     double x = decimal.doubleValue()*(resolutionX/maxPositionX);
                                     //System.out.println("decimal: " + decimal);
@@ -228,12 +242,11 @@ public class Device {
                                     if(swipeFlag.get()) {
                                         if (xStart == 0.0) {
                                             xStart = x;
-                                            System.out.println("XStart: " + xStart);
-                                            controller.setXField(xStart);
+                                            getTouchPositionController.setXField(xStart);
                                             startTime = System.currentTimeMillis();
                                         } else {
                                             xEnd = x;
-                                            controller.setXEndField(xEnd);
+                                            getTouchPositionController.setXEndField(xEnd);
                                         }
 
                                         if(System.currentTimeMillis() - startTime > 2000) {
@@ -242,8 +255,7 @@ public class Device {
                                             yStart = 0.0;
                                         }
                                     } else {
-                                        System.out.println("X: " + x);
-                                        controller.setXField(x);
+                                        getTouchPositionController.setXField(x);
                                     }
                                 }
                                 else if(lineGlobal.contains("ABS_MT_POSITION_Y")) {
@@ -252,15 +264,13 @@ public class Device {
                                     if(swipeFlag.get()) {
                                         if (yStart == 0.0) {
                                             yStart = y;
-                                            System.out.println("YStart: " + yStart);
-                                            controller.setYField(yStart);
+                                            getTouchPositionController.setYField(yStart);
                                         } else {
                                             yEnd = y;
-                                            controller.setYEndField(yEnd);
+                                            getTouchPositionController.setYEndField(yEnd);
                                         }
                                     } else {
-                                        System.out.println("Y: " + y);
-                                        controller.setYField(y);
+                                        getTouchPositionController.setYField(y);
                                     }
                                 }
                             } catch (Exception ee) {

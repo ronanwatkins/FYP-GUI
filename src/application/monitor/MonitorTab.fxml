@@ -38,12 +38,12 @@
 
         <SplitPane dividerPositions="0.1919191919191919" layoutX="14.0" layoutY="57.0" prefHeight="800">
             <items>
-                <ListView fx:id="appsOnDeviceListView" minWidth="200" onMouseClicked="#handleAppsListViewClicked" />
+                <ListView fx:id="appsOnDeviceListView" minWidth="200" maxWidth="300" onMouseClicked="#handleAppsListViewClicked" />
 
                 <SplitPane fx:id="verticalPane" dividerPositions="0.5, 0.5" orientation="VERTICAL">
                     <items>
-                        <StackPane>
-                            <AreaChart fx:id="CPUChart" legendVisible="false" createSymbols="false" maxWidth="775" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
+                        <StackPane fx:id="CPUChartStackPane">
+                            <AreaChart fx:id="CPUChart" legendVisible="false" createSymbols="false" maxWidth="1000" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
                                 <xAxis>
                                     <NumberAxis fx:id="xAxis" forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
                                 </xAxis>
@@ -71,7 +71,7 @@
 
                                     <!--Column 0-->
                                     <Line id="solid-line" endY="10.0" startY="-10.0" stroke="#ff0000" GridPane.rowIndex="1" />
-                                    <Line id="solid-line" endY="10.0" startY="-10.0" stroke="#ffe100" GridPane.rowIndex="2" />
+                                    <Line id="solid-line" endY="10.0" startY="-10.0" stroke="#00cc00" GridPane.rowIndex="2" />
                                     <Label styleClass="small" text="\% Utilization" GridPane.halignment="LEFT" GridPane.valignment="TOP" />
                                     <Label styleClass="big" text="CPU" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
                                     <Label styleClass="heading" text="System: Utilization" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="TOP" />
@@ -101,7 +101,7 @@
                         </StackPane>
 
                         <StackPane>
-                            <AreaChart id="MemoryChart" fx:id="MemoryChart" legendVisible="false" createSymbols="false" maxWidth="775" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
+                            <AreaChart id="MemoryChart" fx:id="MemoryChart" legendVisible="false" createSymbols="false" maxWidth="1000" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
                                 <xAxis>
                                     <NumberAxis forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
                                 </xAxis>
@@ -155,7 +155,7 @@
                         </StackPane>
 
                         <StackPane>
-                            <AreaChart fx:id="NetworkChart" maxWidth="775" legendVisible="false" createSymbols="false" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
+                            <AreaChart fx:id="NetworkChart" maxWidth="1000" legendVisible="false" createSymbols="false" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
                                 <xAxis>
                                     <NumberAxis forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
                                 </xAxis>

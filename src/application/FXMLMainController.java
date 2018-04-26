@@ -35,6 +35,13 @@ public class FXMLMainController implements Initializable {
     @FXML
     private Tab monitorTab;
 
+    /**
+     * Called to initialize a controller after its root element has been
+     * completely processed.
+     *
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         sensorsTab.setGraphic(setIcon("/resources/sensor.png", 40, 40));

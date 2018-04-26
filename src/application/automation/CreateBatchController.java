@@ -142,8 +142,7 @@ public class CreateBatchController implements Initializable, Showable<Automation
     private ObservableList<String> inputCommands;
     private ObservableList<Integer> indexList;
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+/**     * Called to initialize a controller after its root element has been     * completely processed.     *     * @param location     * @param resources     */    @Override    public void initialize(URL location, ResourceBundle resources) {
         System.out.println();
 
         showFilesSection(false);
@@ -726,6 +725,14 @@ public class CreateBatchController implements Initializable, Showable<Automation
         inputCommandsMap.put("Search", "KEYCODE_SEARCH");
     }
 
+    /**
+     * Initialize the buttons
+     * Can do any of the following:
+     * Set tooltip text
+     * Set image
+     * Set disabled / enabled
+     * Set visible / invisible
+     */
     @Override
     public void initializeButtons() {
         ToggleGroup toggleGroup = new ToggleGroup();
