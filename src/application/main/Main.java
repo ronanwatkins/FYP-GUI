@@ -1,14 +1,10 @@
-package application;
+package application.main;
 
-import application.monitor.MonitorTabController;
 import application.sensors.SensorsTabController;
+import application.utilities.ADBUtil;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
@@ -40,7 +36,7 @@ public class Main extends Application {
         root = fxmlLoader.load();
 
         Scene scene = new Scene(root);
-        scene.getStylesheets().add("/application/global.css");
+        scene.getStylesheets().add("/application/main/global.css");
 
         stage.getIcons().add(new Image("/resources/Android.png"));
         stage.setTitle("Android Sensor Emulator");

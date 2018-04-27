@@ -10,7 +10,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
-<BorderPane fx:id="borderPane" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.FXMLMainController">
+<BorderPane fx:id="borderPane" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.main.FXMLMainController">
     <top>
         <MenuBar>
             <Menu text="File">
@@ -25,28 +25,28 @@
         <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" >
             <tabs>
                 <Tab fx:id="sensorsTab" text="Sensors">
-                    <fx:include fx:id="SensorsTabPage" source="sensors/SensorsTab.fxml"/>
+                    <fx:include fx:id="SensorsTabPage" source="../sensors/SensorsTab.fxml"/>
                 </Tab>
                 <Tab fx:id="locationTab" text="Location">
-                    <fx:include fx:id="LocationTabPage" source="location/LocationTab.fxml"/>
+                    <fx:include fx:id="LocationTabPage" source="../location/LocationTab.fxml"/>
                 </Tab>
                 <Tab fx:id="phoneTab" text="Phone">
-                    <fx:include fx:id="PhoneTabPage" source="phone/PhoneTab.fxml"/>
+                    <fx:include fx:id="PhoneTabPage" source="../phone/PhoneTab.fxml"/>
                 </Tab>
                 <Tab fx:id="consoleTab" text="Console">
-                    <fx:include fx:id="ConsoleTabPage" source="console/ConsoleTab.fxml"/>
+                    <fx:include fx:id="ConsoleTabPage" source="../console/ConsoleTab.fxml"/>
                 </Tab>
                 <Tab fx:id="automationTab" text="Automation">
-                    <fx:include fx:id="AutomationTabPage" source="automation/AutomationTab.fxml"/>
+                    <fx:include fx:id="AutomationTabPage" source="../automation/AutomationTab.fxml"/>
                 </Tab>
                 <Tab fx:id="applicationsTab" text="Applications">
-                    <fx:include fx:id="ApplicationTabPage" source="applications/ApplicationTab.fxml"/>
+                    <fx:include fx:id="ApplicationTabPage" source="../applications/ApplicationTab.fxml"/>
                 </Tab>
                 <Tab fx:id="logCatTab" text="LogCat">
-                    <fx:include fx:id="LogCatTabPage" source="logcat/LogCatTab.fxml"/>
+                    <fx:include fx:id="LogCatTabPage" source="../logcat/LogCatTab.fxml"/>
                 </Tab>
                 <Tab fx:id="monitorTab" text="Monitor">
-                    <fx:include fx:id="MonitorTabPage" source="monitor/MonitorTab.fxml"/>
+                    <fx:include fx:id="MonitorTabPage" source="../monitor/MonitorTab.fxml"/>
                 </Tab>
             </tabs>
         </TabPane>

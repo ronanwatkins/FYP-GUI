@@ -1,6 +1,7 @@
 package application.automation;
 
-import application.ADBUtil;
+import application.utilities.ADBUtil;
+import application.device.Intent;
 import application.utilities.ApplicationUtils;
 import application.utilities.XMLUtil;
 import application.automation.extras.GetTouchPositionController;
@@ -71,8 +72,6 @@ public class CreateBatchController implements Initializable, Showable<Automation
     @FXML
     private Button saveButton;
     @FXML
-    private Button enterTextButton;
-    @FXML
     private Button filesFinder1;
     @FXML
     private Button filesFinder2;
@@ -130,6 +129,7 @@ public class CreateBatchController implements Initializable, Showable<Automation
 
     private int index = 1;
     private int selectedIndex = 0;
+    private int intentType;
 
     private static File editFile;
 
@@ -142,9 +142,14 @@ public class CreateBatchController implements Initializable, Showable<Automation
     private ObservableList<String> inputCommands;
     private ObservableList<Integer> indexList;
 
-/**     * Called to initialize a controller after its root element has been     * completely processed.     *     * @param location     * @param resources     */    @Override    public void initialize(URL location, ResourceBundle resources) {
-        System.out.println();
-
+    /**
+     * Called to initialize a controller after its root element has been
+     * completely processed.
+     * @param location
+     * @param resources
+     * */
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
         showFilesSection(false);
         showActionsSection(false);
         initApplicationCommandsMap();
@@ -156,7 +161,6 @@ public class CreateBatchController implements Initializable, Showable<Automation
         commandsListView.setEditable(true);
         commandsListView.setCellFactory(TextFieldListCell.forListView());
 
-
         if(editFile != null) {
             saveButton.setDisable(false);
             XMLUtil xmlUtil = new XMLUtil(false);
@@ -166,31 +170,25 @@ public class CreateBatchController implements Initializable, Showable<Automation
 
             indexList = FXCollections.observableArrayList();
             index = commands.size();
-            for (int i = 0; i <= index; i++) {
+            for (int i = 0; i <= index; i++)
                 indexList.add(i);
-            }
             indexBox.setItems(indexList);
             indexBox.setValue(index);
 
             indexListView.getItems().clear();
-            for (int i = 0; i < indexBox.getValue(); i++) {
+            for (int i = 0; i < indexBox.getValue(); i++)
                 indexListView.getItems().add(i);
-            }
         } else {
             saveButton.setDisable(true);
 
             index = 0;
-            indexList = FXCollections.observableArrayList(
-                    index
-            );
+            indexList = FXCollections.observableArrayList(index);
 
             indexListView.getItems().clear();
             commandsListView.getItems().clear();
         }
 
-        inputCommands = FXCollections.observableArrayList(
-                inputCommandsMap.keySet()
-        );
+        inputCommands = FXCollections.observableArrayList(inputCommandsMap.keySet());
 
         applicationActionComboBox.setVisible(false);
         actionLabel.setVisible(false);
@@ -207,15 +205,12 @@ public class CreateBatchController implements Initializable, Showable<Automation
 
         possibleCommandsListView.setItems(inputCommands);
 
-        if(inputsToggleButton.isSelected()) {
+        if(inputsToggleButton.isSelected())
             possibleCommandsListView.setOnMouseClicked(event -> commandField.setText(keyEvent + inputCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
-        } else {
+        else
             possibleCommandsListView.setOnMouseClicked(event -> commandField.setText(keyEvent + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
-        }
 
         commandsListView.setOnMouseClicked(event -> {
-            System.out.println("commandsListView clicked");
-
             try {
                 if (!commandsListView.getSelectionModel().getSelectedItem().isEmpty()) {
                     deleteButton.setDisable(false);
@@ -223,17 +218,11 @@ public class CreateBatchController implements Initializable, Showable<Automation
                     moveUpButton.setDisable(false);
                 }
             } catch (NullPointerException npe) {
-                //npe.printStackTrace();
+                Log.error(npe.getMessage(), npe);
             }
         });
 
-        commandsListView.setOnEditCommit(t -> {
-            commandsListView.getItems().set(t.getIndex(), t.getNewValue());
-            System.out.println("setOnEditCommit");
-        });
-
-        commandsListView.setOnEditCancel(t -> System.out.println("setOnEditCancel"));
-
+        commandsListView.setOnEditCommit(t -> commandsListView.getItems().set(t.getIndex(), t.getNewValue()));
     }
 
     @Override
@@ -244,7 +233,7 @@ public class CreateBatchController implements Initializable, Showable<Automation
         FXMLLoader fxmlLoader = new FXMLLoader(commandsTabController.getClass().getResource("/application/automation/CreateBatchView.fxml"));
         Parent root = fxmlLoader.load();
         CreateBatchController createBatchController = fxmlLoader.getController();
-        root.getStylesheets().add("/application/global.css");
+        root.getStylesheets().add("/application/main/global.css");
 
         Stage stage = new Stage();
 
@@ -258,7 +247,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         return createBatchController;
     }
 
-    //****START TOGGLE BUTTON HANDLERS****//
+    /**
+     * shows the inputs ListView and Nodes relating to it
+     * @param event
+     */
     @FXML
     private void handleInputsToggleButtonPressed(ActionEvent event) {
         showFilesSection(false);
@@ -266,7 +258,6 @@ public class CreateBatchController implements Initializable, Showable<Automation
         showActionsSection(false);
         filesFinder1.setVisible(false);
         filesFinder2.setVisible(false);
-       // actionLabel.setVisible(false);
         inputsToggleButton.setSelected(true);
 
         possibleCommandsListView.setVisible(true);
@@ -274,6 +265,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         possibleCommandsListView.setOnMouseClicked(mouseEvent -> commandField.setText(keyEvent + inputCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem())));
     }
 
+    /**
+     * shows the applications ListView and Nodes relating to it
+     * @param event
+     */
     @FXML
     private void handleApplicationsToggleButtonPressed(ActionEvent event) {
         showFilesSection(false);
@@ -297,7 +292,6 @@ public class CreateBatchController implements Initializable, Showable<Automation
         possibleCommandsListView.getSelectionModel().select(selectedIndex);
 
         possibleCommandsListView.setOnMouseClicked(mouseEvent -> {
-            System.out.println("here 1");
             if(possibleCommandsListView.getSelectionModel().getSelectedItem() != null) {
                 commandField.setText(actionMap.get(applicationActionComboBox.getValue()) + " "
                         + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem()));
@@ -310,6 +304,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
     }
 
     private boolean isCopyToAndroid = true;
+    /**
+     * shows the files ListView and Nodes relating to it
+     * @param event
+     */
     @FXML
     private void handleFilesToggleButtonPressed(ActionEvent event) {
         showFilesSection(true);
@@ -342,27 +340,21 @@ public class CreateBatchController implements Initializable, Showable<Automation
         });
     }
 
-    private enum ActionSelection {
-        ACTIVITY,
-        SERVICE,
-        BROADCAST
-    }
-    private ActionSelection selection;
-
+    /**
+     * shows the actions ListView and Nodes relating to it
+     * @param event
+     */
     @FXML
     private void handleActionsToggleButtonPressed(ActionEvent event) {
-        System.out.println("handleActionsToggleButtonPressed >>");
         actionsToggleButton.setSelected(true);
         showActionsSection(true);
         showFilesSection(false);
         showApplicationSection(false);
-        //filesFinder1.setVisible(false);
         filesFinder2.setVisible(false);
         selectionComboBox.setVisible(true);
         enterButton.setVisible(true);
         filesFinder1.setVisible(false);
         filesFinder2.setVisible(false);
-        System.out.println("Done");
 
         helpLabel.setOnAction(event1 -> browse("https://developer.android.com/studio/command-line/adb.html#IntentSpec"));
         actionLabel1.setOnAction(event1 -> browse("https://developer.android.com/guide/components/intents-filters.html#Types"));
@@ -379,24 +371,25 @@ public class CreateBatchController implements Initializable, Showable<Automation
         selectionComboBox.getItems().clear();
         selectionComboBox.setItems(selections);
         selectionComboBox.getSelectionModel().select(0);
-        selection = ActionSelection.ACTIVITY;
+
+        intentType = Intent.ACTIVITY;
 
         selectionComboBox.setOnAction(event1 -> {
             int index = selectionComboBox.getSelectionModel().getSelectedIndex();
 
             switch (index) {
                 case 0:
-                    selection = ActionSelection.ACTIVITY;
+                    intentType = Intent.ACTIVITY;
                     actionComboBox.getItems().clear();
                     actionComboBox.setItems(intentsValues());
                     break;
                 case 1:
-                    selection = ActionSelection.SERVICE;
+                    intentType = Intent.SERVICE;
                     actionComboBox.getItems().clear();
                     actionComboBox.setItems(intentsValues());
                     break;
                 case 2:
-                    selection = ActionSelection.BROADCAST;
+                    intentType = Intent.BROADCAST;
                     actionComboBox.getItems().clear();
                     actionComboBox.setItems(broadcastValues());
                     break;
@@ -409,6 +402,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         componentComboBox.setOnAction(event1 -> componentTextField.setText(componentComboBox.getValue()));
     }
 
+    /**
+     * Displays a fileChooser allowing the user to select a file to send to the device
+     * @param event
+     */
     @FXML
     private void handleFilesFinder1Clicked(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -421,6 +418,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         filesTextField1.setText(file.getAbsolutePath());
     }
 
+    /**
+     * Displays a fileChooser allowing the user to select a folder to receive the file from the device
+     * @param event
+     */
     @FXML
     private void handleFilesFinder2Clicked(ActionEvent event) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
@@ -433,6 +434,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         filesTextField2.setText(selectedDirectory.getAbsolutePath());
     }
 
+    /**
+     * Adds commands relating to the selection to the commandField
+     * @param event
+     */
     @FXML
     private void handleEnterButtonClicked(ActionEvent event) {
         if(filesToggleButton.isSelected())
@@ -450,24 +455,26 @@ public class CreateBatchController implements Initializable, Showable<Automation
             String flags = "";
             if(!flagsTextField.getText().isEmpty()) flags = " -f " + flagsTextField.getText();
 
-            switch (selection) {
-                case ACTIVITY:
+            switch (intentType) {
+                case Intent.ACTIVITY:
                     commandField.setText("shell am start" + action + data + mimeType + category + component + flags);
                     break;
-                case BROADCAST:
+                case Intent.BROADCAST:
                     commandField.setText("shell am broadcast" + action + data + mimeType + category + component + flags);
                     break;
-                case SERVICE:
+                case Intent.SERVICE:
                     commandField.setText("shell am startservice" + action + data + mimeType + category + component + flags);
                     break;
             }
-        } else System.out.println("oops");
+        }
     }
 
+    /**
+     * Adds commands relating to the action to have on the selected application to the commandField
+     * @param event
+     */
     @FXML
     private void handleApplicationActionComboBoxClicked(ActionEvent event) {
-        System.out.println("here 2");
-        //if(possibleCommandsListView.getSelectionModel().getSelectedItem() != null || commandField.getText().contains(".")) {
         if (actionMap.get(applicationActionComboBox.getValue()) != null && possibleCommandsListView.getSelectionModel().getSelectedItem() !=  null) {
             commandField.setText(actionMap.get(applicationActionComboBox.getValue()) + " "
                     + applicationCommandsMap.get(possibleCommandsListView.getSelectionModel().getSelectedItem()));
@@ -476,17 +483,24 @@ public class CreateBatchController implements Initializable, Showable<Automation
         }
     }
 
+    /**
+     * Creates a new instance of {@link GetTouchPositionController} and displays it in a new window
+     * @param event
+     */
     @FXML
     private void handleGetCursorLocationClicked(ActionEvent event) {
         try {
             GetTouchPositionController getTouchPositionController = new GetTouchPositionController();
             getTouchPositionController.newWindow(this, null);
-            //GetTouchPositionController.newWindow(this);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.error(e.getMessage(), e);
         }
     }
 
+    /**
+     * Adds the text from the commandfield to the commands ListView
+     * @param event
+     */
     @FXML
     private void handleAddCommandButtonClicked(ActionEvent event) {
         if(!commandField.getText().isEmpty()) {
@@ -502,6 +516,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         }
     }
 
+    /**
+     * Deletes the selected command from the ListView
+     * @param event
+     */
     @FXML
     private void handleDeleteButtonClicked(ActionEvent event) {
         int commandsListViewIndex = commandsListView.getSelectionModel().getSelectedIndex();
@@ -513,6 +531,7 @@ public class CreateBatchController implements Initializable, Showable<Automation
                 indexBox.setItems(indexList);
                 indexBox.setValue(index);
             } catch (Exception ee) {
+                Log.error(ee.getMessage(), ee);
             }
 
             indexListView.getItems().clear();
@@ -522,6 +541,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         }
     }
 
+    /**
+     * Moves the selected command up the ListView
+     * @param event
+     */
     @FXML
     private void handleMoveUpButtonClicked(ActionEvent event) {
         int selectedItemIndex = commandsListView.getSelectionModel().getSelectedIndex();
@@ -534,6 +557,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         }
     }
 
+    /**
+     * Moves the selected command down the ListView
+     * @param event
+     */
     @FXML
     private void handleMoveDownButtonClicked(ActionEvent event) {
         int selectedItemIndex = commandsListView.getSelectionModel().getSelectedIndex();
@@ -545,9 +572,17 @@ public class CreateBatchController implements Initializable, Showable<Automation
 
                 commandsListView.getSelectionModel().select(selectedItemIndex + 1);
             }
-        } catch (IndexOutOfBoundsException e) {}
+        } catch (IndexOutOfBoundsException e) {
+            Log.error(e.getMessage(), e);
+        }
     }
 
+    /**
+     * Saves the commands from the ListView
+     * If we are editing a file just save and exit
+     * or else, show a test dialog to get the file name
+     * @param event
+     */
     @FXML
     private void handleSaveButtonClicked(ActionEvent event) {
         XMLUtil xmlUtil = new XMLUtil(false);
@@ -574,6 +609,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         ((Stage) indexBox.getScene().getWindow()).close();
     }
 
+    /**
+     * Show a text input dialog to enter text to the device
+     * @param event
+     */
     @FXML
     private void handleEnterTextButtonClicked(ActionEvent event) {
         TextInputDialog dialog = new TextInputDialog();
@@ -584,6 +623,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         result.ifPresent(s -> commandField.setText("shell input text " + s));
     }
 
+    /**
+     * Sets the text in the command field to the parameter
+     * @param text
+     */
     //ApplicationUtils
     public void setCommandText(String text) {
         commandField.setText(text);
@@ -593,54 +636,66 @@ public class CreateBatchController implements Initializable, Showable<Automation
         return commandField;
     }
 
+    /**
+     * Creates an ObservableList<String> of broadcastable actions
+     * @return ObservableList<String> of broadcastable actions
+     */
     private ObservableList<String> broadcastValues() {
         ObservableList<String> values = FXCollections.observableArrayList();
-        values.add("ACTION_TIME_TICK");
-        values.add("ACTION_TIME_CHANGED");
-        values.add("ACTION_TIMEZONE_CHANGED");
-        values.add("ACTION_BOOT_COMPLETED");
-        values.add("ACTION_PACKAGE_ADDED");
-        values.add("ACTION_PACKAGE_CHANGED");
-        values.add("ACTION_PACKAGE_REMOVED");
-        values.add("ACTION_PACKAGE_RESTARTED");
-        values.add("ACTION_PACKAGE_DATA_CLEARED");
-        values.add("ACTION_PACKAGES_SUSPENDED");
-        values.add("ACTION_PACKAGES_UNSUSPENDED");
-        values.add("ACTION_UID_REMOVED");
-        values.add("ACTION_BATTERY_CHANGED");
-        values.add("ACTION_POWER_CONNECTED");
-        values.add("ACTION_POWER_DISCONNECTED");
-        values.add("ACTION_SHUTDOWN");
+        values.add("android.intent.action.TIME_TICK");
+        values.add("android.intent.action.TIME_CHANGED");
+        values.add("android.intent.action.TIMEZONE_CHANGED");
+        values.add("android.intent.action.BOOT_COMPLETED");
+        values.add("android.intent.action.PACKAGE_ADDED");
+        values.add("android.intent.action.PACKAGE_CHANGED");
+        values.add("android.intent.action.PACKAGE_REMOVED");
+        values.add("android.intent.action.PACKAGE_RESTARTED");
+        values.add("android.intent.action.PACKAGE_DATA_CLEARED");
+        values.add("android.intent.action.PACKAGES_SUSPENDED");
+        values.add("android.intent.action.PACKAGES_UNSUSPENDED");
+        values.add("android.intent.action.UID_REMOVED");
+        values.add("android.intent.action.BATTERY_CHANGED");
+        values.add("android.intent.action.POWER_CONNECTED");
+        values.add("android.intent.action.POWER_DISCONNECTED");
+        values.add("android.intent.action.SHUTDOWN");
 
         return values;
     }
 
+    /**
+     * Creates an ObservableList<String> of actions
+     * @return ObservableList<String> of actions
+     */
     private ObservableList<String> intentsValues() {
         ObservableList<String> values = FXCollections.observableArrayList();
-        values.add("ACTION_MAIN");
-        values.add("ACTION_VIEW");
-        values.add("ACTION_ATTACH_DATA");
-        values.add("ACTION_EDIT");
-        values.add("ACTION_PICK");
-        values.add("ACTION_CHOOSER");
-        values.add("ACTION_GET_CONTENT");
-        values.add("ACTION_DIAL");
-        values.add("ACTION_CALL");
-        values.add("ACTION_SEND");
-        values.add("ACTION_SENDTO");
-        values.add("ACTION_ANSWER");
-        values.add("ACTION_INSERT");
-        values.add("ACTION_DELETE");
-        values.add("ACTION_RUN");
-        values.add("ACTION_SYNC");
-        values.add("ACTION_PICK_ACTIVITY");
-        values.add("ACTION_SEARCH");
-        values.add("ACTION_WEB_SEARCH");
-        values.add("ACTION_FACTORY_TEST");
+        values.add("android.intent.action.MAIN");
+        values.add("android.intent.action.VIEW");
+        values.add("android.intent.action.ATTACH_DATA");
+        values.add("android.intent.action.EDIT");
+        values.add("android.intent.action.PICK");
+        values.add("android.intent.action.CHOOSER");
+        values.add("android.intent.action.GET_CONTENT");
+        values.add("android.intent.action.DIAL");
+        values.add("android.intent.action.CALL");
+        values.add("android.intent.action.SEND");
+        values.add("android.intent.action.SENDTO");
+        values.add("android.intent.action.ANSWER");
+        values.add("android.intent.action.INSERT");
+        values.add("android.intent.action.DELETE");
+        values.add("android.intent.action.RUN");
+        values.add("android.intent.action.SYNC");
+        values.add("android.intent.action.PICK_ACTIVITY");
+        values.add("android.intent.action.SEARCH");
+        values.add("android.intent.action.WEB_SEARCH");
+        values.add("android.intent.action.FACTORY_TEST");
 
         return values;
     }
 
+    /**
+     * Displays or hides Nodes relating to the action section
+     * @param flag
+     */
     private void showActionsSection(boolean flag) {
         helpLabel.setVisible(flag);
         actionComboBox.setVisible(flag);
@@ -661,12 +716,20 @@ public class CreateBatchController implements Initializable, Showable<Automation
         flagsTextField.setVisible(flag);
     }
 
+    /**
+     * Displays or hides Nodes relating to the application section
+     * @param flag
+     */
     private void showApplicationSection(boolean flag) {
         possibleCommandsListView.setVisible(flag);
         applicationActionComboBox.setVisible(flag);
         actionLabel.setVisible(flag);
     }
 
+    /**
+     * Displays or hides Nodes relating to the files section
+     * @param flag
+     */
     private void showFilesSection(boolean flag) {
         possibleCommandsListView.setVisible(!flag);
         selectionComboBox.setVisible(flag);
@@ -678,6 +741,9 @@ public class CreateBatchController implements Initializable, Showable<Automation
         enterButton.setVisible(flag);
     }
 
+    /**
+     * Initializes the Action HashMap
+     */
     private void initActionMap() {
         actionMap = new HashMap<>();
         actionMap.put("Disable App", "shell pm disable");
@@ -688,7 +754,10 @@ public class CreateBatchController implements Initializable, Showable<Automation
         actionMap.put("Open", "shell monkey -p");
     }
 
-    public void initApplicationCommandsMap() {
+    /**
+     * Initializes the Application HashMap
+     */
+    private void initApplicationCommandsMap() {
         applicationCommandsMap = new HashMap<>();
 
         ArrayList<String> applications = ADBUtil.listApplications();
@@ -698,6 +767,9 @@ public class CreateBatchController implements Initializable, Showable<Automation
         }
     }
 
+    /**
+     * Initializes the Input HashMap
+     */
     private void initInputCommandsMap() {
         inputCommandsMap = new HashMap<>();
         inputCommandsMap.put("Back", "KEYCODE_BACK");

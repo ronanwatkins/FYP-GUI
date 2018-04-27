@@ -4,7 +4,6 @@ import application.applications.ApplicationTabController;
 import application.automation.AutomationTabController;
 import application.device.AndroidApplication;
 import application.device.Device;
-import application.logcat.Bundle;
 import application.logcat.LogCatTabController;
 import application.monitor.model.CPUMonitor;
 import application.monitor.model.MemoryMonitor;
@@ -20,7 +19,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -29,11 +27,9 @@ import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -43,7 +39,6 @@ import org.apache.log4j.Logger;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Random;
 import java.util.ResourceBundle;
 
 public class MonitorTabController extends ApplicationTabController implements Showable<Initializable>, Initializable, ApplicationUtils {
@@ -104,9 +99,6 @@ public class MonitorTabController extends ApplicationTabController implements Sh
     @FXML
     private AreaChart<Number, Number> NetworkChart;
 
-    @FXML
-    private StackPane CPUChartStackPane;
-
     private XYChart.Series<Number, Number> CPUDataSeriesSystem;
     private XYChart.Series<Number, Number> CPUDataSeriesApplication;
     private Timeline CPUAnimation;
@@ -121,11 +113,10 @@ public class MonitorTabController extends ApplicationTabController implements Sh
     private XYChart.Series<Number, Number> NetworkDataSeriesReceivedApplication;
     private Timeline NetworkAnimation;
 
-    private Timeline sequenceMangementAnimation;
+    private Timeline sequenceManagementAnimation;
 
     private final int Y_AXIS_LENGTH = 60;
     private double sequence = 0;
-    private boolean showChartForSystem = true;
 
     private Device device = Device.getInstance();
 
@@ -162,8 +153,6 @@ public class MonitorTabController extends ApplicationTabController implements Sh
     public void initialize(URL location, ResourceBundle resources) {
         verticalPane.setDividerPositions(0.3333f, 0.6666f, 0.9999f);
 
-        //CPUChart
-
         initializeButtons();
         initializeCPUChart();
         initializeMemoryChart();
@@ -182,7 +171,7 @@ public class MonitorTabController extends ApplicationTabController implements Sh
         Parent root = fxmlLoader.load();
 
         Scene scene = new Scene(root);
-        scene.getStylesheets().add("/application/global.css");
+        scene.getStylesheets().add("/application/main/global.css");
 
         MonitorTabController monitorTabController = fxmlLoader.getController();
 
@@ -203,12 +192,7 @@ public class MonitorTabController extends ApplicationTabController implements Sh
     //    stage.setMaxWidth(primaryScreenBounds.getWidth());
       //  stage.setMaxHeight(primaryScreenBounds.getHeight());
 
-stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController(null));
-
-//        stage.setOnShowing(event -> {
-//            play();
-//            return;
-//        });
+        stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController(null));
 
         stage.show();
 
@@ -221,9 +205,15 @@ stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController
         return monitorTabController;
     }
 
+    /**
+     * Runs the sequence management animation
+     * This animation increments the sequence variable
+     * Removes data from the start of each series every second after a minute has passed
+     * to allow the chart to move from right to left
+     */
     private void runSequenceManagementAnimation() {
-        sequenceMangementAnimation = new Timeline();
-        sequenceMangementAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
+        sequenceManagementAnimation = new Timeline();
+        sequenceManagementAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
             sequence++;
 
             if (sequence > Y_AXIS_LENGTH) {
@@ -245,9 +235,13 @@ stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController
             }
 
         }));
-        sequenceMangementAnimation.setCycleCount(Animation.INDEFINITE);
+        sequenceManagementAnimation.setCycleCount(Animation.INDEFINITE);
     }
 
+    /**
+     * Sets up the Network Chart
+     * Data from the {@link NetworkMonitor} class is added to the 4 series' in this chart every minute
+     */
     private void initializeNetworkChart() {
         NetworkAnimation = new Timeline();
         NetworkAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
@@ -277,6 +271,10 @@ stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController
         styleSeries(NetworkDataSeriesSentApplication, lightRed, true);
     }
 
+    /**
+     * Sets up the Memory Chart
+     * Data from the {@link MemoryMonitor} class is added to the 2 series' in this chart every minute
+     */
     private void initializeMemoryChart() {
         MemoryAnimation = new Timeline();
         MemoryAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
@@ -303,6 +301,10 @@ stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController
         styleSeries(MemoryDataSeriesApplication, Color.MAGENTA, false);
     }
 
+    /**
+     * Sets up the Network Chart
+     * Data from the {@link CPUMonitor} class is added to the 2 series' in this chart every minute
+     */
     private void initializeCPUChart() {
         CPUAnimation = new Timeline();
         CPUAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
@@ -317,10 +319,14 @@ stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController
 
         CPUDataSeriesApplication = new XYChart.Series<>();
         CPUChart.getData().add(CPUDataSeriesApplication);
-        Color orange = Color.ORANGE.darker().darker().darker();
         styleSeries(CPUDataSeriesApplication, Color.GREEN, false);
     }
 
+    /**
+     * Starts the {@link MonitorService} to gather data from the device
+     * Binds the labels to the data in each monitor
+     * starts all chart animations
+     */
     public void play() {
         Log.info("Playing...");
 
@@ -329,12 +335,15 @@ stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController
 
         bindLabels();
 
-        sequenceMangementAnimation.play();
+        sequenceManagementAnimation.play();
         MemoryAnimation.play();
         CPUAnimation.play();
         NetworkAnimation.play();
     }
 
+    /**
+     * Binds the labels to the corresponding data in the monitors
+     */
     private void bindLabels() {
         sentKBpsSystem.bind(networkMonitor.systemSentKBpsProperty());
         receivedKBpsSystem.bind(networkMonitor.systemReceivedKBpsProperty());
@@ -369,6 +378,12 @@ stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController
         NetworkApplicationReceivedKBps.textProperty().bind(networkMonitor.applicationReceivedKBpsProperty().asString("%.1f").concat(" KBps"));
     }
 
+    /**
+     * Styles the line and body of the series according to the Color parameter passed
+     * @param series series to apply style to
+     * @param color color to style series with
+     * @param dashed boolean to select if line will be dashed or not
+     */
     private void styleSeries(XYChart.Series<Number, Number> series, Color color, boolean dashed) {
         String dash = "";
         if(dashed)
@@ -383,6 +398,13 @@ stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController
         line.setStyle("-fx-stroke: rgba(" + rgb + ", 1.0);" + dash);
     }
 
+    /**
+     * Handles the application list view being clicked
+     * Interrupts the Monitor Service if it is running.
+     * Sets the selected application in the device to the value in the list
+     * Starts a new instance of the Monitor Service
+     * @param mouseEvent
+     */
     @FXML
     private void handleAppsListViewClicked(MouseEvent mouseEvent) {
         Log.info("is cancelled? " + monitorService.cancel());
@@ -403,12 +425,15 @@ stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController
 
             monitorServiceThread = new Thread(monitorService);
             monitorServiceThread.start();
-
         });
 
         new Thread(task).start();
     }
 
+    /**
+     * Updates the application ListView
+     * @param event
+     */
     @Override
     @FXML
     protected void handleRefreshButtonClicked(ActionEvent event) {

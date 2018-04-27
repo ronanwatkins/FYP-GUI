@@ -1,6 +1,5 @@
 package application.utilities;
 
-import application.ADBUtil;
 import application.device.Device;
 import application.device.Intent;
 import javafx.beans.property.SimpleStringProperty;

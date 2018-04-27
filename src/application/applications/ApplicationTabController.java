@@ -100,11 +100,6 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
     private Button copyButton;
     @FXML
     protected Button closeButton;
-    @FXML
-    private Button sendIntentButton;
-
-    @FXML
-    private AnchorPane pane;
 
     @FXML
     private ListView<String> appsOnPCListView;
@@ -142,10 +137,18 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         applicationTabController = this;
     }
 
+    /**
+     * Returns an instance of self attached to the FXML view
+     * @return Instance of self attached to the FXML view
+     */
     public static ApplicationTabController getApplicationTabController() {
         return applicationTabController;
     }
 
+    /**
+     * Initializes the ApplicationTableView
+     * Sets the CellValueFactories to the Properties in the {@link AndroidApplication}
+     */
     private void initializeApplicationTableView() {
         APKNameColumn.setCellValueFactory(cellData -> cellData.getValue().APKNameProperty());
         APKPathColumn.setCellValueFactory(cellData -> cellData.getValue().APKPathProperty());
@@ -156,6 +159,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         dataDirColumn.setCellFactory(tc -> textWrappingCell());
     }
 
+    /**
+     * Creates a cell capable of wrapping the text inside it
+     * @return Cell capable of wrapping the text inside it
+     */
     private TableCell<AndroidApplication, String> textWrappingCell() {
         TableCell<AndroidApplication, String> cell = new TableCell<>();
         Text text = new Text();
@@ -166,6 +173,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         return cell;
     }
 
+    /**
+     * Initializes the IntentTableView
+     * Sets the CellValueFactories to the Properties in the {@link Intent}
+     */
     private void initializeIntentTableView() {
         actionColumn.setCellValueFactory(cellData -> cellData.getValue().actionProperty());
         componentColumn.setCellValueFactory(cellData -> cellData.getValue().componentProperty());
@@ -174,6 +185,9 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         mimeTypeColumn.setCellValueFactory(cellData -> cellData.getValue().isMimeTypedProperty());
     }
 
+    /**
+     * Updates the list of APK files on the PC
+     */
     private void updatePCListView() {
         appsOnPCList = FXCollections.observableArrayList();
         try {
@@ -187,6 +201,9 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         appsOnPCListView.setItems(appsOnPCList);
     }
 
+    /**
+     * Updates the list of Android Applications on the Device
+     */
     public void updateDeviceListView() {
         try {
             appsOnDeviceListView.getItems().clear();
@@ -210,6 +227,12 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         }
     }
 
+    /**
+     * Creates a new instance of {@link AndroidApplication} when an application is selected in the AppsListView
+     * Runs the creation of the {@link AndroidApplication} Object in a background thread and displays the list
+     * of it's intents in the IntentsTableView when the thread completes
+     * @param mouseEvent
+     */
     @FXML
     private void handleAppsListViewClicked(MouseEvent mouseEvent) {
         enableButtons();
@@ -236,6 +259,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         new Thread(task).start();
     }
 
+    /**
+     * Installs the selected APK file onto the device
+     * @param event
+     */
     @FXML
     private void handleInstallButtonClicked(ActionEvent event) {
         String appName = appsOnPCListView.getSelectionModel().getSelectedItem();
@@ -255,6 +282,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         new Thread(task).start();
     }
 
+    /**
+     * Deletes the selected APK file from the device and removes it from the list
+     * @param event
+     */
     @FXML
     private void handleDeleteButtonClicked(ActionEvent event) {
         String fileName = appsOnPCListView.getSelectionModel().getSelectedItem();
@@ -266,12 +297,20 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         }
     }
 
+    /**
+     * Opens the selected application on the device
+     * @param event
+     */
     @FXML
     protected void handleOpenButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
         resultTextArea.setText(openApp(appName));
     }
 
+    /**
+     * Uninstalls the selected application from the device
+     * @param event
+     */
     @FXML
     private void handleUninstallButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
@@ -279,6 +318,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         updateDeviceListView();
     }
 
+    /**
+     * Gets the APK file of the selected application from the device and adds it to the PCListView
+     * @param event
+     */
     @FXML
     private void handleCopyButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
@@ -298,12 +341,20 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         new Thread(task).start();
     }
 
+    /**
+     * Closes the selected application on the device
+     * @param event
+     */
     @FXML
     protected void handleCloseButtonClicked(ActionEvent event) {
         String appName = appsOnDeviceListView.getSelectionModel().getSelectedItem();
         resultTextArea.setText(closeApp(appName));
     }
 
+    /**
+     * Creates a new instance of {@link LogCatTabController} and displays it in a new window
+     * @param event
+     */
     @FXML
     protected void handleLogCatButtonClicked(ActionEvent event) {
         if (logCatTabController == null) {
@@ -319,6 +370,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         }
     }
 
+    /**
+     * Refreshes the list of android applications installed on the device
+     * @param event
+     */
     @FXML
     protected void handleRefreshButtonClicked(ActionEvent event) {
         Log.info("");
@@ -328,6 +383,11 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         updatePCListView();
     }
 
+    /**
+     * Disables the deleteButton and installButton when the APK file listView is clicked
+     * and if the selected file is in face an APK file
+     * @param mouseEvent
+     */
     @FXML
     private void handleAppsOnPCListViewClicked(MouseEvent mouseEvent) {
         try {
@@ -340,11 +400,20 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         }
     }
 
+    /**
+     * Filters the android application ListView when text is entered to the Search Field
+     * @param event
+     */
     @FXML
     protected void handleSearchFieldAction(KeyEvent event) {
         appsOnDeviceListView.setItems(filter(searchField.getText(), device.getApplicationNames()));
     }
 
+    /**
+     * Sends an {@link Intent} to the device built from the text in the Intent fields
+     * Runs this action in a background thread and displays the result form the device in the resultTextArea
+     * @param event
+     */
     @FXML
     private void handleSendIntentButtonClicked(ActionEvent event) {
         String action = actionField.getText();
@@ -366,6 +435,10 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         new Thread(task).start();
     }
 
+    /**
+     * Adds the data from the selected intent into the Intent text fields
+     * @param mouseEvent
+     */
     @FXML
     private void handleIntentsTableViewClicked(MouseEvent mouseEvent) {
         if (intentsTableView.getItems().isEmpty())
@@ -392,14 +465,25 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         dataField.setText("");
     }
 
+    /**
+     * Returns the name of the selected Android Application from the Application ListView
+     * @return
+     */
     public String getApplicationName() {
         return appsOnDeviceListView.getSelectionModel().getSelectedItem();
     }
 
+    /**
+     * Sets the instance of {@link LogCatTabController}
+     * @param logCatTabController
+     */
     public void setLogCatTabController(LogCatTabController logCatTabController) {
         this.logCatTabController = logCatTabController;
     }
 
+    /**
+     * Enables the buttons relating to the android application
+     */
     private void enableButtons() {
         showLogCatButton.setDisable(false);
         uninstallButton.setDisable(false);
@@ -429,27 +513,31 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
         setImage("/resources/refresh.png", null, refreshButton);
     }
 
+    /**
+     * Sets the valueProperty of each Intent ComboBox
+     * When an item is selected in each ComboBox the text is added to to it's corresponding textField
+     */
     private void initializeComboBoxes() {
         componentComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
+            if (newValue != null)
                 componentField.setText(newValue);
-            }
         });
 
         mimeTypeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
+            if (newValue != null)
                 mimeTypeField.setText(newValue);
-            }
         });
 
         schemeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
+            if (newValue != null)
                 dataField.setText(newValue);
-            }
         });
     }
 
 
+    /**
+     * Updates the mimeTypeComboBox when an item is selected in the Intent TableView
+     */
     @FXML
     private void updateMimeTypeComboBox() {
         if (selectedIntent == null)
@@ -465,6 +553,9 @@ public class ApplicationTabController implements Initializable, ApplicationUtils
             );
     }
 
+    /**
+     * Updates the schemeComboBox when an item is selected in the Intent TableView
+     */
     @FXML
     private void updateSchemeComboBox() {
         schemeComboBox.setItems(Intent.getAssociatedSchemes(

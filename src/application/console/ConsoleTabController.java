@@ -1,6 +1,6 @@
 package application.console;
 
-import application.ADBUtil;
+import application.utilities.ADBUtil;
 
 import application.utilities.ApplicationUtils;
 import application.device.Device;
@@ -17,7 +17,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.stream.Stream;
 
 public class ConsoleTabController implements Initializable, ApplicationUtils {
 
@@ -54,6 +53,10 @@ public class ConsoleTabController implements Initializable, ApplicationUtils {
         helpLink.setOnAction(event -> browse("https://developer.android.com/studio/command-line/adb.html#issuingcommands"));
     }
 
+    /**
+     * Sends the shell command ovre ADB to the connected device
+     * @param command
+     */
     private void enterCommand(String command) {
         final String newCommand = ADBUtil.getAdbPath() + " -s " + device.getName() + " " + command;
         Log.info("Command: " + newCommand);

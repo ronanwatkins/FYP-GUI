@@ -1,7 +1,7 @@
 package application.device;
 
-import application.ADBUtil;
-import application.TelnetServer;
+import application.utilities.ADBUtil;
+import application.utilities.TelnetServer;
 import application.applications.ApplicationTabController;
 import application.automation.extras.GetTouchPositionController;
 import application.monitor.MonitorTabController;
@@ -15,7 +15,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static application.ADBUtil.consoleCommand;
+import static application.utilities.ADBUtil.consoleCommand;
 
 public class Device {
     private static final Logger Log = Logger.getLogger(Device.class.getName());

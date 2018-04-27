@@ -88,7 +88,7 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
 
         Parent root = fxmlLoader.load();
         CreateFilterController createFilterController = fxmlLoader.getController();
-        root.getStylesheets().add("/application/global.css");
+        root.getStylesheets().add("/application/main/global.css");
 
         Stage stage = new Stage();
         stage.setResizable(false);

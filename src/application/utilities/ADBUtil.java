@@ -1,6 +1,5 @@
-package application;
+package application.utilities;
 
-import application.utilities.ADBConnectionController;
 import application.device.Device;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -87,6 +86,7 @@ public class ADBUtil {
                 showInputDialog();
             }
         } else {
+            System.out.println("CANCEL CLICKED");
             adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
             isADBFound = true;
             Task<Void> task = new Task<Void>() {

@@ -1,24 +1,18 @@
 package application.monitor;
 
-import application.ADBUtil;
+import application.utilities.ADBUtil;
 import application.device.Device;
 import application.monitor.model.CPUMonitor;
 import application.monitor.model.MemoryMonitor;
 import application.monitor.model.NetworkMonitor;
-import application.utilities.Showable;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.fxml.Initializable;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Formatter;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MonitorService extends Thread {

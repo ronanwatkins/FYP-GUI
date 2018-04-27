@@ -1,6 +1,6 @@
 package application.automation;
 
-import application.ADBUtil;
+import application.utilities.ADBUtil;
 import application.applications.ApplicationTabController;
 import application.logcat.LogCatTabController;
 import application.monitor.MonitorTabController;
@@ -71,6 +71,8 @@ public class AutomationTabController extends ApplicationTabController implements
 
     protected AtomicBoolean pauseFlag = new AtomicBoolean(false);
     protected AtomicBoolean wasPaused = new AtomicBoolean(false);
+    
+    private final int INTERVAL = 2000;
 
     /**
      * Called to initialize a controller after its root element has been
@@ -85,10 +87,6 @@ public class AutomationTabController extends ApplicationTabController implements
         createBatchController = new CreateBatchController();
 
         runTypeComboBox.getSelectionModel().select(0);
-        stopButton.setDisable(true);
-        deleteButton.setDisable(true);
-        editButton.setDisable(true);
-        playButton.setDisable(true);
 
         filesList = FXCollections.observableArrayList();
         directory = new File(DIRECTORY);
@@ -114,6 +112,10 @@ public class AutomationTabController extends ApplicationTabController implements
         });
     }
 
+    /**
+     * Deletes the selected file and removes it from the ListView
+     * @param event
+     */
     @FXML
     protected void handleDeleteButtonClicked(ActionEvent event) {
         String fileName = filesListView.getSelectionModel().getSelectedItem();
@@ -125,6 +127,12 @@ public class AutomationTabController extends ApplicationTabController implements
         }
     }
 
+    /**
+     * Runs through the ListView of batch commands
+     * Sends each command to the connected device over ADB at an interval of {@link #INTERVAL}
+     * Pauses if it is already running
+     * @param event
+     */
     @FXML
     protected void handlePlayButtonClicked(ActionEvent event) {
         if(runCommandsTask != null) {
@@ -149,13 +157,11 @@ public class AutomationTabController extends ApplicationTabController implements
 
         if(!wasPaused.get() && !pauseFlag.get()) {
             setImage("/resources/pause.png", "Pause batch commands", playButton);
-            System.out.println("Starting new batch automation");
+            Log.info("Starting new batch automation");
             runningCommandsListView.getItems().clear();
             stopButton.setDisable(false);
 
             commandsList = allCommandsListView.getItems();
-            for(String command :commandsList)
-                System.out.println("commands to run: " + command);
 
             int startIndex;
             if(runTypeComboBox.getSelectionModel().isSelected(1) || runTypeComboBox.getSelectionModel().isSelected(2))
@@ -173,18 +179,17 @@ public class AutomationTabController extends ApplicationTabController implements
                 @Override
                 protected Void call() {
                     int index = startIndex;
-                    System.out.println("start: " + startIndex + ", end: " + endIndex);
                     for (String command : commandsList.subList(startIndex, endIndex)) {
-                        System.out.println("Running command: " + command);
+                        Log.info("Running command: " + command);
 
                         if (pauseFlag.get()) {
                             synchronized (pauseFlag) {
                                 while (pauseFlag.get()) {
                                     try {
-                                        System.out.println("WAITING.....");
+                                        Log.info("WAITING.....");
                                         pauseFlag.wait();
                                     } catch (InterruptedException e) {
-                                        System.out.println("waiting.....");
+                                        Log.info("waiting.....");
                                         Thread.currentThread().interrupt();
                                         return null;
                                     }
@@ -215,7 +220,7 @@ public class AutomationTabController extends ApplicationTabController implements
                             runningCommandsListView.scrollTo(selectedIndex);
                         });
                         try {
-                            Thread.sleep(2000);
+                            Thread.sleep(INTERVAL);
                         } catch (InterruptedException ie) {
                             return null;
                         }
@@ -233,7 +238,7 @@ public class AutomationTabController extends ApplicationTabController implements
 
             runCommandsTask.setOnFailed(event1 -> {
                 setImage("/resources/play.png","Run batch commands", playButton);
-                System.out.println("runCommandsTask failed, Exception: " + runCommandsTask.getException());
+                Log.info("runCommandsTask failed, Exception: " + runCommandsTask.getException());
                 stopButton.setDisable(true);
                 wasPaused.set(false);
                 pauseFlag.set(false);
@@ -244,6 +249,10 @@ public class AutomationTabController extends ApplicationTabController implements
         }
     }
 
+    /**
+     * Stops sending batch commands to the connected device
+     * @param event
+     */
     @FXML
     protected void handleStopButtonClicked(ActionEvent event) {
         stopButton.setDisable(true);
@@ -254,6 +263,11 @@ public class AutomationTabController extends ApplicationTabController implements
         setImage("/resources/play.png","Run batch commands", playButton);
     }
 
+    /**
+     * Edits the selected batch file.
+     * Shows the create / edit batch GUI with contents of the selected file
+     * @param event
+     */
     @FXML
     protected void handleEditButtonClicked(ActionEvent event) {
         String fileName = filesListView.getSelectionModel().getSelectedItem();
@@ -262,10 +276,14 @@ public class AutomationTabController extends ApplicationTabController implements
         try {
             createBatchController.newWindow(this, editFile);
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+           Log.error(ioe.getMessage(), ioe);
         }
     }
 
+    /**
+     * Creates an instance of the {@link MonitorTabController} and displays it
+     * @param event
+     */
     @FXML
     private void handleShowMonitorButtonClicked(ActionEvent event) {
         if (monitorTabController == null) {
@@ -279,10 +297,18 @@ public class AutomationTabController extends ApplicationTabController implements
         }
     }
 
+    /**
+     * Sets the instance of {@link MonitorTabController}
+     * @param monitorTabController
+     */
     public void setMonitorTabController(MonitorTabController monitorTabController) {
         this.monitorTabController = monitorTabController;
     }
 
+    /**
+     * Creates an instance of the {@link LogCatTabController} and displays it
+     * @param event
+     */
     public void handleShowLogCatButtonClicked(ActionEvent event) {
         if (logCatTabController == null) {
             logCatTabController = new LogCatTabController();
@@ -295,10 +321,18 @@ public class AutomationTabController extends ApplicationTabController implements
         }
     }
 
+    /**
+     * Sets the instance of {@link LogCatTabController}
+     * @param logCatTabController
+     */
     public void setLogCatTabController(LogCatTabController logCatTabController) {
         this.logCatTabController = logCatTabController;
     }
 
+    /**
+     * Shows the createBatchController controller to create a new Batch
+     * @param event
+     */
     @FXML
     protected void handleNewButtonClicked(ActionEvent event) {
         try {
@@ -308,11 +342,14 @@ public class AutomationTabController extends ApplicationTabController implements
         }
     }
 
+    /**
+     * Refreshes the ListView of batch commands
+     */
     public void refreshCommandsList() {
         XMLUtil xmlUtil = new XMLUtil(false);
 
         String commandName = filesListView.getSelectionModel().getSelectedItem();
-        System.out.println("Command name: " + commandName);
+        Log.info("Command name: " + commandName);
         if(commandName != null) {
             ObservableList<String> batchCommands = xmlUtil.openBatchCommands(new File(DIRECTORY + "\\" + commandName + ".xml"));
             allCommandsListView.setItems(batchCommands);
@@ -324,6 +361,9 @@ public class AutomationTabController extends ApplicationTabController implements
         }
     }
 
+    /**
+     * Updates the ListView of batch files
+     */
     public void updateCommandsList() {
         try {
             filesListView.getItems().clear();
@@ -332,16 +372,20 @@ public class AutomationTabController extends ApplicationTabController implements
                 filesList.add(file.getName().replace(".xml", ""));
             }
         } catch (NullPointerException npe) {
-            //npe.printStackTrace();
+            Log.error(npe.getMessage(), npe);
         }
 
         filesListView.setItems(filesList);
     }
 
+    /**
+     * Returns a formatted string readable by the emulator
+     * @param command
+     * @return Formatted string readable by the emulator
+     */
     private String formatCommand(String command) {
         if(command.startsWith("shell input text")) {
             String tempCommand = command.substring(17);
-            //System.out.println("TempCommand: " + tempCommand);
 
             StringBuilder temp2 = new StringBuilder();
             for(char ch : tempCommand.toCharArray()) {
@@ -353,16 +397,13 @@ public class AutomationTabController extends ApplicationTabController implements
             }
 
             tempCommand = temp2.toString();
-            //tempCommand = tempCommand.replaceAll("[^a-zA-Z0-9 ]", "\\[^a-zA-Z0-9]");
             tempCommand = tempCommand.replace(" ", "%s");
 
-            //System.out.println("TempCommand now: " + tempCommand);
             tempCommand  = "\"" + tempCommand + "\"";
 
             command = "shell input text " + tempCommand;
         }
 
-        //System.out.print("Command: " + command);
         return command;
     }
 
@@ -380,6 +421,11 @@ public class AutomationTabController extends ApplicationTabController implements
      */
     @Override
     public void initializeButtons() {
+        stopButton.setDisable(true);
+        deleteButton.setDisable(true);
+        editButton.setDisable(true);
+        playButton.setDisable(true);
+        
         setImage("/resources/play.png","Run batch commands", playButton);
         setImage("/resources/stop.png", "Stop batch commands", stopButton);
         setImage("/resources/pop_out.png", null, showMonitorButton);

@@ -2,7 +2,6 @@ package application.automation.extras;
 
 import application.automation.CreateBatchController;
 import application.device.Device;
-import application.utilities.ApplicationUtils;
 import application.utilities.Showable;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -86,7 +85,7 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
             }
         }
 
-        showFields(false);
+        showSwipeFields(false);
     }
 
     @Override
@@ -97,7 +96,7 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         FXMLLoader fxmlLoader = new FXMLLoader(createBatchController.getClass().getResource("/application/automation/extras/GetTouchPosition.fxml"));
         Parent root = fxmlLoader.load();
         GetTouchPositionController getTouchPositionController = fxmlLoader.getController();
-        root.getStylesheets().add("/application/global.css");
+        root.getStylesheets().add("/application/main/global.css");
 
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -111,14 +110,25 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         return getTouchPositionController;
     }
 
+    /**
+     * Tells the device to get cursor coordinates for a tap
+     */
     private void getCursorPositionTap() {
         device.setSwipeFlag(false);
     }
 
+    /**
+     * Tells the device to get cursor coordinates for a swipe
+     */
     private void getCursorPositionSwipe() {
         device.setSwipeFlag(true);
     }
 
+    /**
+     * Sets the textField text in {@link CreateBatchController} to the text contained in the xField, yField, xEndField  and yEndField
+     * closes this Controller
+     * @param event
+     */
     @FXML
     public void handleOKButtonClicked(ActionEvent event) {
         String text = "";
@@ -150,12 +160,16 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         ((Stage) OKButton.getScene().getWindow()).close();
     }
 
+    /**
+     * Tells the device to get the cursor position for a tap
+     * @param event
+     */
     @FXML
     public void handleTapRadioButtonClicked(ActionEvent event) {
         if(tapRadioButton.isSelected()) {
             swipeRadioButton.setSelected(false);
 
-            showFields(false);
+            showSwipeFields(false);
 
             durationField.setText("");
             xField.setText("");
@@ -167,12 +181,16 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         }
     }
 
+    /**
+     * Tells the device to get the cursor position for a swipe
+     * @param event
+     */
     @FXML
     public void handleSwipeRadioButtonClicked(ActionEvent event) {
         if(swipeRadioButton.isSelected()) {
             tapRadioButton.setSelected(false);
 
-            showFields(true);
+            showSwipeFields(true);
 
             xField.setText("");
             yField.setText("");
@@ -181,7 +199,11 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
         }
     }
 
-    private void showFields(boolean flag) {
+    /**
+     * Shows the fields and labels relating to the swipe option
+     * @param flag
+     */
+    private void showSwipeFields(boolean flag) {
         durationField.setVisible(flag);
         durationLabel.setVisible(flag);
         xEndLabel.setVisible(flag);
@@ -191,18 +213,34 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
     }
 
 
+    /**
+     * Sets the text in the YField to the receive double value
+     * @param value
+     */
     public void setYField(double value) {
         Platform.runLater(() -> yField.setText(String.format("%.2f", value)));
     }
 
+    /**
+     * Sets the text in the XField to the receive double value
+     * @param value
+     */
     public void setXField(double value) {
         Platform.runLater(() -> xField.setText(String.format("%.2f", value)));
     }
 
+    /**
+     * Sets the text in the YEndField to the receive double value
+     * @param value
+     */
     public void setYEndField(double value) {
         Platform.runLater(() -> yEndField.setText(String.format("%.2f", value)));
     }
 
+    /**
+     * Sets the text in the XEndField to the receive double value
+     * @param value
+     */
     public void setXEndField(double value) {
         Platform.runLater(() -> xEndField.setText(String.format("%.2f", value)));
     }

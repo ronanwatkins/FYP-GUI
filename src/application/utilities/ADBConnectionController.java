@@ -1,6 +1,6 @@
 package application.utilities;
 
-import application.FXMLMainController;
+import application.main.FXMLMainController;
 import application.device.Device;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -148,7 +148,7 @@ public class ADBConnectionController implements Initializable, Showable<FXMLMain
 
         Parent root = fxmlLoader.load();
         ADBConnectionController adbConnectionController = fxmlLoader.getController();
-        root.getStylesheets().add("/application/global.css");
+        root.getStylesheets().add("/application/main/global.css");
 
         Stage stage = new Stage();
         stage.setResizable(false);

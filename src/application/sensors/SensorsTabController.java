@@ -1,6 +1,6 @@
 package application.sensors;
 
-import application.TelnetServer;
+import application.utilities.TelnetServer;
 import application.utilities.ApplicationUtils;
 import application.utilities.XMLUtil;
 import application.sensors.model.AccelerometerModel;
@@ -8,13 +8,11 @@ import application.sensors.model.GyroscopeModel;
 import application.sensors.model.MagneticFieldModel;
 import application.sensors.server.HTTPServer;
 import application.utilities.ThreeDimensionalVector;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -116,8 +114,6 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     private Button recordButton;
     @FXML
     private Button stopRecordingButton;
-   // @FXML
-   // private Button saveButton;
     @FXML
     private Button loadButton;
     @FXML
@@ -186,9 +182,9 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     private double mouseMoveX = 0;
     private double mouseMoveZ = 0;
 
-    public Rotate rotateX = new Rotate(90, Rotate.X_AXIS);
-    public Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
-    public Rotate rotateZ = new Rotate(0, Rotate.Z_AXIS);
+    private Rotate rotateX = new Rotate(90, Rotate.X_AXIS);
+    private Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
+    private Rotate rotateZ = new Rotate(0, Rotate.Z_AXIS);
 
     private Map<String, Double> sensorValues = Collections.synchronizedMap(new HashMap<>());
     private playbackThread playbackThread;
@@ -202,7 +198,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     private boolean isLoaded = false;
     private boolean wasPaused = false;
 
-    Bounds phonePaneLayoutBounds;
+    private Bounds phonePaneLayoutBounds;
     //endregion
 
     private static SensorsTabController sensorsTabController;

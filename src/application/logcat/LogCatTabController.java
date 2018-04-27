@@ -1,10 +1,8 @@
 package application.logcat;
 
-import application.ADBUtil;
-import application.Main;
+import application.utilities.ADBUtil;
 import application.applications.ApplicationTabController;
 import application.automation.AutomationTabController;
-import application.monitor.MonitorTabController;
 import application.utilities.ApplicationUtils;
 import application.device.Device;
 import application.utilities.Showable;
@@ -76,11 +74,10 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
     private LogLevel logLevel;
 
     private ApplicationTabController applicationTabController;
-    //private MonitorTabController monitorTabController;
 
     private int selectedFilterIndex;
 
-    private Filter filter;
+    private volatile Filter filter;
 
     private String searchFieldText;
 
@@ -158,7 +155,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         Parent root = fxmlLoader.load();
 
         LogCatTabController logCatTabController = fxmlLoader.getController();
-        root.getStylesheets().add("/application/global.css");
+        root.getStylesheets().add("/application/main/global.css");
 
         Stage stage = new Stage();
         stage.initModality(Modality.NONE);
@@ -172,11 +169,19 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         return logCatTabController;
     }
 
+    /**
+     * Sets the text in the searchField to the parameter
+     * @param text text to put into searchField
+     */
     public void setSearchField(String text) {
         searchField.setText(text);
         searchTextChanged();
     }
 
+    /**
+     * Initialize Filter ComboBox
+     * Adds all files from the filter directory to the ComboBox
+     */
     private void initializeComboBox() {
         File directory = new File(FILTER_DIRECTORY);
 
@@ -187,9 +192,15 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
             for (File file : Objects.requireNonNull(directory.listFiles())) {
                 filtersComboBox.getItems().add(file.getName().replace(".xml", ""));
             }
-        } catch (NullPointerException ignored) {}
+        } catch (NullPointerException npe) {
+            Log.error(npe.getMessage(), npe);
+        }
     }
 
+    /**
+     * Gets / stops getting logs from the device
+     * @param flag flag to device to get/stop getting logs
+     */
     public void getLogs(boolean flag) {
         if(flag) {
             Log.info(ADBUtil.getAdbPath() + " -s " + device.getName() + " logcat -v threadtime");
@@ -231,6 +242,12 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         }
     }
 
+    /**
+     * Handle start button action
+     * If we are receiving logs: stop getting logs
+     * If we aren't receiving logs: start getting logs
+     * @param event
+     */
     @FXML
     protected void handleStartButtonClicked(MouseEvent event) {
         if(startButton.getText().equalsIgnoreCase("start"))
@@ -239,6 +256,10 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
             getLogs(false);
     }
 
+    /**
+     * Clears the logListView and logList
+     * @param event
+     */
     @FXML
     private void handleClearButtonClicked(ActionEvent event) {
         synchronized (lock) {
@@ -265,11 +286,18 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         setImage("/resources/edit.png", "Edit filer", editFilterButton);
     }
 
+    /**
+     * Called when text is entered to the search field
+     * @param keyEvent
+     */
     @FXML
     protected void handleSearchFieldAction(KeyEvent keyEvent) {
         searchTextChanged();
     }
 
+    /**
+     * Adds the searchField text to the filter and filters the logListView
+     */
     private void searchTextChanged() {
         if(!searchField.getText().equals(searchFieldText)) {
             searchFieldText = searchField.getText();
@@ -281,6 +309,11 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         }
     }
 
+    /**
+     * Handles the logLevelComboBoc being pressed.
+     * sets the logLevel in the filter to the logLevel from the comboBox
+     * @param event
+     */
     @FXML
     private void handleLogLevelComboBoxPressed(ActionEvent event) {
         logLevel = LogLevel.getLogLevel(logLevelComboBox.getSelectionModel().getSelectedIndex());
@@ -292,6 +325,11 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         }
     }
 
+    /**
+     * Saves the contents of the logCat ListView to a file
+     * Sets the file name as the device name followed by a time stamp
+     * @param event
+     */
     @FXML
     private void handleSaveButtonClicked(ActionEvent event) {
         final String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
@@ -307,7 +345,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
                         fileWriter.println(line);
                     }
                 } catch (FileNotFoundException ee) {
-                    ee.printStackTrace();
+                    Log.error(ee.getMessage(), ee);
                 }
                 return null;
             }
@@ -317,6 +355,10 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         new Thread(task).start();
     }
 
+    /**
+     * Creates a new instance of {@link CreateFilterController} and displays it in a new window
+     * @param event
+     */
     @FXML
     private void handleAddFilterButtonClicked(ActionEvent event) {
         fileToEdit = "";
@@ -329,6 +371,10 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         }
     }
 
+    /**
+     * Removes the selected filter from the ComboBox and removes it from the list
+     * @param event
+     */
     @FXML
     private void handleDeleteFilterButtonClicked(ActionEvent event) {
         String fileName = filtersComboBox.getSelectionModel().getSelectedItem();
@@ -340,6 +386,9 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         }
     }
 
+    /**
+     * Updates the filters ComboBox
+     */
     public void updateFiltersComboBox() {
         try {
             Thread.sleep(200);
@@ -351,6 +400,11 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         filtersComboBox.getSelectionModel().select(selectedFilterIndex);
     }
 
+    /**
+     * Creates a new {@link Filter} Object from the contents of the XML file selected
+     * Applies this filter to the loglist and refreshes the logList with the filtered items
+     * @param event
+     */
     @FXML
     private void handleFiltersComboBoxPressed(ActionEvent event) {
         if(filtersComboBox.getSelectionModel().getSelectedIndex() > -1) {
@@ -373,6 +427,11 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         } 
     }
 
+    /**
+     * Edits the selected filter
+     * Creates a new instance of {@link CreateFilterController} and displays it in a new window
+     * @param event
+     */
     @FXML
     private void handleEditFilterButtonClicked(ActionEvent event) {
         fileToEdit = filtersComboBox.getSelectionModel().getSelectedItem();
@@ -385,15 +444,23 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         }
     }
 
+    /**
+     * @return The name of the file to edit
+     */
     public String getFileToEditName() {
         return fileToEdit;
     }
 
+    /**
+     * Creates an ObservableList<String> of filtered logcat output
+     * @param filter filter to filter list with
+     * @param list list to filter
+     * @return filtered list
+     */
     private ObservableList<String> filter(Filter filter, ObservableList<String> list) {
         ObservableList<String> newList = FXCollections.observableArrayList();
 
         if(filter.getSearchText() != null) {
-
             for (String s : list) {
                 if (matchesFilter(filter, s))
                     newList.add(s);
@@ -403,6 +470,12 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         return newList;
     }
 
+    /**
+     * Checks if the input string is acceptable to the filter
+     * @param filter filter tpo filter string with
+     * @param s string to filter
+     * @return boolean indicating if the input string is acceptable to the filter
+     */
     private boolean matchesFilter(Filter filter, String s) {
         if (s.startsWith("-") || s.isEmpty()) {
             return false;

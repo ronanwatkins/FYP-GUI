@@ -1,6 +1,7 @@
 package application.phone;
 
-import application.TelnetServer;
+import application.utilities.TelnetServer;
+import application.utilities.ApplicationUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -9,7 +10,7 @@ import javafx.scene.control.*;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class PhoneTabController implements Initializable {
+public class PhoneTabController implements Initializable, ApplicationUtils {
 
     @FXML
     private Slider batterySlider;
@@ -49,7 +50,6 @@ public class PhoneTabController implements Initializable {
 
     private String phoneNumber;
 
-    private boolean isInCall = false;
     private boolean isOnHold = false;
     private boolean isInteger = false;
 
@@ -74,6 +74,48 @@ public class PhoneTabController implements Initializable {
             TelnetServer.powerCapacity(batteryValue+"");
         });
 
+        networkType.getSelectionModel().select(2);
+        signalStrength.getSelectionModel().select(4);
+        voiceStatus.getSelectionModel().select(0);
+        dataStatus.getSelectionModel().select(0);
+
+        handleTextAreaEvents();
+        handleComboBoxEvents();
+    }
+
+    /**
+     * Called each time text is entered to the phone number TextArea
+     * Attempts to parse the value in the TextArea
+     * if the TextArea contains a non-numerical value, the call button is disables
+     */
+    private void handleTextAreaEvents() {
+        phoneNumberField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(!phoneNumberField.getText().isEmpty()) {
+                try {
+                    Integer.parseInt(phoneNumberField.getText());
+                    isInteger = true;
+                } catch (NumberFormatException nfe) {
+                    isInteger = false;
+                }
+
+                if(isInteger)
+                    makeCallButton.setDisable(false);
+                else makeCallButton.setDisable(true);
+            }
+            else makeCallButton.setDisable(true);
+        });
+
+        messageArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(!phoneNumberField.getText().isEmpty())
+                sendSMSButton.setDisable(false);
+            else sendSMSButton.setDisable(true);
+        });
+    }
+
+    /**
+     * handles all ComboBox events
+     */
+    private void handleComboBoxEvents() {
         batteryHealth.setOnAction(event -> {
             String health = batteryHealth.getValue().toString().toLowerCase();
             TelnetServer.batteryHealth(health);
@@ -96,46 +138,6 @@ public class PhoneTabController implements Initializable {
             }
         });
 
-        networkType.getSelectionModel().select(2);
-        signalStrength.getSelectionModel().select(4);
-        voiceStatus.getSelectionModel().select(0);
-        dataStatus.getSelectionModel().select(0);
-
-        holdCallButton.setDisable(true);
-        endCallButton.setDisable(true);
-        makeCallButton.setDisable(true);
-        sendSMSButton.setDisable(true);
-
-        handleTextAreaEvents();
-        handleComboBoxEvents();
-    }
-
-    private void handleTextAreaEvents() {
-        phoneNumberField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if(!phoneNumberField.getText().isEmpty()) {
-                try {
-                    Integer.parseInt(phoneNumberField.getText());
-                    isInteger = true;
-                } catch (NumberFormatException nfe) {
-                    //nfe.printStackTrace();
-                    isInteger = false;
-                }
-
-                if(isInteger)
-                    makeCallButton.setDisable(false);
-                else makeCallButton.setDisable(true);
-            }
-            else makeCallButton.setDisable(true);
-        });
-
-        messageArea.textProperty().addListener((observable, oldValue, newValue) -> {
-            if(!phoneNumberField.getText().isEmpty())
-                sendSMSButton.setDisable(false);
-            else sendSMSButton.setDisable(true);
-        });
-    }
-
-    private void handleComboBoxEvents() {
         networkType.setOnAction(event -> {
             String network = networkType.getValue().toString().toLowerCase();
             System.out.println(network);
@@ -178,18 +180,26 @@ public class PhoneTabController implements Initializable {
         });
     }
 
+    /**
+     * Gets the phoneNumber from the phoneNumberField
+     * Simulates an incoming call to the emulator
+     * @param event
+     */
     @FXML
     private void handleMakeCallButtonClicked(ActionEvent event) {
         phoneNumber = phoneNumberField.getText();
         if(!phoneNumber.isEmpty()) {
             TelnetServer.makeCall(phoneNumber);
-            isInCall = true;
             makeCallButton.setDisable(true);
             holdCallButton.setDisable(false);
             endCallButton.setDisable(false);
         }
     }
 
+    /**
+     * Ends the call to the emulator
+     * @param event
+     */
     @FXML
     private void handleEndCallButtonClicked(ActionEvent event) {
         TelnetServer.endCall(phoneNumber);
@@ -198,6 +208,10 @@ public class PhoneTabController implements Initializable {
         holdCallButton.setDisable(true);
     }
 
+    /**
+     * Holds the call to the emulator
+     * @param event
+     */
     @FXML
     private void handleHoldCallButtonClicked(ActionEvent event) {
         if(!isOnHold) {
@@ -211,10 +225,30 @@ public class PhoneTabController implements Initializable {
         }
     }
 
+    /**
+     * Sends an SMS to the emulator with the text contained in the SMSTextArea
+     * @param event
+     */
     @FXML
     private void handleSendSMSButtonClicked(ActionEvent event) {
         phoneNumber  = phoneNumberField.getText();
         String command =  messageArea.getText().replaceAll("\n", "\\\\n");
         TelnetServer.sendSMS(phoneNumber + " " + command);
+    }
+
+    /**
+     * Initialize the buttons
+     * Can do any of the following:
+     * Set tooltip text
+     * Set image
+     * Set disabled / enabled
+     * Set visible / invisible
+     */
+    @Override
+    public void initializeButtons() {
+        holdCallButton.setDisable(true);
+        endCallButton.setDisable(true);
+        makeCallButton.setDisable(true);
+        sendSMSButton.setDisable(true);
     }
 }

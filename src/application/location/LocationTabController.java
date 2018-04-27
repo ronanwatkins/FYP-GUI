@@ -1,6 +1,6 @@
 package application.location;
 
-import application.TelnetServer;
+import application.utilities.TelnetServer;
 import application.automation.AutomationTabController;
 import application.utilities.ApplicationUtils;
 import application.utilities.XMLUtil;
@@ -20,6 +20,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import org.apache.log4j.Logger;
 
 
 import java.io.File;
@@ -28,6 +29,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 public class LocationTabController extends AutomationTabController implements Initializable, ApplicationUtils {
+    private static final Logger Log = Logger.getLogger(LocationTabController.class.getName());
 
     public static final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\location";
 
@@ -74,8 +76,7 @@ public class LocationTabController extends AutomationTabController implements In
 
     private final int INTERVAL = 3000;
 
-    //private File KMLFile;
-    String fileName;
+    private String fileName;
 
     private GoogleMap map;
 
@@ -88,8 +89,15 @@ public class LocationTabController extends AutomationTabController implements In
 
     private ArrayList<Marker> markers;
 
+    /**
+     * Called to initialize a controller after its root element has been
+     * completely processed.
+     *
+     * @param location
+     * @param resources
+     */
     @Override
-    public void initialize(URL url, ResourceBundle resources) {
+    public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
 
         filesList = FXCollections.observableArrayList();
@@ -108,28 +116,45 @@ public class LocationTabController extends AutomationTabController implements In
         altitudeColumn.setCellValueFactory(cellData -> cellData.getValue().altitudeProperty().asObject());
     }
 
+
+    /**
+     * Handles the List view of KML files being clicked
+     * @param event
+     */
     @FXML
     private void handleKMLFilesListViewClicked(MouseEvent event) {
         refreshCommandsList();
         updateMarkers();
     }
 
+    /**
+     * Handles the Table view of KML commands being clicked
+     * enables all button controls for the TableView
+     * If a double clicked is detected, The map zooms to the selected location and the location is sent to the emulator
+     * @param event
+     */
     @FXML
     private void handleKMLTableViewClicked(MouseEvent event) {
-        if(KMLTableView.getSelectionModel().getSelectedItem() != null) {
-            moveDownButton.setDisable(false);
-            moveUpButton.setDisable(false);
-            deleteCommandButton.setDisable(false);
+        if(KMLTableView.getSelectionModel().getSelectedItem() == null)
+            return;
 
-            if(event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-                KML kml =  KMLTableView.getSelectionModel().getSelectedItem();
-                map.panTo(new LatLong(kml.getLatitude(), kml.getLongitude()));
-                map.setZoom((int) kml.getAltitude());
-                TelnetServer.setLocation(kml.getCoordinate());
-            }
+        moveDownButton.setDisable(false);
+        moveUpButton.setDisable(false);
+        deleteCommandButton.setDisable(false);
+
+        if(event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+            KML kml =  KMLTableView.getSelectionModel().getSelectedItem();
+            map.panTo(new LatLong(kml.getLatitude(), kml.getLongitude()));
+            map.setZoom((int) kml.getAltitude());
+            TelnetServer.setLocation(kml.getCoordinate());
         }
+
     }
 
+    /**
+     * Updates the list of KML commands in the TableView
+     * enables all button controls for the TableView
+     */
     @Override
     public void refreshCommandsList() {
         fileName = filesListView.getSelectionModel().getSelectedItem();
@@ -140,7 +165,7 @@ public class LocationTabController extends AutomationTabController implements In
 
             KMLTableView.setItems(commandsList);
             for (KML kml : commandsList) {
-                System.out.println(kml.toString());
+                Log.info(kml.toString());
             }
 
             deleteButton.setDisable(false);
@@ -153,6 +178,9 @@ public class LocationTabController extends AutomationTabController implements In
         }
     }
 
+    /**
+     * Updates the list of KML files in the ListView
+     */
     @Override
     public void updateCommandsList() {
         try {
@@ -161,17 +189,29 @@ public class LocationTabController extends AutomationTabController implements In
             for (File file : Objects.requireNonNull(directory.listFiles())) {
                 filesList.add(file.getName().replace(EXTENSION, ""));
             }
-        } catch (NullPointerException ignored) {}
+        } catch (NullPointerException npe) {
+            Log.error(npe.getMessage(), npe);
+        }
 
         filesListView.setItems(filesList);
     }
 
+    /**
+     * Handles the send button being clicked
+     * Sends the selected coordinates to the emulator
+     * @param event
+     */
     @FXML
     private void handleSendButtonClicked(ActionEvent event) {
         updateValues();
         TelnetServer.setLocation(longitude + " " + latitude);
     }
 
+    /**
+     * Adds the selected coordinates, name and description to the selected KML file
+     * Adds a marker to the selected location to the Map
+     * @param event
+     */
     @FXML
     private void handleAddButtonClicked(ActionEvent event) {
         updateValues();
@@ -192,6 +232,10 @@ public class LocationTabController extends AutomationTabController implements In
         map.addMarkers(markers);
     }
 
+    /**
+     * Deletes the selected command from the selected KML file
+     * @param event
+     */
     @FXML
     private void handleDeleteCommandButtonClicked(ActionEvent event) {
         int commandsListViewIndex = KMLTableView.getSelectionModel().getSelectedIndex();
@@ -199,14 +243,21 @@ public class LocationTabController extends AutomationTabController implements In
             try {
                 KMLTableView.getItems().remove(commandsListViewIndex);
                 updateMarkers();
-            } catch (NullPointerException ignored) {}
+            } catch (NullPointerException npe) {
+                Log.error(npe.getMessage(), npe);
+            }
 
             ObservableList<KML> KMLCommands = KMLTableView.getItems();
-            XMLUtil xmlUtil = new XMLUtil(true);
             KML.update(fileName, KMLCommands);
         }
     }
 
+    /**
+     * Runs through the TableView of KML commands
+     * Sends the coordinates of each command to the emulator at an interval of {@link #INTERVAL}
+     * and pans the map to that location
+     * @param event
+     */
     @FXML
     @Override
     protected void handlePlayButtonClicked(ActionEvent event) {
@@ -232,7 +283,7 @@ public class LocationTabController extends AutomationTabController implements In
 
         if(!wasPaused.get() && !pauseFlag.get()) {
             setImage("/resources/pause.png", "Pause batch commands", playButton);
-            System.out.println("Starting new batch automation");
+            Log.info("Starting new batch automation");
             this.stopButton.setDisable(false);
 
             ObservableList<KML> KMLCommands = KMLTableView.getItems();
@@ -259,10 +310,10 @@ public class LocationTabController extends AutomationTabController implements In
                             synchronized (pauseFlag) {
                                 while (pauseFlag.get()) {
                                     try {
-                                        System.out.println("WAITING.....");
+                                        Log.info("WAITING.....");
                                         pauseFlag.wait();
                                     } catch (InterruptedException e) {
-                                        System.out.println("waiting.....");
+                                        Log.info("waiting.....");
                                         Thread.currentThread().interrupt();
                                         return null;
                                     }
@@ -304,7 +355,7 @@ public class LocationTabController extends AutomationTabController implements In
 
             runCommandsTask.setOnFailed(event1 -> {
                 setImage("/resources/play.png","Run batch commands", playButton);
-                System.out.println("runCommandsTask failed, Exception: " + runCommandsTask.getException());
+                Log.info("runCommandsTask failed, Exception: " + runCommandsTask.getException());
                 this.stopButton.setDisable(true);
                 wasPaused.set(false);
                 pauseFlag.set(false);
@@ -315,6 +366,11 @@ public class LocationTabController extends AutomationTabController implements In
         }
     }
 
+    /**
+     * Creates a new KML file and adds it to the list
+     * Shows the user a test input dialog to enter the file name
+     * @param event
+     */
     @FXML
     @Override
     protected void handleNewButtonClicked(ActionEvent event) {
@@ -338,6 +394,11 @@ public class LocationTabController extends AutomationTabController implements In
         });
     }
 
+    /**
+     * Deletes the selected KML file and remove it from the list
+     * Updates the markers on the Map
+     * @param event
+     */
     @FXML
     protected void handleDeleteButtonClicked(ActionEvent event) {
         String fileName = filesListView.getSelectionModel().getSelectedItem();
@@ -358,16 +419,27 @@ public class LocationTabController extends AutomationTabController implements In
         }
     }
 
+    /**
+     * Moves the selected command down the TableView
+     * @param event
+     */
     @FXML
     private void handleMoveDownButtonClicked(ActionEvent event) {
         adjustList(1);
     }
 
+    /**
+     * Moves the selected command up the TableView
+     * @param event
+     */
     @FXML
     private void handleMoveUpButtonClicked(ActionEvent event) {
         adjustList(-1);
     }
 
+    /**
+     * Updates the markers on the Map with the commands from the selected KML file
+     */
     private void updateMarkers() {
         if(commandsList != null) {
             if (markers != null)
@@ -389,6 +461,10 @@ public class LocationTabController extends AutomationTabController implements In
         }
     }
 
+    /**
+     * Moves the selected command up or down the TableView
+     * @param input
+     */
     private void adjustList(int input) {
         int selectedItemIndex = KMLTableView.getSelectionModel().getSelectedIndex();
         try {
@@ -399,15 +475,22 @@ public class LocationTabController extends AutomationTabController implements In
                 KMLTableView.getSelectionModel().select(selectedItemIndex + input);
 
                 ObservableList<KML> KMLCommands = KMLTableView.getItems();
-                XMLUtil xmlUtil = new XMLUtil(true);
                 KML.update(fileName, KMLCommands);
             }
         } catch (IndexOutOfBoundsException ignored) {}
     }
 
+    /**
+     * Parses the text from the latitude and longitude fields and
+     * edits the global latitude and longitude double values
+     */
     private void updateValues() {
-        latitude = Double.parseDouble(latitudeField.getText());
-        longitude = Double.parseDouble(longitudeField.getText());
+        try {
+            latitude = Double.parseDouble(latitudeField.getText());
+            longitude = Double.parseDouble(longitudeField.getText());
+        } catch (NumberFormatException nfe) {
+            Log.error(nfe.getMessage(), nfe);
+        }
     }
 
     /**
@@ -439,6 +522,9 @@ public class LocationTabController extends AutomationTabController implements In
         setImage("/resources/delete.png", "Delete KML file", deleteButton);
     }
 
+    /**
+     * Configures the GoogleMap
+     */
     private void configureMap() {
         MapOptions mapOptions = new MapOptions();
 
@@ -453,7 +539,6 @@ public class LocationTabController extends AutomationTabController implements In
             LatLong latLong = event.getLatLong();
 
             altitude = map.getZoom();
-            System.out.println("altitude: " + altitude);
 
             latitude = Double.parseDouble(formatter.format(latLong.getLatitude()));
             longitude = Double.parseDouble(formatter.format(latLong.getLongitude()));

@@ -1,4 +1,4 @@
-package application;
+package application.utilities;
 
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;

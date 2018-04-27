@@ -1,6 +1,6 @@
 package application.sensors.server;
 
-import application.TelnetServer;
+import application.utilities.TelnetServer;
 import application.sensors.SensorsTabController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
