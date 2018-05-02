@@ -71,7 +71,7 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
-        System.out.println("System.out " + System.out);
+        Log.info("System.out " + System.out);
 
         getTouchPositionController = this;
         Log.info("getTouchPositionController: " + getTouchPositionController);
@@ -81,7 +81,7 @@ public class GetTouchPositionController implements Initializable, Showable<Creat
             try {
                 device.getCursorPosition(getTouchPositionController);
             } catch (Exception ee) {
-                ee.printStackTrace();
+                Log.error(ee.getMessage(),ee);
             }
         }
 

@@ -9,12 +9,14 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.shape.Box?>
 
+<?import javafx.scene.control.TextField?>
 <AnchorPane fx:id="anchorPane" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.sensors.SensorsTabController">
    <GridPane hgap="60" vgap="20" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
      <padding>
@@ -285,37 +287,7 @@
            <Button fx:id="connectButton" minHeight="28" minWidth="75" onAction="#handleConnectButtonClicked" text="Connect" GridPane.rowIndex="4" />
            <CheckBox fx:id="listenBox" text="Listen" GridPane.columnIndex="0" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
 
-           <Label fx:id="loggerLabel" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="5" />
+           <TextField fx:id="resultField" mouseTransparent="true" focusTraversable="false" editable="false" maxHeight="20" prefHeight="0.0" prefWidth="350.0" GridPane.columnSpan="2" GridPane.rowIndex="5" />
        </GridPane>
-
-      <!--<VBox GridPane.columnIndex="2" GridPane.rowIndex="3" GridPane.rowSpan="3">-->
-          <!--<HBox>-->
-              <!--<Button fx:id="recordButton" onAction="#handleRecordButtonClicked" />-->
-              <!--<Button fx:id="stopRecordingButton" onAction="#handleStopRecordingButtonPressed"/>-->
-          <!--</HBox>-->
-
-            <!--<HBox>-->
-                <!--<Button fx:id="loadButton" onAction="#handleLoadButtonClicked" text="Load"/>-->
-                <!--<Button fx:id="playButton" onAction="#handlePlayButtonClicked" />-->
-                <!--<CheckBox fx:id="loopBox" text="Loop" />-->
-            <!--</HBox>-->
-
-
-          <!--<Label fx:id="playbackTitleLabel" text="Playback Speed"  />-->
-
-          <!--<HBox>-->
-              <!--<Slider fx:id="playbackSlider" prefWidth="100"  />-->
-              <!--<Label fx:id="playbackLabel" text="x 1"  />-->
-          <!--</HBox>-->
-
-          <!--<HBox>-->
-              <!--<Button fx:id="connectButton" onAction="#handleConnectButtonClicked" text="Connect"/>-->
-              <!--<CheckBox fx:id="listenBox" text="Listen" />-->
-          <!--</HBox>-->
-
-
-
-          <!--<Label fx:id="loggerLabel"/>-->
-      <!--</VBox>-->
    </GridPane>
 </AnchorPane>

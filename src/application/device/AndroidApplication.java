@@ -40,7 +40,7 @@ public class AndroidApplication {
         permissions = FXCollections.observableArrayList(getPermissions(packageName));
         intents = FXCollections.observableArrayList(getIntents(packageName));
         //mimeTypeMap = Intent.mimeMap(packageName);
-        //System.out.println(6);
+        //Log.info(6);
     }
 
     //Getters
@@ -106,7 +106,7 @@ public class AndroidApplication {
                 try {
                     code = Integer.parseInt(version[0].split("=")[1]);
                 } catch (NumberFormatException e) {
-                    e.printStackTrace();
+                    Log.error(e.getMessage(), e);
                 }
             }
 
@@ -114,14 +114,14 @@ public class AndroidApplication {
                 try {
                     targetSdk = Integer.parseInt(version[1].split("=")[1].trim());
                 } catch (NumberFormatException e) {
-                    e.printStackTrace();
+                    Log.error(e.getMessage(), e);
                 }
             }
         }
 
         @Override
         public String toString() {
-            return "Version Name: " + versionName  +
+            return "Version Name: " + versionName.replace("versionName", "").trim()  +
                     "\nVersion Code: " + code +
                     "\nTarget SDK: " + targetSdk;
         }

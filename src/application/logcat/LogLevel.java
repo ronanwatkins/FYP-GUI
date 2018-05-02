@@ -29,7 +29,6 @@ public enum LogLevel {
     }
 
     public static int getOrdinal(String key) {
-        System.out.println("getOrdinal>> key: " + key + ", " + getOrdinalMap.get(key));
         return getOrdinalMap.get(key);
     }
 }

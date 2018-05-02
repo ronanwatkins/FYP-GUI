@@ -45,7 +45,11 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.setMaximized(true);
 
-        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+        Screen screen = Screen.getPrimary();
+        if(Screen.getScreens().get(1) != null)
+            screen = Screen.getScreens().get(1);
+
+        Rectangle2D primaryScreenBounds = screen.getVisualBounds();
         stage.setMaxWidth(primaryScreenBounds.getWidth());
         stage.setMaxHeight(primaryScreenBounds.getHeight());
 

@@ -9,12 +9,14 @@ import javafx.scene.control.Tab;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 public class FXMLMainController implements Initializable {
+    private static final Logger Log = Logger.getLogger(FXMLMainController.class.getName());
 
     @FXML
     private BorderPane borderPane;
@@ -67,7 +69,7 @@ public class FXMLMainController implements Initializable {
             adbConnectionController = (ADBConnectionController) adbConnectionController.newWindow(this, null);
             adbConnectionController.initDevices(ADBUtil.connectedDevices());
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            Log.error(ioe.getMessage(), ioe);
         }
     }
 

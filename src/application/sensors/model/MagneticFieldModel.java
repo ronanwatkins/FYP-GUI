@@ -31,15 +31,7 @@ public class MagneticFieldModel extends SensorModel {
     /** Internal state value of compass z-component. */
     private double mCompassZ;
 
-    // Magnetic field
-    private double mNorth;
-    private double mEast;
-    private double mVertical;
-
     public MagneticFieldModel() {
-        mNorth = 22874.1;
-        mEast = 5939.5;
-        mVertical = 43180.5;
     }
 
     @Override

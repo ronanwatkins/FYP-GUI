@@ -119,7 +119,7 @@ public class ADB {
 
         String details = ADBUtil.consoleCommand("shell dumpsys package " + app);
         String temp = "";
-        //Log.info("Result: " + details);
+        Log.info("Result: " + details);
 
         switch (intentType) {
             case Intent.ACTIVITY:
@@ -143,7 +143,7 @@ public class ADB {
 
         Log.info("Full list: ");
         for(String string : schemes)
-            System.out.println("Value: " + string);
+            Log.info("Value: " + string);
 
         return schemes;
     }
@@ -182,7 +182,7 @@ public class ADB {
 
         String details = ADBUtil.consoleCommand("shell dumpsys package " + app);
         String temp = "";
-        //Log.info("Result: " + details);
+        Log.info("Result: " + details);
 
         switch (intentType) {
             case Intent.ACTIVITY:
@@ -208,7 +208,7 @@ public class ADB {
 
         Log.info("Full list: ");
         for(String string : mimeTypes)
-            System.out.println("Value: " + string);
+            Log.info("Value: " + string);
 
         return mimeTypes;
     }
@@ -328,7 +328,6 @@ public class ADB {
         boolean containsMimeTypes = s2 > -1;
 
         if(containsNonData && containsMimeTypes) {
-        //    System.out.println("----------------FIRST------------------");
             boolean isNonDataFirst = s1 < s2;
 
             int start = isNonDataFirst ? s1 : s2;
@@ -344,12 +343,9 @@ public class ADB {
             String mimeTypedActions = actions[isNonDataFirst ? 1 : 0];
             intents.addAll(intents(mimeTypedActions, intentType, true));
         } else if (containsNonData && !containsMimeTypes) {
-        //    System.out.println("----------------SECOND------------------");
             String nonDataActions = data.substring(s1).replace("Non-Data Actions:", "");
-        //    System.out.println("nonDataActions: " + nonDataActions);
             intents.addAll(intents(nonDataActions, intentType, false));
         } else if (!containsNonData && containsMimeTypes) {
-         //   System.out.println("----------------THIRD------------------");
             String mimeTypedActions = data.substring(s2).replace("MIME Typed Actions:", "");
             intents.addAll(intents(mimeTypedActions, intentType, true));
         }
@@ -368,12 +364,9 @@ public class ADB {
 
             String[] temp = string.trim().split("\n");
             String action = temp[0].replace(":", "").trim();
-           // System.out.println("ACTION: " + action);
             ObservableList<StringProperty> components = FXCollections.observableArrayList();
             for(int i=1; i<temp.length; i++) {
-              //  System.out.println("temp" + i + " " +temp[i]);
                 if(temp[i].startsWith("Key Set Manager:") || temp[i].startsWith("Permissions:") || temp[i].startsWith("Registered ContentProviders:")) {
-               //     System.out.println("fuck: " + temp[i]);
                     canBreak = true;
                     break;
                 }

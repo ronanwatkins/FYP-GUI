@@ -4,7 +4,6 @@
 
 package application.sensors.model;
 
-
 import application.utilities.ThreeDimensionalVector;
 
 public class AccelerometerModel extends SensorModel {

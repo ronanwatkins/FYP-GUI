@@ -22,6 +22,7 @@ import javafx.scene.shape.Box;
 import javafx.scene.transform.Rotate;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Ronan Watkins
  */
 public class SensorsTabController implements Initializable, ApplicationUtils {
+    private static final Logger Log = Logger.getLogger(SensorsTabController.class.getName());
     //region fields
     private final String DIRECTORY = System.getProperty("user.dir") + "\\misc\\sensors";
 
@@ -104,11 +106,12 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     @FXML
     private Label playbackLabel;
     @FXML
-    private Label loggerLabel;
-    @FXML
     public Label batteryLabel;
     @FXML
     public Label locationLabel;
+
+    @FXML
+    private TextField resultField;
 
     @FXML
     private Button recordButton;
@@ -212,6 +215,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
      */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        sensorsTabController = this;
         phonePaneLayoutBounds = phonePane.getLayoutBounds();
 
         //initializePhone();
@@ -255,9 +259,6 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
         updateSliderValues();
         //endregion
-
-
-        sensorsTabController = this;
     }
 
     /**
@@ -319,11 +320,9 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
         if(file != null) {
             xmlUtil.saveFile(file);
-            loggerLabel.setTextFill(Color.GREEN);
-            loggerLabel.setText("File \"" + file.getName().replace(".xml", "") + "\" saved");
+            resultField.setText("File \"" + file.getName().replace(".xml", "") + "\" saved");
         } else {
-            loggerLabel.setTextFill(Color.RED);
-            loggerLabel.setText("File not saved");
+            resultField.setText("File not saved");
         }
 
         xmlUtil = new XMLUtil(false);
@@ -352,9 +351,8 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
         HashMap<Integer, HashMap<String, Double>> loadedValues;
         if(file != null) {
-            loggerLabel.setTextFill(Color.GREEN);
-            loggerLabel.setText("File \"" + file.getName().replace(".xml", "") + "\" loaded");
-            System.out.println(file.getAbsolutePath());
+            resultField.setText("File \"" + file.getName().replace(".xml", "") + "\" loaded");
+            Log.info(file.getAbsolutePath());
 
             setImage("/resources/play_cropped.png", null, playButton);
 
@@ -378,8 +376,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
             playbackSlider.setVisible(true);
             playbackTitleLabel.setVisible(true);
         } else {
-            loggerLabel.setTextFill(Color.RED);
-            loggerLabel.setText("File not loaded");
+            resultField.setText("File not loaded");
         }
     }
 
@@ -398,7 +395,6 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
                 @Override
                 public void run() {
                     if (isRecording) {
-                        System.out.println("adding element");
                         xmlUtil.addElement(sensorValues);
                     }
                 }
@@ -408,8 +404,10 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         }
 
         if(isRecording) {
+            resultField.setText("Recording...");
             setImage("/resources/pause.png", "Pause recording", recordButton);
         } else {
+            resultField.setText("");
             setImage("/resources/record_cropped.png", "Record values", recordButton);
         }
 
@@ -417,6 +415,12 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         playButton.setDisable(isRecording);
         loopBox.setDisable(isRecording);
         loadButton.setDisable(isRecording);
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        System.gc();
+        super.finalize();
     }
 
     /**
@@ -429,21 +433,21 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
     private void handlePlayButtonClicked(ActionEvent event) {
         if (playbackThread.isPaused()) {
             playbackThread.play();
-            System.out.println("RESUMING");
+            Log.info("RESUMING");
             setImage("/resources/pause.png", null, playButton);
             recordButton.setDisable(true);
             stopRecordingButton.setDisable(true);
         } else {
             if(!wasPaused) {
                 playbackThread.run();
-                System.out.println("STARTING");
+                Log.info("STARTING");
                 setImage("/resources/pause.png", null, playButton);
                 wasPaused = true;
                 recordButton.setDisable(true);
                 stopRecordingButton.setDisable(true);
             } else {
                 playbackThread.pause();
-                System.out.println("PAUSING");
+                Log.info("PAUSING");
                 setImage("/resources/play_cropped.png", null, playButton);
                 recordButton.setDisable(false);
                 stopRecordingButton.setDisable(false);
@@ -461,8 +465,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         try {
             server = new HTTPServer(this);
             connectButton.setDisable(true);
-            loggerLabel.setTextFill(Color.GREEN);
-            loggerLabel.setText("Connect your app to " + server.getIPAddress() + " Port " + server.getPORT());
+            resultField.setText("Connect your app to " + server.getIPAddress() + " Port " + server.getPORT());
 
             Task<Boolean> task = new Task<Boolean>() {
                 @Override
@@ -476,13 +479,11 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
                 listenBox.setVisible(true);
                 listenBox.setSelected(true);
 
-                loggerLabel.setTextFill(Color.GREEN);
-                loggerLabel.setText("Connected");
+                resultField.setText("Connected");
             });
 
             task.setOnFailed(event1 -> {
-                loggerLabel.setTextFill(Color.RED);
-                loggerLabel.setText("Could not connect");
+                resultField.setText("Could not connect");
                 listenBox.setVisible(false);
                 listenBox.setSelected(false);
             });
@@ -510,7 +511,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
         yawSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
 
-            System.out.println("yaw moved");
+            Log.info("yaw moved");
 
             yawValue = newvalue.intValue();
             sensorValues.put(YAW, (double) yawValue);
@@ -522,7 +523,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
         pitchSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
-            System.out.println("pitch moved");
+            Log.info("pitch moved");
             pitchBeforeValue = pitchValue = newvalue.intValue();
 
             if(playbackThread != null) {
@@ -545,7 +546,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
         rollSlider.valueProperty().addListener((observable, oldvalue, newvalue) ->
         {
-            System.out.println("roll moved");
+            Log.info("roll moved");
 
             if(!isPhoneDragged)
                 rollBeforeValue = rollValue = newvalue.intValue() * -1;
@@ -896,7 +897,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException ie) {
-                ie.printStackTrace();
+                Log.error(ie.getMessage(), ie);
             }
         }
     }
@@ -1076,10 +1077,10 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
                                 synchronized (pauseFlag) {
                                     while (pauseFlag.get()) {
                                         try {
-                                            System.out.println("WAITING.....");
+                                            Log.info("WAITING.....");
                                             pauseFlag.wait();
                                         } catch (InterruptedException e) {
-                                            System.out.println("waiting.....");
+                                            Log.info("waiting.....");
                                             Thread.currentThread().interrupt();
                                             return null;
                                         }
@@ -1088,7 +1089,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
                             }
 
                             if(stopFlag.get()) {
-                                System.out.println("STOPPING");
+                                Log.info("STOPPING");
                                 return null;
                             }
 
@@ -1131,7 +1132,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
                         try {
                             Thread.sleep(playbackSpeed.get());
                         } catch (InterruptedException ie) {
-                            ie.printStackTrace();
+                            Log.error(ie.getMessage(), ie);
                         }
                     }
 
@@ -1141,11 +1142,11 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
 
             task.setOnSucceeded(event -> {
                 if(loopBox.isSelected()) {
-                    System.out.println("RESTARTING");
+                    Log.info("RESTARTING");
                     if(!stopFlag.get())
                         restartThread();
                 } else {
-                    System.out.println("FINISHED");
+                    Log.info("FINISHED");
                     stopFlag.set(true);
                     pauseFlag.set(false);
                     wasPaused = false;

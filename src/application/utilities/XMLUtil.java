@@ -21,12 +21,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class XMLUtil {
+    private static final Logger Log = Logger.getLogger(XMLUtil.class.getName());
+
     private Document document;
     private Element rootElement;
 
@@ -42,7 +45,7 @@ public class XMLUtil {
             rootElement = document.createElement(isKML ? "kml" : "global");
             document.appendChild(rootElement);
         } catch (ParserConfigurationException pce) {
-            pce.printStackTrace();
+            Log.error(pce.getMessage(), pce);
         }
     }
 
@@ -91,7 +94,7 @@ public class XMLUtil {
                             returnMap.put(i, sensorValues);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Log.error(e.getMessage(), e);
                 }
 
                 return null;
@@ -172,7 +175,7 @@ public class XMLUtil {
                         }
                     }
                 } catch (Exception ee) {
-                    ee.printStackTrace();
+                    Log.error(ee.getMessage(), ee);
                 }
 
                 return null;
@@ -217,7 +220,7 @@ public class XMLUtil {
             StreamResult result = new StreamResult(file);
             transformer.transform(source, result);
         } catch (TransformerException te) {
-            te.printStackTrace();
+            Log.error(te.getMessage(), te);
         }
     }
 
@@ -243,7 +246,7 @@ public class XMLUtil {
             new Thread(task).start();
 
         } catch (TransformerException te) {
-            te.printStackTrace();
+            Log.error(te.getMessage(), te);
         }
     }
 
@@ -284,7 +287,7 @@ public class XMLUtil {
                         returnList.add(element.getTextContent());
                     }
                 } catch (Exception ee) {
-                    ee.printStackTrace();
+                    Log.error(ee.getMessage(), ee);
                 }
 
                 return null;
@@ -325,7 +328,7 @@ public class XMLUtil {
         element.appendChild(document.createTextNode(filter.getLogLevel()));
         rootElement.appendChild(element);
 
-        System.out.println("saveFilter>> " + filter.toString());
+        Log.info("saveFilter>> " + filter.toString());
         File file = new File( LogCatTabController.FILTER_DIRECTORY + filter.getFilterName() + ".xml");
         saveFile(file);
     }
@@ -357,12 +360,12 @@ public class XMLUtil {
                     String logTag = (element.getElementsByTagName(LOG_TAG).item(0).getTextContent());
                     String logLevel = (element.getElementsByTagName(LOG_LEVEL).item(0).getTextContent());
 
-                    System.out.println("openFilter>> LogLevel.getOrdinal(logLevel): " + LogLevel.getOrdinal(logLevel));
+                    Log.info("openFilter>> LogLevel.getOrdinal(logLevel): " + LogLevel.getOrdinal(logLevel));
                     filter = new Filter(name, applicationName, PID, logMessage, logTag, LogLevel.getOrdinal(logLevel));
                 }
             }
         } catch (Exception ee) {
-            ee.printStackTrace();
+            Log.error(ee.getMessage(), ee);
         }
         return filter;
 

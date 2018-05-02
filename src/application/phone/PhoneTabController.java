@@ -140,7 +140,7 @@ public class PhoneTabController implements Initializable, ApplicationUtils {
 
         networkType.setOnAction(event -> {
             String network = networkType.getValue().toString().toLowerCase();
-            System.out.println(network);
+            Log.info(network);
             TelnetServer.networkSpeed(network);
         });
 
@@ -163,19 +163,19 @@ public class PhoneTabController implements Initializable, ApplicationUtils {
                     signal = "4";
                     break;
             }
-            System.out.println(signal);
+            Log.info(signal);
             TelnetServer.gsmSignal(signal);
         });
 
         voiceStatus.setOnAction(event -> {
             String voice = voiceStatus.getValue().toString().toLowerCase();
-            System.out.println(voice);
+            Log.info(voice);
             TelnetServer.voiceStatus(voice);
         });
 
         dataStatus.setOnAction(event -> {
             String data = dataStatus.getValue().toString().toLowerCase();
-            System.out.println(data);
+            Log.info(data);
             TelnetServer.dataStatus(data);
         });
     }

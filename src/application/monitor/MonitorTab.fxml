@@ -43,9 +43,9 @@
                 <SplitPane fx:id="verticalPane" dividerPositions="0.5, 0.5" orientation="VERTICAL">
                     <items>
                         <StackPane fx:id="CPUChartStackPane">
-                            <AreaChart fx:id="CPUChart" legendVisible="false" createSymbols="false" maxWidth="1000" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
+                            <AreaChart fx:id="CPUChart" legendVisible="false" animated="false" createSymbols="false" maxWidth="900" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false" >
                                 <xAxis>
-                                    <NumberAxis fx:id="xAxis" forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
+                                    <NumberAxis fx:id="CPUXAxis" forceZeroInRange="false" autoRanging="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
                                 </xAxis>
                                 <yAxis>
                                     <NumberAxis autoRanging="false" minorTickVisible="false" side="LEFT" />
@@ -101,9 +101,9 @@
                         </StackPane>
 
                         <StackPane>
-                            <AreaChart id="MemoryChart" fx:id="MemoryChart" legendVisible="false" createSymbols="false" maxWidth="1000" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
+                            <AreaChart id="MemoryChart" fx:id="MemoryChart" legendVisible="false" createSymbols="false" maxWidth="900" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
                                 <xAxis>
-                                    <NumberAxis forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
+                                    <NumberAxis fx:id="MemoryXAxis" forceZeroInRange="false" autoRanging="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
                                 </xAxis>
                                 <yAxis>
                                     <NumberAxis autoRanging="false" minorTickVisible="false" side="LEFT" />
@@ -155,9 +155,9 @@
                         </StackPane>
 
                         <StackPane>
-                            <AreaChart fx:id="NetworkChart" maxWidth="1000" legendVisible="false" createSymbols="false" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
+                            <AreaChart fx:id="NetworkChart" maxWidth="900" legendVisible="false" createSymbols="false" StackPane.alignment="TOP_LEFT" horizontalGridLinesVisible="false" verticalGridLinesVisible="false">
                                 <xAxis>
-                                    <NumberAxis forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
+                                    <NumberAxis fx:id="NetworkXAxis" autoRanging="false" forceZeroInRange="false" minorTickVisible="false" side="BOTTOM" tickLabelsVisible="false" tickMarkVisible="false" />
                                 </xAxis>
                                 <yAxis>
                                     <NumberAxis autoRanging="false" minorTickVisible="false" side="LEFT" upperBound="1000" tickMarkVisible="false" />

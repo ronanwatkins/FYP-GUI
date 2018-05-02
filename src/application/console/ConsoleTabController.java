@@ -14,6 +14,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -31,6 +32,8 @@ public class ConsoleTabController implements Initializable, ApplicationUtils {
 
     @FXML
     private Hyperlink helpLink;
+
+    private Task<Void> runCommandTask;
 
     private Device device = Device.getInstance();
 
@@ -58,46 +61,43 @@ public class ConsoleTabController implements Initializable, ApplicationUtils {
      * @param command
      */
     private void enterCommand(String command) {
+
+        resultArea.clear();
+        if(runCommandTask != null)
+            runCommandTask.cancel();
+
         final String newCommand = ADBUtil.getAdbPath() + " -s " + device.getName() + " " + command;
         Log.info("Command: " + newCommand);
-        Task<Void> task = new Task<Void>() {
+        runCommandTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 Process process = Runtime.getRuntime().exec(newCommand);
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-               // System.out.println("gonna read " + bufferedReader.ready());
+                doCommand(this, bufferedReader);
 
-               // bufferedReader.read();
+                bufferedReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                doCommand(this, bufferedReader);
 
-              //  Stream<String> stringStream = bufferedReader.lines();
-             //   for(String string : (String[])stringStream.toArray())
-               //     System.out.println("string: " + string);
-
-
-                System.out.println("read dude");
-
-                if(command.equals("shell")) {
-                    System.out.println("here kiddd");
-                    System.out.println(bufferedReader.readLine());
-                } else {
-                    String line;
-                    StringBuilder stringBuilder = new StringBuilder();
-                    while ((line = bufferedReader.readLine()) != null) {
-                        if(line.isEmpty())
-                            continue;
-
-                        System.out.println("line: " + line);
-                        final String newLine = line;
-                        Platform.runLater(() -> resultArea.appendText(newLine + "\n"));
-                     //   stringBuilder.append(line).append("\n");
-                     //   Platform.runLater(() -> resultArea.setText(stringBuilder.toString()));
-                    }
-                }
                 return null;
             }
         };
 
-        new Thread(task).start();
+        new Thread(runCommandTask).start();
+    }
+
+    private void doCommand(Task task, BufferedReader bufferedReader) throws IOException {
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+            if(task.isCancelled())
+                return;
+
+            if(line.isEmpty())
+                continue;
+
+            Log.info("line: " + line);
+            final String newLine = line;
+            Platform.runLater(() -> resultArea.appendText(newLine + "\n"));
+        }
     }
 
     /**

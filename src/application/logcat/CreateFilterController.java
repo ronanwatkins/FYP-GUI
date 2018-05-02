@@ -72,7 +72,7 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
             PIDField.setText(filter.getPID());
             logMessageField.setText(filter.getLogMessage());
             logTagField.setText(filter.getLogTag());
-            System.out.println("initialize>> " + filter.getLogLevelOrdinal());
+            Log.info("initialize>> " + filter.getLogLevelOrdinal());
             logLevelComboBox.getSelectionModel().select(filter.getLogLevelOrdinal());
 
             saveButton.setDisable(false);
@@ -112,11 +112,11 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
         if(isEditMode && !filterNameField.getText().equals(filter.getFilterName())) {
             File fileToDelete = new File(FILTER_DIRECTORY + "\\" + filter.getFilterName() + ".xml");
             if(fileToDelete.delete()) {
-                System.out.println("File deleted");
+                Log.info("File deleted");
             }
         }
 
-        System.out.println("handleSaveButtonClicked>> selectedLevel: " + selectedLevel);
+        Log.info("handleSaveButtonClicked>> selectedLevel: " + selectedLevel);
 
         Filter filter = new Filter(filterNameField.getText(),
                 applicationNameField.getText(),

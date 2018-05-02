@@ -71,7 +71,7 @@ public class ADBUtil {
             try {
                 for (File file : Objects.requireNonNull(possibleADBLocation.listFiles())) {
                     if (file.getName().equalsIgnoreCase("adb.exe")) {
-                        System.out.println("Found ADB, path: " + file.getAbsolutePath());
+                        Log.info("Found ADB, path: " + file.getAbsolutePath());
                         adbLocation = new File(file.getAbsolutePath());
                         adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
                         isADBFound = true;
@@ -82,11 +82,11 @@ public class ADBUtil {
                     }
                 }
             } catch (NullPointerException npe) {
-                npe.printStackTrace();
+                Log.error(npe.getMessage(), npe);
                 showInputDialog();
             }
         } else {
-            System.out.println("CANCEL CLICKED");
+            Log.info("CANCEL CLICKED");
             adbPath = adbLocation.getAbsolutePath() + "\\adb.exe";
             isADBFound = true;
             Task<Void> task = new Task<Void>() {
@@ -103,7 +103,7 @@ public class ADBUtil {
     public static void setStopRecordingFlag(boolean flag) {
         if(flag) {
             recordValuesTask.cancel();
-            System.out.println(sendEventBuilder.toString());
+            Log.info(sendEventBuilder.toString());
         }
     }
 
@@ -124,33 +124,31 @@ public class ADBUtil {
                 Platform.runLater(() -> {
                     try {
                         if (controller == null) {
-                            System.out.println("here 1");
+                            Log.info("here 1");
                             synchronized (lock) {
                                 controller = new ADBConnectionController();
                                 controller = (ADBConnectionController) controller.newWindow(null, null);
                                 controller.initDevices(result);
                             }
-                        } else System.out.println("not null " + controller);
+                        } else Log.info("not null " + controller);
                         try {
                             Thread.sleep(3000);
                         } catch (InterruptedException ie) {
-                            ie.printStackTrace();
+                            Log.error(ie.getMessage(), ie);
                         }
                     } catch (IOException ioe) {
                        Log.error(ioe.getMessage());
                     }
                 });
-                System.out.println("here 2");
+                Log.info("here 2");
             }
 
-          //  System.out.println("isFirstRun has been set to false");
             isFirstRun.set(false);
-          //  System.out.println("see it is false " + isFirstRun.get());
 
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ie) {
-                ie.printStackTrace();
+                Log.error(ie.getMessage(), ie);
             }
         }
     }
@@ -172,9 +170,6 @@ public class ADBUtil {
     }
 
     public static String consoleCommand(String command) {
-       // System.out.println(!isFirstRun.get() + " " +  !device.getName().isEmpty());
-       // System.out.println(!isFirstRun.get() && !device.getName().isEmpty());
-
         String[] parameters = command.split(" ");
         if(!isFirstRun.get() && !device.getName().isEmpty()) {
             params = new String[parameters.length+3];
@@ -183,25 +178,17 @@ public class ADBUtil {
             params[2] = device.getName();
 
             System.arraycopy(parameters, 0, params, 3, parameters.length);
-
-           // System.out.print("one>> ");
-           // for(String str : params)
-               // System.out.print(str + " ");
         } else {
             params = new String[parameters.length+1];
             params[0] = adbPath;
 
             System.arraycopy(parameters, 0, params, 1, parameters.length);
-         //   System.out.print("two>> ");
-          //  for(String str : params)
-             //   System.out.print(str + " ");
         }
 
         if(!command.contains("devices")) {
             StringBuilder sb = new StringBuilder("Command: ");
             for (String string : params)
                 sb.append(string).append(" ");
-            //Log.info(sb.toString());
         }
         StringBuilder result = new StringBuilder();
         try {
@@ -222,16 +209,12 @@ public class ADBUtil {
                 }
             }
 
-//            process.waitFor(10, TimeUnit.SECONDS);
             process.waitFor();
             bufferedReader.close();
         }
         catch (IOException|InterruptedException|NullPointerException ee) {
-            ee.printStackTrace();
+            Log.error(ee.getMessage(), ee);
         }
-
-       // if(!command.contains("devices"))
-           // Log.info("Response: " + result.toString());
 
         return result.toString();
     }

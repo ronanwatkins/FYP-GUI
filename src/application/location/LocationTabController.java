@@ -388,7 +388,7 @@ public class LocationTabController extends AutomationTabController implements In
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ie) {
-                ie.printStackTrace();
+                Log.error(ie.getMessage(), ie);
             }
             updateCommandsList();
         });

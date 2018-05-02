@@ -15,7 +15,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MonitorService extends Thread {
+public class MonitorService implements Runnable {
     private static final Logger Log = Logger.getLogger(MonitorService.class.getName());
 
     private Device device = Device.getInstance();
@@ -227,20 +227,22 @@ public class MonitorService extends Thread {
                     continue;
 
                 try {
+                    int percentage;
                     switch (taskType) {
                         case APPLICATION:
                             final String newLine = line.trim().replaceAll(" {2,}" , " ").split(" ")[2].replace("%", "");
-                            Platform.runLater(() -> cpuMonitor.setApplicationCPUPercentageUtilization(Integer.parseInt(newLine)));
-                            //System.out.println("Application CPU Percentage Utilization: " + cpuMonitor.getApplicationCPUPercentageUtilization());
+                            percentage = Integer.parseInt(newLine);
+                            Platform.runLater(() -> cpuMonitor.setApplicationCPUPercentageUtilization(percentage));
+                            //Log.info("Application CPU Percentage Utilization: " + cpuMonitor.getApplicationCPUPercentageUtilization());
                             break;
                         case SYSTEM:
                             String s = line.trim().split(",")[0].trim().split(" ")[1].replace("%", "");
-                            Platform.runLater(() -> cpuMonitor.setSystemCPUPercentageUtilization(Integer.parseInt(s)));
-                            //System.out.println("System CPU Percentage Utilization: " + cpuMonitor.getSystemCPUPercentageUtilization());
+                            percentage = Integer.parseInt(s);
+                            Platform.runLater(() -> cpuMonitor.setSystemCPUPercentageUtilization(percentage));
                             break;
                     }
                 } catch (NumberFormatException nfe) {
-                    Log.error(nfe.getMessage(), nfe);
+                 //   Log.error(nfe.getMessage(), nfe);
                 }
             }
             return null;
@@ -398,7 +400,7 @@ public class MonitorService extends Thread {
                             final int newFreeMemory = freeMemory;
 
                             Platform.runLater(() -> memoryMonitor.setFreeMemory(newFreeMemory));
-                            //System.out.println("Free Memory: " + memoryMonitor.getTotalMemory());
+                            //Log.info("Free Memory: " + memoryMonitor.getTotalMemory());
                             break;
                         case APPLICATION:
                             //Total application memory usage
@@ -413,7 +415,7 @@ public class MonitorService extends Thread {
                             final String newApplicationMemoryUsage = applicationMemoryUsage;
 
                             Platform.runLater(() -> memoryMonitor.setApplicationMemoryUsage(Integer.parseInt(newApplicationMemoryUsage)));
-                            //System.out.println("Total application memory usage " + memoryMonitor.getApplicationMemoryUsage());
+                            //Log.info("Total application memory usage " + memoryMonitor.getApplicationMemoryUsage());
                             break;
                     }
                 } catch (NumberFormatException nfe) {

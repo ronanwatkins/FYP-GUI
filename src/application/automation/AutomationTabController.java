@@ -338,7 +338,7 @@ public class AutomationTabController extends ApplicationTabController implements
         try {
             createBatchController.newWindow(this, null);
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            Log.error(ioe.getMessage(), ioe);
         }
     }
 

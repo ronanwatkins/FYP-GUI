@@ -602,7 +602,7 @@ public class CreateBatchController implements Initializable, Showable<Automation
         try {
             Thread.sleep(100);
         } catch (InterruptedException ie) {
-            ie.printStackTrace();
+            Log.error(ie.getMessage(), ie);
         }
 
         controller.updateCommandsList();

@@ -4,6 +4,7 @@ import application.utilities.TelnetServer;
 import application.sensors.SensorsTabController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,17 +15,17 @@ import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HTTPServer {
+    private static final Logger Log = Logger.getLogger(HTTPServer.class.getName());
+
     private SensorsTabController controller;
     private ServerSocket serverSocket;
 
     private final int PORT = 1338;
-    private String IPAddress;
-
-    private double initialYawValue;
 
     private double latitude;
     private double longitude;
     private double battery;
+
 
     private AtomicBoolean isListening = new AtomicBoolean(true);
     private boolean isConnected = false;
@@ -33,16 +34,9 @@ public class HTTPServer {
         this.controller = controller;
         serverSocket = new ServerSocket();
 
-        IPAddress = getIPAddress();
-        System.out.println(IPAddress);
+        final String IPAddress = getIPAddress();
 
-        //try {
-            serverSocket.bind(new InetSocketAddress(IPAddress, PORT));
-        //} catch (BindException be) {
-            //NOOP
-       // }
-
-        initialYawValue = 0;
+        serverSocket.bind(new InetSocketAddress(IPAddress, PORT));
     }
 
     private class ReceiveJSONTask extends Task<Void> {
@@ -104,7 +98,7 @@ public class HTTPServer {
                 }
 
             } catch (IOException ioe) {
-                ioe.printStackTrace();
+                Log.error(ioe.getMessage(), ioe);
             }
 
             return null;
@@ -138,72 +132,48 @@ public class HTTPServer {
 
                     switch (key) {
                         case SensorsTabController.ORIENTATION:
-                            double yaw = Double.parseDouble((String) jsonObject.getJSONArray(key).get(0));
                             final double pitch = Double.parseDouble((String) jsonObject.getJSONArray(key).get(1));
                             final double roll = Double.parseDouble((String) jsonObject.getJSONArray(key).get(2));
-
-                            yaw *= -1;
-
-                            if (initialYawValue == 0)
-                                initialYawValue = yaw;
-
-                            yaw += 180 - initialYawValue;
-
-                            if (yaw > 180)
-                                yaw -= 360;
-
-                            final double newYaw = yaw;
-
                             Platform.runLater(() -> {
-                                controller.yawSlider.setValue(newYaw*-1);
                                 controller.pitchSlider.setValue(pitch);
                                 controller.rollSlider.setValue(roll*-1);
                             });
                             break;
                         case SensorsTabController.LIGHT:
                             double light = jsonObject.getDouble(key);
-                            if(controller.lightSlider.getValue() != light)
-                                Platform.runLater(() -> controller.lightSlider.setValue(light));
+                            Platform.runLater(() -> controller.lightSlider.setValue(light));
                             break;
                         case SensorsTabController.HUMIDITY:
                             double humidity = jsonObject.getDouble(key);
-                            if(controller.humiditySlider.getValue() != humidity)
-                                Platform.runLater(() -> controller.humiditySlider.setValue(humidity));
+                            Platform.runLater(() -> controller.humiditySlider.setValue(humidity));
                             break;
                         case SensorsTabController.TEMPERATURE:
                             double temperature = jsonObject.getDouble(key);
-                            if(controller.temperatureSlider.getValue() != temperature)
-                                Platform.runLater(() -> controller.temperatureSlider.setValue(temperature));
+                            Platform.runLater(() -> controller.temperatureSlider.setValue(temperature));
                             break;
                         case SensorsTabController.PRESSURE:
                             double pressure = jsonObject.getDouble(key);
-                            if(controller.pressureSlider.getValue() != pressure)
-                                Platform.runLater(() -> controller.pressureSlider.setValue(pressure));
+                            Platform.runLater(() -> controller.pressureSlider.setValue(pressure));
                             break;
                         case SensorsTabController.PROXIMITY:
                             double proximity = jsonObject.getDouble(key);
-                            if(controller.proximitySlider.getValue() != proximity)
-                                Platform.runLater(() -> controller.proximitySlider.setValue(proximity));
+                            Platform.runLater(() -> controller.proximitySlider.setValue(proximity));
                             break;
                         case SensorsTabController.BATTERY:
-                            if(battery != jsonObject.getDouble(key)) {
-                                battery = jsonObject.getDouble(key);
-                                TelnetServer.powerCapacity(""+battery);
-                                Platform.runLater(() -> controller.batteryLabel.setText(""+battery));
-                            }
+                            battery = jsonObject.getDouble(key);
+                            TelnetServer.powerCapacity(""+battery);
+                            Platform.runLater(() -> controller.batteryLabel.setText(""+battery));
                             break;
                         case SensorsTabController.LOCATION:
-                            if(latitude != (Double) jsonObject.getJSONArray(key).get(0) || longitude != (Double) jsonObject.getJSONArray(key).get(1)){
-                                latitude =  (Double) jsonObject.getJSONArray(key).get(0);
-                                longitude = (Double) jsonObject.getJSONArray(key).get(1);
-                                TelnetServer.setLocation(longitude + " " + latitude);
-                                Platform.runLater(() -> controller.locationLabel.setText("Latitude: " + latitude + "\n" + "Longitude: " + longitude));
-                            }
+                            latitude =  (Double) jsonObject.getJSONArray(key).get(0);
+                            longitude = (Double) jsonObject.getJSONArray(key).get(1);
+                            TelnetServer.setLocation(longitude + " " + latitude);
+                            Platform.runLater(() -> controller.locationLabel.setText("Latitude: " + latitude + "\n" + "Longitude: " + longitude));
                             break;
                     }
                 }
             } catch (JSONException je) {
-                je.printStackTrace();
+                Log.error(je.getMessage(), je);
             }
         }
     }
@@ -218,22 +188,22 @@ public class HTTPServer {
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             while (interfaces.hasMoreElements()) {
-                NetworkInterface iface = interfaces.nextElement();
-                if (iface.isLoopback() || !iface.isUp())
+                NetworkInterface networkInterface = interfaces.nextElement();
+                if (networkInterface.isLoopback() || !networkInterface.isUp())
                     continue;
 
-                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
                 while(addresses.hasMoreElements()) {
-                    InetAddress addr = addresses.nextElement();
+                    InetAddress address = addresses.nextElement();
 
-                    if (addr instanceof Inet6Address) continue;
-                    if (iface.getDisplayName().toLowerCase().contains("vmware")) continue;
+                    if (address instanceof Inet6Address) continue;
+                    if (networkInterface.getDisplayName().toLowerCase().contains("vmware")) continue;
 
-                    ip = addr.getHostAddress();
+                    ip = address.getHostAddress();
                 }
             }
-        } catch (Exception ee) {
-            ee.printStackTrace();
+        } catch (SocketException se) {
+            Log.error(se.getMessage(), se);
         }
 
         return ip;

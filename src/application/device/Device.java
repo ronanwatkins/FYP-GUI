@@ -52,13 +52,6 @@ public class Device {
     public void setName(String name) {
         this.name = name;
 
-        Log.info("playinh................");
-        Platform.runLater(() -> {
-            ApplicationTabController.getApplicationTabController().updateDeviceListView();
-            MonitorTabController.getController().play();
-            MonitorTabController.getController().updateDeviceListView();
-        });
-
         if(name.contains("emulator")) {
             isEmulator = true;
             try {
@@ -169,6 +162,13 @@ public class Device {
             }
         }
 
+        Log.info("Starting monitor service for " + name);
+        Platform.runLater(() -> {
+            ApplicationTabController.getApplicationTabController().updateDeviceListView();
+            MonitorTabController.getController().play();
+            MonitorTabController.getController().updateDeviceListView();
+        });
+
         Log.info("Getting screen resolution");
         Task<Void> task = new Task<Void>() {
             @Override
@@ -229,15 +229,15 @@ public class Device {
                             try {
                                 decimal = Integer.parseInt(position, 16);
                             } catch (NumberFormatException nfe) {
-                                nfe.printStackTrace();
+                                Log.error(nfe.getMessage(), nfe);
                             }
 
                             try {
                                 if(lineGlobal.contains("ABS_MT_POSITION_X")) {
                                     double x = decimal.doubleValue()*(resolutionX/maxPositionX);
-                                    //System.out.println("decimal: " + decimal);
-                                    //System.out.println("resolutionX: " + resolutionX);
-                                    //System.out.println("maxpositioX: " + maxPositionX);
+                                    //Log.info("decimal: " + decimal);
+                                    //Log.info("resolutionX: " + resolutionX);
+                                    //Log.info("maxpositioX: " + maxPositionX);
 
                                     if(swipeFlag.get()) {
                                         if (xStart == 0.0) {
@@ -274,7 +274,7 @@ public class Device {
                                     }
                                 }
                             } catch (Exception ee) {
-                                ee.printStackTrace();
+                                Log.error(ee.getMessage(), ee);
                             }
                         }
                     }
@@ -288,7 +288,7 @@ public class Device {
             new Thread(task).start();
 
         } catch (Exception ee) {
-            ee.printStackTrace();
+            Log.error(ee.getMessage(), ee);
         }
     }
 

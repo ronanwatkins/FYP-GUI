@@ -393,7 +393,7 @@ public class LogCatTabController implements Initializable, Showable<Initializabl
         try {
             Thread.sleep(200);
         } catch (InterruptedException ie) {
-            ie.printStackTrace();
+            Log.error(ie.getMessage(), ie);
         }
         initializeComboBox();
 

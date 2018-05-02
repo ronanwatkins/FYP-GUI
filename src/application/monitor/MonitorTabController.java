@@ -39,13 +39,19 @@ import org.apache.log4j.Logger;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 public class MonitorTabController extends ApplicationTabController implements Showable<Initializable>, Initializable, ApplicationUtils {
     private static final Logger Log = Logger.getLogger(MonitorTabController.class.getName());
 
     @FXML
-    private NumberAxis xAxis;
+    private NumberAxis CPUXAxis;
+    @FXML
+    private NumberAxis NetworkXAxis;
+    @FXML
+    private NumberAxis MemoryXAxis;
+    private ArrayList<NumberAxis> axises;
 
     @FXML
     private Label CPUSystemUtilizationPercentageLabel;
@@ -99,8 +105,8 @@ public class MonitorTabController extends ApplicationTabController implements Sh
     @FXML
     private AreaChart<Number, Number> NetworkChart;
 
-    private XYChart.Series<Number, Number> CPUDataSeriesSystem;
-    private XYChart.Series<Number, Number> CPUDataSeriesApplication;
+    private AreaChart.Series<Number, Number> CPUDataSeriesSystem;
+    private AreaChart.Series<Number, Number> CPUDataSeriesApplication;
     private Timeline CPUAnimation;
 
     private XYChart.Series<Number, Number> MemoryDataSeriesSystem;
@@ -153,6 +159,17 @@ public class MonitorTabController extends ApplicationTabController implements Sh
     public void initialize(URL location, ResourceBundle resources) {
         verticalPane.setDividerPositions(0.3333f, 0.6666f, 0.9999f);
 
+        axises = new ArrayList<>();
+        axises.add(CPUXAxis);
+        axises.add(NetworkXAxis);
+        axises.add(MemoryXAxis);
+
+        for(NumberAxis axis : axises) {
+            axis.setLowerBound(0);
+            axis.setUpperBound(Y_AXIS_LENGTH);
+            axis.setTickUnit(Y_AXIS_LENGTH/10);
+        }
+
         initializeButtons();
         initializeCPUChart();
         initializeMemoryChart();
@@ -187,11 +204,6 @@ public class MonitorTabController extends ApplicationTabController implements Sh
         stage.setMaxWidth(primaryScreenBounds.getWidth());
         stage.setMaxHeight(primaryScreenBounds.getHeight());
 
-      //  stage.setMaximized(true);
-  //      Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
-    //    stage.setMaxWidth(primaryScreenBounds.getWidth());
-      //  stage.setMaxHeight(primaryScreenBounds.getHeight());
-
         stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController(null));
 
         stage.show();
@@ -216,26 +228,33 @@ public class MonitorTabController extends ApplicationTabController implements Sh
         sequenceManagementAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
             sequence++;
 
-            if (sequence > Y_AXIS_LENGTH) {
-                CPUDataSeriesSystem.getData().remove(0);
-                CPUDataSeriesApplication.getData().remove(0);
-
-                NetworkDataSeriesReceivedApplication.getData().remove(0);
-                NetworkDataSeriesReceivedSystem.getData().remove(0);
-                NetworkDataSeriesSentApplication.getData().remove(0);
-                NetworkDataSeriesSentSystem.getData().remove(0);
-
-                MemoryDataSeriesSystem.getData().remove(0);
-                MemoryDataSeriesApplication.getData().remove(0);
+            for(NumberAxis axis : axises) {
+                axis.setLowerBound(sequence-Y_AXIS_LENGTH);
+                axis.setUpperBound(sequence-1);
             }
-
-            if (sequence > Y_AXIS_LENGTH - 1) {
-                xAxis.setLowerBound(xAxis.getLowerBound() + 1);
-                xAxis.setUpperBound(xAxis.getUpperBound() + 1);
-            }
-
         }));
         sequenceManagementAnimation.setCycleCount(Animation.INDEFINITE);
+    }
+
+    /**
+     * Sets up the Network Chart
+     * Data from the {@link CPUMonitor} class is added to the 2 series' in this chart every minute
+     */
+    private void initializeCPUChart() {
+        CPUAnimation = new Timeline();
+        CPUAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(250), event -> {
+            CPUDataSeriesSystem.getData().add(new AreaChart.Data(sequence, cpuMonitor.systemCPUPercentageUtilizationProperty().get()));
+            CPUDataSeriesApplication.getData().add(new AreaChart.Data(sequence, cpuMonitor.applicationCPUPercentageUtilizationProperty().get()));
+        }));
+        CPUAnimation.setCycleCount(Animation.INDEFINITE);
+
+        CPUDataSeriesSystem = new AreaChart.Series<>();
+        CPUChart.getData().add(CPUDataSeriesSystem);
+        styleSeries(CPUDataSeriesSystem, Color.RED, false);
+
+        CPUDataSeriesApplication = new AreaChart.Series<>();
+        CPUChart.getData().add(CPUDataSeriesApplication);
+        styleSeries(CPUDataSeriesApplication, Color.GREEN, false);
     }
 
     /**
@@ -302,33 +321,15 @@ public class MonitorTabController extends ApplicationTabController implements Sh
     }
 
     /**
-     * Sets up the Network Chart
-     * Data from the {@link CPUMonitor} class is added to the 2 series' in this chart every minute
-     */
-    private void initializeCPUChart() {
-        CPUAnimation = new Timeline();
-        CPUAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), event -> {
-            CPUDataSeriesSystem.getData().add(new XYChart.Data<>(sequence, cpuMonitor.systemCPUPercentageUtilizationProperty().get()));
-            CPUDataSeriesApplication.getData().add(new XYChart.Data<>(sequence, cpuMonitor.applicationCPUPercentageUtilizationProperty().get()));
-        }));
-        CPUAnimation.setCycleCount(Animation.INDEFINITE);
-
-        CPUDataSeriesSystem = new XYChart.Series<>();
-        CPUChart.getData().add(CPUDataSeriesSystem);
-        styleSeries(CPUDataSeriesSystem, Color.RED, false);
-
-        CPUDataSeriesApplication = new XYChart.Series<>();
-        CPUChart.getData().add(CPUDataSeriesApplication);
-        styleSeries(CPUDataSeriesApplication, Color.GREEN, false);
-    }
-
-    /**
      * Starts the {@link MonitorService} to gather data from the device
      * Binds the labels to the data in each monitor
      * starts all chart animations
      */
     public void play() {
         Log.info("Playing...");
+
+        if(monitorServiceThread != null)
+            monitorServiceThread.interrupt();
 
         monitorServiceThread = new Thread(monitorService);
         monitorServiceThread.start();
