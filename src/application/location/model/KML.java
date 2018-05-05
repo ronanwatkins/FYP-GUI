@@ -1,4 +1,4 @@
-package application.location;
+package application.location.model;
 
 import application.utilities.XMLUtil;
 import javafx.beans.property.DoubleProperty;
@@ -31,7 +31,7 @@ public class KML {
     }
 
     public static void update(String name, ObservableList<KML> KMLCommands) {
-        new XMLUtil(true).saveKMLFile(name);
+        new XMLUtil(true).updateFile(name, KMLCommands);
     }
 
     public String getCoordinate() {

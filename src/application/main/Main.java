@@ -22,8 +22,6 @@ public class Main extends Application {
 
     public static final String APPLICATION_DIRECTORY = System.getProperty("user.dir") + "\\misc";
 
-    private static Parent root;
-
     private static HostServices services;
 
     @Override
@@ -33,7 +31,7 @@ public class Main extends Application {
         services = getHostServices();
 
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("FXMLMain.fxml"));
-        root = fxmlLoader.load();
+        final Parent root = fxmlLoader.load();
 
         Scene scene = new Scene(root);
         scene.getStylesheets().add("/application/main/global.css");

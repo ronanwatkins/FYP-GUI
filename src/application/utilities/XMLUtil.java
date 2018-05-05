@@ -12,11 +12,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import application.location.KML;
+import application.location.model.KML;
 import application.location.LocationTabController;
-import application.logcat.Filter;
+import application.logcat.filter.Filter;
 import application.logcat.LogCatTabController;
-import application.logcat.LogLevel;
+import application.logcat.filter.LogLevel;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -72,11 +72,11 @@ public class XMLUtil {
 
                     HashMap<String, Double> sensorValues;
 
-                    for (int i = 0; i < nodeList.getLength(); i++) { //looping through "stage"
+                    for (int i = 0; i < nodeList.getLength(); i++) {
                         Node node = nodeList.item(i);
                         sensorValues = new HashMap<>();
                         NodeList childList = node.getChildNodes();
-                        for(int j=0; j<childList.getLength(); j++) { //looping through "sensor"
+                        for(int j=0; j<childList.getLength(); j++) {
                             Node childNode = childList.item(j);
 
                             if (childNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -154,10 +154,10 @@ public class XMLUtil {
 
                     NodeList nodeList = document.getElementsByTagName("kml");
 
-                    for (int i = 0; i < nodeList.getLength(); i++) { //looping through "Document"
+                    for (int i = 0; i < nodeList.getLength(); i++) {
                         Node node = nodeList.item(i);
                         NodeList childList = node.getChildNodes();
-                        for(int j=0; j<childList.getLength(); j++) { //looping through "Placemark"
+                        for(int j=0; j<childList.getLength(); j++) {
                             Node childNode = childList.item(j);
                             if (childNode.getNodeType() == Node.ELEMENT_NODE) {
                                 element = (Element) childNode;
@@ -282,7 +282,7 @@ public class XMLUtil {
 
                     NodeList nodeList = document.getElementsByTagName("command");
 
-                    for (int i = 0; i < nodeList.getLength(); i++) { //looping through "command"
+                    for (int i = 0; i < nodeList.getLength(); i++) {
                         element = (Element) nodeList.item(i);
                         returnList.add(element.getTextContent());
                     }
@@ -329,8 +329,7 @@ public class XMLUtil {
         rootElement.appendChild(element);
 
         Log.info("saveFilter>> " + filter.toString());
-        File file = new File( LogCatTabController.FILTER_DIRECTORY + filter.getFilterName() + ".xml");
-        saveFile(file);
+        saveFile(new File( LogCatTabController.FILTER_DIRECTORY + filter.getFilterName() + ".xml"));
     }
 
     public Filter openFilter(String name) {
@@ -348,7 +347,7 @@ public class XMLUtil {
 
             NodeList nodeList = document.getElementsByTagName("global");
 
-            for (int i = 0; i < nodeList.getLength(); i++) { //looping through "global"
+            for (int i = 0; i < nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);
 
                 if (node.getNodeType() == Node.ELEMENT_NODE) {

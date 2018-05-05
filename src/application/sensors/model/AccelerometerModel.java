@@ -58,9 +58,6 @@ public class AccelerometerModel extends SensorModel {
     private double mVX; // velocity
     private double mVZ;
 
-    /** Spring constant. */
-    private double mSpringK;
-
     /**
      * Mass of accelerometer test particle.
      *
@@ -68,38 +65,14 @@ public class AccelerometerModel extends SensorModel {
      */
     private double mMass;
 
-    private double mGamma; // damping of spring
-
-    /** Inverse of screen pixel per meter */
-    private double mMeterPerPixel;
-
-    /**
-     * Gravity constant.
-     *
-     * This takes the value 9.8 m/s^2.
-     * */
-    private double mGConstant;
-
-    // Accelerometer
-    private double mAccelerometerLimit;
-    private boolean mShowAcceleration;
-
     public AccelerometerModel() {
         mAccX = 0;
         mAccZ = 0;
 
-        mShowAcceleration = true;
-
         mMoveX = 0;
         mMoveZ = 0;
 
-        mSpringK = 500; // spring constant
         mMass = 1; // mass
-        mGamma = 50; // damping
-        mMeterPerPixel = 1 / 3000.; // meter per pixel
-
-        mGConstant = 9.80665; // meter per second^2
-        mAccelerometerLimit = 10;
     }
 
     public void setXYZ(ThreeDimensionalVector vec) {
@@ -180,14 +153,14 @@ public class AccelerometerModel extends SensorModel {
         }
     }
 
-    public void resetAvg() {
+    private void resetAvg() {
         mPartialAccelX = 0;
         mPartialAccelY = 0;
         mPartialAccelZ = 0;
         mPartialAccelN = 0;
     }
 
-    public void computeAvg() {
+    private void computeAvg() {
         mReadAccelx = mPartialAccelX / mPartialAccelN;
         mReadAccely = mPartialAccelY / mPartialAccelN;
         mReadAccelz = mPartialAccelZ / mPartialAccelN;
@@ -206,9 +179,6 @@ public class AccelerometerModel extends SensorModel {
     }
 
     public void refreshAcceleration(double kView, double gammaView, double dt) {
-        mSpringK = kView;
-        mGamma = gammaView;
-
         // First calculate the force acting on the
         // sensor test particle, assuming that
         // the accelerometer is mounted by a string:

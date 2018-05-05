@@ -1,5 +1,6 @@
 package application.location;
 
+import application.location.model.KML;
 import application.utilities.TelnetServer;
 import application.automation.AutomationTabController;
 import application.utilities.ApplicationUtils;
@@ -186,9 +187,8 @@ public class LocationTabController extends AutomationTabController implements In
         try {
             filesListView.getItems().clear();
             filesList.clear();
-            for (File file : Objects.requireNonNull(directory.listFiles())) {
+            for (File file : Objects.requireNonNull(directory.listFiles()))
                 filesList.add(file.getName().replace(EXTENSION, ""));
-            }
         } catch (NullPointerException npe) {
             Log.error(npe.getMessage(), npe);
         }

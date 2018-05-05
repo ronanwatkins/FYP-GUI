@@ -72,7 +72,7 @@ public class Device {
         resolutionY = Double.parseDouble(size[1]);
 
         response = consoleCommand("shell \"getevent -il | grep ABS_MT_POSITION\"").split("\n");
-        //Log.info("response: " + response);
+
 
         for(String res : response) {
             if(res.contains("ABS_MT_POSITION_X")) {
@@ -235,9 +235,9 @@ public class Device {
                             try {
                                 if(lineGlobal.contains("ABS_MT_POSITION_X")) {
                                     double x = decimal.doubleValue()*(resolutionX/maxPositionX);
-                                    //Log.info("decimal: " + decimal);
-                                    //Log.info("resolutionX: " + resolutionX);
-                                    //Log.info("maxpositioX: " + maxPositionX);
+
+
+
 
                                     if(swipeFlag.get()) {
                                         if (xStart == 0.0) {

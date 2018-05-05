@@ -1,5 +1,6 @@
 package application.main;
 
+import application.monitor.MonitorTabController;
 import application.utilities.ADBConnectionController;
 import application.utilities.ADBUtil;
 import javafx.event.ActionEvent;
@@ -47,6 +48,14 @@ public class FXMLMainController implements Initializable {
      */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
+        monitorTab.setOnSelectionChanged(event -> {
+            if(monitorTab.isSelected())
+                MonitorTabController.getController().resume();
+            else
+                MonitorTabController.getController().pause();
+        });
+
         sensorsTab.setGraphic(setIcon("/resources/sensor.png", 40, 40));
         locationTab.setGraphic(setIcon("/resources/location.jpg", 15, 15));
         phoneTab.setGraphic(setIcon("/resources/phone.png",15, 15));

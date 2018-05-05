@@ -1,5 +1,9 @@
 package application.logcat;
 
+import application.logcat.filter.Bundle;
+import application.logcat.filter.CreateFilterController;
+import application.logcat.filter.Filter;
+import application.logcat.filter.LogLevel;
 import application.utilities.ADBUtil;
 import application.applications.ApplicationTabController;
 import application.automation.AutomationTabController;

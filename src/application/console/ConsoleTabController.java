@@ -12,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -37,6 +38,8 @@ public class ConsoleTabController implements Initializable, ApplicationUtils {
 
     private Device device = Device.getInstance();
 
+    private KeyCode lastEnteredCode;
+
     /**
      * Called to initialize a controller after its root element has been
      * completely processed.
@@ -44,6 +47,7 @@ public class ConsoleTabController implements Initializable, ApplicationUtils {
      * @param location
      * @param resources
      */
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initializeButtons();
@@ -53,11 +57,25 @@ public class ConsoleTabController implements Initializable, ApplicationUtils {
         enterButton.setOnAction(event -> enterCommand(commandField.getText().trim()));
         commandField.setOnAction(event -> enterCommand(commandField.getText().trim()));
         commandField.textProperty().addListener((observable, oldValue, newValue) -> enterButton.setDisable(commandField.getText().isEmpty()));
+
+        commandField.setOnKeyPressed(event -> {
+            if(lastEnteredCode != null) {
+                if(lastEnteredCode == KeyCode.CONTROL && event.getCode().equals(KeyCode.C)) {
+                    if(runCommandTask != null) {
+                        runCommandTask.cancel();
+                        Log.info("CTRL C pressed, cancelling");
+                    }
+                }
+            }
+
+            lastEnteredCode = event.getCode();
+        });
+
         helpLink.setOnAction(event -> browse("https://developer.android.com/studio/command-line/adb.html#issuingcommands"));
     }
 
     /**
-     * Sends the shell command ovre ADB to the connected device
+     * Sends the shell command over ADB to the connected device
      * @param command
      */
     private void enterCommand(String command) {

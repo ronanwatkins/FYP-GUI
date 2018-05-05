@@ -62,6 +62,8 @@ public class PhoneTabController implements Initializable, ApplicationUtils {
      */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        initializeButtons();
+
         batterySlider.setValue(100);
         batteryHealth.getSelectionModel().select(2);
         batteryStatus.getSelectionModel().select(3);
@@ -90,19 +92,7 @@ public class PhoneTabController implements Initializable, ApplicationUtils {
      */
     private void handleTextAreaEvents() {
         phoneNumberField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if(!phoneNumberField.getText().isEmpty()) {
-                try {
-                    Integer.parseInt(phoneNumberField.getText());
-                    isInteger = true;
-                } catch (NumberFormatException nfe) {
-                    isInteger = false;
-                }
-
-                if(isInteger)
-                    makeCallButton.setDisable(false);
-                else makeCallButton.setDisable(true);
-            }
-            else makeCallButton.setDisable(true);
+            checkPhoneNumberField();
         });
 
         messageArea.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -110,6 +100,28 @@ public class PhoneTabController implements Initializable, ApplicationUtils {
                 sendSMSButton.setDisable(false);
             else sendSMSButton.setDisable(true);
         });
+    }
+
+    private void checkPhoneNumberField() {
+        if(!phoneNumberField.getText().isEmpty() && endCallButton.isDisable()) {
+            try {
+                Integer.parseInt(phoneNumberField.getText());
+                isInteger = true;
+            } catch (NumberFormatException nfe) {
+                isInteger = false;
+            }
+
+            if(isInteger) {
+                makeCallButton.setDisable(false);
+                if(!messageArea.getText().isEmpty())
+                    sendSMSButton.setDisable(false);
+            }
+            else {
+                makeCallButton.setDisable(true);
+                sendSMSButton.setDisable(true);
+            }
+        }
+        else makeCallButton.setDisable(true);
     }
 
     /**
@@ -203,9 +215,11 @@ public class PhoneTabController implements Initializable, ApplicationUtils {
     @FXML
     private void handleEndCallButtonClicked(ActionEvent event) {
         TelnetServer.endCall(phoneNumber);
-        makeCallButton.setDisable(false);
         endCallButton.setDisable(true);
+        holdCallButton.setText("Hold");
+        isOnHold = false;
         holdCallButton.setDisable(true);
+        checkPhoneNumberField();
     }
 
     /**

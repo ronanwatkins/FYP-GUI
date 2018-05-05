@@ -385,6 +385,9 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
      * If button is pressed while it is recording, recording is paused
      * @param event
      */
+
+    private int sequence = 0;
+
     @FXML
     private void handleRecordButtonClicked(ActionEvent event) {
         isRecording = !isRecording;
@@ -395,6 +398,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
                 @Override
                 public void run() {
                     if (isRecording) {
+                        System.out.println(sequence++);
                         xmlUtil.addElement(sensorValues);
                     }
                 }
@@ -1003,7 +1007,7 @@ public class SensorsTabController implements Initializable, ApplicationUtils {
      * Private inner class operating as a background thread to read the sensor values loaded from the XML file
      * Updates the slider values as it reads them from the loadedValues hashMap
      */
-    private class playbackThread extends Thread {
+    private class playbackThread implements Runnable {
         private final AtomicBoolean pauseFlag = new AtomicBoolean(false);
         private final AtomicBoolean stopFlag = new AtomicBoolean(false);
 

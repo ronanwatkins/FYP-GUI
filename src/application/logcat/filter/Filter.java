@@ -1,4 +1,4 @@
-package application.logcat;
+package application.logcat.filter;
 
 import application.utilities.XMLUtil;
 

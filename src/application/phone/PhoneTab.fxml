@@ -40,9 +40,9 @@
         <!--COLUMN 0-->
         <Label text="From" />
         <TextField fx:id="phoneNumberField" prefHeight="25.0" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-        <Button fx:id="makeCallButton" onAction="#handleMakeCallButtonClicked" prefWidth="150" text="Call" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
-        <Button fx:id="holdCallButton" onAction="#handleHoldCallButtonClicked" prefWidth="150" text="Hold" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
-        <Button fx:id="endCallButton" onAction="#handleEndCallButtonClicked" prefWidth="150" text="End Call" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
+        <Button fx:id="makeCallButton" onAction="#handleMakeCallButtonClicked" prefWidth="100" text="Call" GridPane.halignment="LEFT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
+        <Button fx:id="holdCallButton" onAction="#handleHoldCallButtonClicked" prefWidth="100" text="Hold" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
+        <Button fx:id="endCallButton" onAction="#handleEndCallButtonClicked" prefWidth="100" text="End Call" GridPane.halignment="RIGHT" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
         <Label text="Message" GridPane.rowIndex="2" />
         <TextArea fx:id="messageArea" prefHeight="6.0" GridPane.rowIndex="3" GridPane.rowSpan="2" />
         <Button fx:id="sendSMSButton" onAction="#handleSendSMSButtonClicked" prefWidth="150" text="SendSMS" GridPane.rowIndex="5" />

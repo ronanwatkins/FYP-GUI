@@ -25,7 +25,7 @@ public class MonitorService implements Runnable {
 
     private static MonitorService instance = new MonitorService();
     private ArrayList<Task<Void>> tasks = new ArrayList<>();
-    private AtomicBoolean isRunning;
+    private AtomicBoolean isRunning = new AtomicBoolean(false);
 
     private String startOfCommand;
 
@@ -71,6 +71,25 @@ public class MonitorService implements Runnable {
 
         for(Task<Void> task : tasks)
             new Thread(task).start();
+    }
+
+    private void setRunning(boolean flag) {
+        this.isRunning.set(flag);
+        synchronized (isRunning) {
+            isRunning.notifyAll();
+        }
+    }
+
+    public void pause() {
+        setRunning(false);
+    }
+
+    public void resume() {
+        setRunning(true);
+    }
+
+    public boolean isRunning() {
+        return isRunning.get();
     }
 
     public boolean cancel() {
@@ -134,6 +153,8 @@ public class MonitorService implements Runnable {
                 if (isCancelled())
                     break;
 
+                checkIfPaused(this);
+
                 if (line.startsWith("User") || line.isEmpty()) {
                     continue;
                 }
@@ -185,6 +206,8 @@ public class MonitorService implements Runnable {
                 if(isCancelled())
                     return null;
 
+                checkIfPaused(this);
+
                 try {
                     String response = getResponseLine(command).split(" ")[0].split("\\.")[0];
                     long totalSeconds = Long.parseLong(response.trim());
@@ -223,6 +246,8 @@ public class MonitorService implements Runnable {
                 if(isCancelled())
                     break;
 
+                checkIfPaused(this);
+
                 if(line.isEmpty())
                     continue;
 
@@ -233,7 +258,6 @@ public class MonitorService implements Runnable {
                             final String newLine = line.trim().replaceAll(" {2,}" , " ").split(" ")[2].replace("%", "");
                             percentage = Integer.parseInt(newLine);
                             Platform.runLater(() -> cpuMonitor.setApplicationCPUPercentageUtilization(percentage));
-                            //Log.info("Application CPU Percentage Utilization: " + cpuMonitor.getApplicationCPUPercentageUtilization());
                             break;
                         case SYSTEM:
                             String s = line.trim().split(",")[0].trim().split(" ")[1].replace("%", "");
@@ -262,6 +286,8 @@ public class MonitorService implements Runnable {
             while(true) {
                 if(isCancelled())
                     return null;
+
+                checkIfPaused(this);
 
                 try {
                     String receivedBytes = "0";
@@ -386,6 +412,8 @@ public class MonitorService implements Runnable {
                 if(isCancelled())
                     return null;
 
+                checkIfPaused(this);
+
                 try {
                     switch (taskType) {
                         case SYSTEM:
@@ -400,22 +428,19 @@ public class MonitorService implements Runnable {
                             final int newFreeMemory = freeMemory;
 
                             Platform.runLater(() -> memoryMonitor.setFreeMemory(newFreeMemory));
-                            //Log.info("Free Memory: " + memoryMonitor.getTotalMemory());
+
                             break;
                         case APPLICATION:
                             //Total application memory usage
                             String applicationMemoryUsage = "0";
                             if (device.getSelectedApplication() != null) {
                                 String response = getResponseLine(command);
-                                //Log.info("response 1: " + response);
                                 response = response != null ? response.trim().replaceAll(" {2,}", " ") : "0 0";
-                                //Log.info("Response: " + response);
                                 applicationMemoryUsage = response.split(" ")[1];
                             }
                             final String newApplicationMemoryUsage = applicationMemoryUsage;
 
                             Platform.runLater(() -> memoryMonitor.setApplicationMemoryUsage(Integer.parseInt(newApplicationMemoryUsage)));
-                            //Log.info("Total application memory usage " + memoryMonitor.getApplicationMemoryUsage());
                             break;
                     }
                 } catch (NumberFormatException nfe) {
@@ -447,6 +472,8 @@ public class MonitorService implements Runnable {
                 if(isCancelled())
                     return null;
 
+                checkIfPaused(this);
+
                 String runningProcesses = getResponseLine(runningProcessesCommand).trim();
                 String currentFrequency = getResponseLine(currentFrequencyCommand).trim();
 
@@ -468,14 +495,30 @@ public class MonitorService implements Runnable {
         }
     }
 
+    private void checkIfPaused(Task task) {
+        if (!isRunning.get()) {
+            synchronized (isRunning) {
+                while (!isRunning.get()) {
+                    try {
+                        Log.info("pause");
+                        isRunning.wait();
+                    } catch (InterruptedException e) {
+                        Log.info("cancelled");
+                        task.cancel();
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
     private BufferedReader getResponse(String input) throws IOException {
         Process process = Runtime.getRuntime().exec(input);
         return new BufferedReader(new InputStreamReader(process.getInputStream()));
     }
 
     private String getResponseLine(String input) {
-        //Log.info("input: " + input);
-        //Log.info("full command: " + startOfCommand + " " + input);
+
         String response = "";
 
         try {

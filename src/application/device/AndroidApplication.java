@@ -40,7 +40,7 @@ public class AndroidApplication {
         permissions = FXCollections.observableArrayList(getPermissions(packageName));
         intents = FXCollections.observableArrayList(getIntents(packageName));
         //mimeTypeMap = Intent.mimeMap(packageName);
-        //Log.info(6);
+
     }
 
     //Getters

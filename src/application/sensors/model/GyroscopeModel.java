@@ -94,8 +94,7 @@ public class GyroscopeModel extends SensorModel {
         return mReadAngleSpeedPitch;
     }
 
-    public void refreshAngularSpeed(double dt, double crtPitch, double crtYaw,
-                                    double crtRoll) {
+    public void refreshAngularSpeed(double dt, double crtPitch, double crtYaw, double crtRoll) {
         // for yaw:
         // dt
         // movedAngleYaw = mCrtYaw - mOldYaw
@@ -136,5 +135,7 @@ public class GyroscopeModel extends SensorModel {
             mInstantSpeedRoll = 0;
         }
     }
+
+
 
 }

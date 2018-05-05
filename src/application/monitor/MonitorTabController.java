@@ -320,6 +320,12 @@ public class MonitorTabController extends ApplicationTabController implements Sh
         styleSeries(MemoryDataSeriesApplication, Color.MAGENTA, false);
     }
 
+    private long monitorStartTime;
+
+    private long getMonitorExecutionTime() {
+        return System.currentTimeMillis() - monitorStartTime;
+    }
+
     /**
      * Starts the {@link MonitorService} to gather data from the device
      * Binds the labels to the data in each monitor
@@ -331,6 +337,7 @@ public class MonitorTabController extends ApplicationTabController implements Sh
         if(monitorServiceThread != null)
             monitorServiceThread.interrupt();
 
+        monitorStartTime = System.currentTimeMillis();
         monitorServiceThread = new Thread(monitorService);
         monitorServiceThread.start();
 
@@ -340,6 +347,30 @@ public class MonitorTabController extends ApplicationTabController implements Sh
         MemoryAnimation.play();
         CPUAnimation.play();
         NetworkAnimation.play();
+    }
+
+    public void pause() {
+        Log.info("pausing monitor service");
+
+        if(monitorServiceThread != null) {
+            monitorService.pause();
+            sequenceManagementAnimation.pause();
+            MemoryAnimation.pause();
+            CPUAnimation.pause();
+            NetworkAnimation.pause();
+        }
+    }
+
+    public void resume() {
+        Log.info("resuming monitor service");
+
+        if(monitorServiceThread != null) {
+            monitorService.resume();
+            sequenceManagementAnimation.play();
+            MemoryAnimation.play();
+            CPUAnimation.play();
+            NetworkAnimation.play();
+        }
     }
 
     /**

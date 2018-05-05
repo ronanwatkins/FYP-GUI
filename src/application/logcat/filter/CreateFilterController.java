@@ -1,5 +1,6 @@
-package application.logcat;
+package application.logcat.filter;
 
+import application.logcat.LogCatTabController;
 import application.utilities.ApplicationUtils;
 import application.utilities.Showable;
 import javafx.event.ActionEvent;
@@ -82,7 +83,7 @@ public class CreateFilterController implements Initializable, Showable<LogCatTab
     @Override
     public Initializable newWindow(LogCatTabController logCatTabController, Object object) throws IOException {
         controller = logCatTabController;
-        FXMLLoader fxmlLoader = new FXMLLoader(logCatTabController.getClass().getResource("/application/logcat/CreateFilter.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(logCatTabController.getClass().getResource("/application/logcat/filter/CreateFilter.fxml"));
         Bundle bundle = new Bundle(logCatTabController.getFileToEditName());
         fxmlLoader.setResources(bundle);
 
