@@ -1,6 +1,7 @@
 package application.device;
 
 import application.utilities.ADBUtil;
+import application.utilities.Singleton;
 import application.utilities.TelnetServer;
 import application.applications.ApplicationTabController;
 import application.automation.extras.GetTouchPositionController;
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static application.utilities.ADBUtil.consoleCommand;
 
-public class Device {
+public class Device implements Singleton {
     private static final Logger Log = Logger.getLogger(Device.class.getName());
 
     private static Device instance = new Device();

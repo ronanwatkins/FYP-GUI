@@ -1,8 +1,9 @@
 package application.monitor.model;
 
+import application.utilities.Singleton;
 import javafx.beans.property.*;
 
-public class CPUMonitor {
+public class CPUMonitor implements Singleton {
     private static CPUMonitor instance = new CPUMonitor();
 
     private IntegerProperty applicationCPUPercentageUtilization;

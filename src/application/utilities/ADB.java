@@ -278,6 +278,8 @@ public class ADB {
 
         String packageDetails = ADBUtil.consoleCommand("shell dumpsys package " + app);
 
+        Log.info("PACKAGE " + packageDetails);
+
         if(packageDetails.contains(ACTIVITY_RESOLVER_TABLE))
             set.addAll(intents(packageDetails, Intent.ACTIVITY));
         if(packageDetails.contains(RECEIVER_RESOLVER_TABLE))

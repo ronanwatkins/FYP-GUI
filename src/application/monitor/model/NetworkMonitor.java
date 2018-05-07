@@ -1,11 +1,12 @@
 package application.monitor.model;
 
+import application.utilities.Singleton;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
 
-public class NetworkMonitor {
+public class NetworkMonitor implements Singleton {
     private static NetworkMonitor instance = new NetworkMonitor();
 
     private LongProperty applicationReceivedBytes;

@@ -5,6 +5,7 @@ import application.device.Device;
 import application.monitor.model.CPUMonitor;
 import application.monitor.model.MemoryMonitor;
 import application.monitor.model.NetworkMonitor;
+import application.utilities.Singleton;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.apache.log4j.Logger;
@@ -15,7 +16,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MonitorService implements Runnable {
+public class MonitorService implements Singleton, Runnable {
     private static final Logger Log = Logger.getLogger(MonitorService.class.getName());
 
     private Device device = Device.getInstance();
@@ -74,7 +75,7 @@ public class MonitorService implements Runnable {
     }
 
     private void setRunning(boolean flag) {
-        this.isRunning.set(flag);
+        isRunning.set(flag);
         synchronized (isRunning) {
             isRunning.notifyAll();
         }

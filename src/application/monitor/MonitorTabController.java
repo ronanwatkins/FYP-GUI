@@ -192,20 +192,16 @@ public class MonitorTabController extends ApplicationTabController implements Sh
 
         MonitorTabController monitorTabController = fxmlLoader.getController();
 
-
         Stage stage = new Stage();
         stage.initModality(Modality.NONE);
         stage.setTitle("Monitor");
-
         stage.setScene(scene);
         stage.setMaximized(true);
 
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
         stage.setMaxWidth(primaryScreenBounds.getWidth());
         stage.setMaxHeight(primaryScreenBounds.getHeight());
-
         stage.setOnCloseRequest(event -> automationTabController.setMonitorTabController(null));
-
         stage.show();
 
         monitorTabController.updateDeviceListView();
